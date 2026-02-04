@@ -56,7 +56,7 @@ Hooks.once('ready', async function() {
   await registerSheets();
 });
 
-// Регистрация листов (ИСПРАВЛЕННАЯ ВЕРСИЯ)
+// Регистрация листов (исправленная версия для v13)
 async function registerSheets() {
   try {
     console.log('Through the Breach | Registering sheets...');
@@ -66,24 +66,31 @@ async function registerSheets() {
     const npcSheetModule = await import('./actors/npc-sheet.js');
     const itemSheetModule = await import('./items/item-sheet.js');
     
-    // Регистрируем листы акторов (НОВЫЙ API v13)
-    foundry.documents.BaseActor.unregisterSheet("core", foundry.appv1.sheets.ActorSheet);
+    // Регистрируем листы акторов (ПРАВИЛЬНЫЙ способ для v13)
+    // Используем правильный namespace для v13
+    const DocumentSheetConfig = foundry.applications.apps.DocumentSheetConfig;
+    const ActorSheet = foundry.appv1.sheets.ActorSheet;
+    const ItemSheet = foundry.appv1.sheets.ItemSheet;
     
-    foundry.documents.BaseActor.registerSheet("through-the-breach", characterSheetModule.TtBCharacterSheet, {
+    // Сначала отменяем регистрацию стандартных листов
+    DocumentSheetConfig.unregisterSheet(Actor, "core", ActorSheet);
+    
+    // Затем регистрируем наши листы для акторов
+    DocumentSheetConfig.registerSheet(Actor, "through-the-breach", characterSheetModule.TtBCharacterSheet, {
       types: ["character"],
       makeDefault: true,
       label: "TTB.CharacterSheet"
     });
     
-    foundry.documents.BaseActor.registerSheet("through-the-breach", npcSheetModule.TtBNPCSheet, {
+    DocumentSheetConfig.registerSheet(Actor, "through-the-breach", npcSheetModule.TtBNPCSheet, {
       types: ["npc"],
       makeDefault: true,
       label: "TTB.NPCSheet"
     });
     
     // Регистрируем листы предметов
-    foundry.documents.BaseItem.unregisterSheet("core", foundry.appv1.sheets.ItemSheet);
-    foundry.documents.BaseItem.registerSheet("through-the-breach", itemSheetModule.TtBItemSheet, {
+    DocumentSheetConfig.unregisterSheet(Item, "core", ItemSheet);
+    DocumentSheetConfig.registerSheet(Item, "through-the-breach", itemSheetModule.TtBItemSheet, {
       makeDefault: true,
       label: "TTB.ItemSheet"
     });
@@ -97,7 +104,7 @@ async function registerSheets() {
 
 // Хук на создание актора
 Hooks.on('preCreateActor', (actorData, options, userId) => {
-  console.log('Through the Breach | Creating actor:', actorData);
+  console.log('Through the Breach | Creating actor:', actorData.name);
   
   // Устанавливаем тип по умолчанию, если не указан
   if (!actorData.type) {
@@ -113,6 +120,28 @@ Hooks.on('preCreateActor', (actorData, options, userId) => {
   // Инициализируем данные актора
   if (!actorData.system) {
     actorData.system = {};
+  }
+  
+  // Устанавливаем базовую структуру данных для системы
+  if (!actorData.system.abilities) {
+    actorData.system.abilities = {
+      strength: { value: 3, max: 13 },
+      agility: { value: 3, max: 13 },
+      intellect: { value: 3, max: 13 },
+      cunning: { value: 3, max: 13 },
+      willpower: { value: 3, max: 13 },
+      presence: { value: 3, max: 13 }
+    };
+  }
+  
+  if (!actorData.system.attributes) {
+    actorData.system.attributes = {
+      health: { value: 10, max: 10 },
+      fate: { value: 3, max: 3 },
+      wounds: { value: 0 },
+      experience: { value: 0 },
+      rank: { value: 'Novice' }
+    };
   }
   
   return actorData;
@@ -147,21 +176,43 @@ Hooks.on('preCreateItem', (itemData, options, userId) => {
   return itemData;
 });
 
-// Хук для отладки ошибок
-Hooks.on('error', (error, isFatal, metadata) => {
-  console.error('Through the Breach | System Error:', error);
-  if (metadata) {
-    console.error('Error metadata:', metadata);
-  }
+// Хук для добавления создания актора через диалог (исправляем ошибку createDialog)
+Hooks.on('getActorDirectoryEntryContext', (html, options) => {
+  options.push({
+    name: "Create TtB Character",
+    icon: '<i class="fas fa-user"></i>',
+    condition: li => {
+      const folder = li.closest('[data-folder-id]');
+      return !folder || folder.dataset.folderId;
+    },
+    callback: li => {
+      // Создаем актора с базовыми данными
+      const actorData = {
+        name: "New Character",
+        type: "character",
+        img: "icons/svg/mystery-man.svg",
+        system: {}
+      };
+      
+      Actor.create(actorData).then(actor => {
+        console.log('Through the Breach | Actor created via context menu:', actor);
+      });
+    }
+  });
+});
+
+// Хук на рендеринг листа (для отладки)
+Hooks.on('renderActorSheet', (app, html, data) => {
+  console.log('Through the Breach | Rendering actor sheet:', data.actor?.name, data.actor?.type);
 });
 
 // =============================================
 // Базовый класс Актера
 // =============================================
-class TtBActor extends foundry.documents.BaseActor {
+class TtBActor extends Actor {
   /** @override */
   constructor(data, context) {
-    console.log('Through the Breach | Creating TtBActor:', data.name || 'Unnamed');
+    console.log('Through the Breach | Creating TtBActor instance:', data.name);
     super(data, context);
   }
 
@@ -170,20 +221,29 @@ class TtBActor extends foundry.documents.BaseActor {
     console.log('Through the Breach | Preparing actor data for:', this.name);
     super.prepareData();
     
+    // Убедимся, что у нас есть данные
+    if (!this.system) this.system = {};
+    
     // Инициализация структур данных
     this._initializeSystemData();
     
+    // Вызываем расчет производных данных
+    this.prepareDerivedData();
+    
     return this;
+  }
+
+  /** @override */
+  prepareBaseData() {
+    super.prepareBaseData();
+    // Дополнительная базовая подготовка
   }
 
   /** @override */
   prepareDerivedData() {
     super.prepareDerivedData();
     
-    // Убедимся, что у нас есть данные
-    if (!this.system) return;
-    
-    // Расчет защиты
+    // Расчет защиты (Defense = 3 + Agility/2)
     if (this.system.abilities?.agility) {
       const agility = this.system.abilities.agility.value || 3;
       if (!this.system.defenses) this.system.defenses = {};
@@ -192,7 +252,7 @@ class TtBActor extends foundry.documents.BaseActor {
       };
     }
     
-    // Расчет максимального здоровья
+    // Расчет максимального здоровья (Health = 10 + Willpower/2)
     if (this.system.abilities?.willpower) {
       const willpower = this.system.abilities.willpower.value || 3;
       const maxHealth = 10 + Math.floor(willpower / 2);
@@ -203,11 +263,6 @@ class TtBActor extends foundry.documents.BaseActor {
         this.system.attributes.health.value = maxHealth;
       }
     }
-    
-    // Расчет тоталов для навыков (для шаблона)
-    if (this.system.skills) {
-      this._calculateSkillTotals();
-    }
   }
 
   // Инициализация данных системы
@@ -216,9 +271,6 @@ class TtBActor extends foundry.documents.BaseActor {
     if (!this.type) {
       this.type = 'character';
     }
-    
-    // Убедимся, что system существует
-    if (!this.system) this.system = {};
     
     // Инициализация способностей
     if (!this.system.abilities) {
@@ -283,28 +335,64 @@ class TtBActor extends foundry.documents.BaseActor {
       };
     }
   }
-  
-  // Расчет тоталов навыков
-  _calculateSkillTotals() {
-    if (!this.system.skills || !this.system.abilities) return;
+
+  /** @override */
+  static async createDialog(data={}, options={}) {
+    console.log('Through the Breach | Creating actor via dialog');
     
-    // Создаем объект с тоталами для шаблона
-    this.system.skillsWithTotals = {};
-    
-    for (const [skillKey, skillData] of Object.entries(this.system.skills)) {
-      const abilityValue = this.system.abilities[skillData.linked]?.value || 0;
-      this.system.skillsWithTotals[skillKey] = {
-        ...skillData,
-        total: skillData.value + abilityValue
-      };
-    }
+    // Используем стандартный диалог создания актора
+    return new Promise((resolve) => {
+      new Dialog({
+        title: "Create Actor",
+        content: `
+          <form>
+            <div class="form-group">
+              <label>Actor Type:</label>
+              <select name="type" style="width: 100%">
+                <option value="character">Character</option>
+                <option value="npc">NPC</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Name:</label>
+              <input type="text" name="name" value="New Actor" style="width: 100%">
+            </div>
+          </form>
+        `,
+        buttons: {
+          create: {
+            icon: '<i class="fas fa-check"></i>',
+            label: "Create",
+            callback: html => {
+              const form = html.find('form')[0];
+              // Используем стандартный FormData
+              const formData = new FormData(form);
+              const actorData = {
+                type: formData.get('type'),
+                name: formData.get('name') || 'New Actor',
+                img: 'icons/svg/mystery-man.svg'
+              };
+              
+              // Создаем актора
+              Actor.create(actorData).then(resolve);
+            }
+          },
+          cancel: {
+            icon: '<i class="fas fa-times"></i>',
+            label: "Cancel"
+          }
+        },
+        default: "create",
+        close: () => resolve(null)
+      }).render(true);
+    });
   }
 }
 
 // =============================================
 // Базовый класс Предмета
 // =============================================
-class TtBItem extends foundry.documents.BaseItem {
+class TtBItem extends Item {
   /** @override */
   prepareData() {
     super.prepareData();
@@ -353,6 +441,75 @@ class TtBItem extends foundry.documents.BaseItem {
         if (this.system.price === undefined) this.system.price = 0;
         break;
     }
+  }
+
+  /** @override */
+  static async createDialog(data={}, options={}) {
+    console.log('Through the Breach | Creating item via dialog');
+    
+    // Используем стандартный диалог создания предмета
+    return new Promise((resolve) => {
+      new Dialog({
+        title: "Create Item",
+        content: `
+          <form>
+            <div class="form-group">
+              <label>Item Type:</label>
+              <select name="type" style="width: 100%">
+                <option value="talent">Talent</option>
+                <option value="spell">Spell</option>
+                <option value="weapon">Weapon</option>
+                <option value="equipment">Equipment</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Name:</label>
+              <input type="text" name="name" value="New Item" style="width: 100%">
+            </div>
+          </form>
+        `,
+        buttons: {
+          create: {
+            icon: '<i class="fas fa-check"></i>',
+            label: "Create",
+            callback: html => {
+              const form = html.find('form')[0];
+              const formData = new FormData(form);
+              const itemData = {
+                type: formData.get('type'),
+                name: formData.get('name') || 'New Item'
+              };
+              
+              // Устанавливаем изображение по умолчанию
+              if (!itemData.img) {
+                switch (itemData.type) {
+                  case 'talent':
+                    itemData.img = 'icons/svg/upgrade.svg';
+                    break;
+                  case 'spell':
+                    itemData.img = 'icons/svg/fire.svg';
+                    break;
+                  case 'weapon':
+                    itemData.img = 'icons/svg/sword.svg';
+                    break;
+                  default:
+                    itemData.img = 'icons/svg/item-bag.svg';
+                }
+              }
+              
+              // Создаем предмет
+              Item.create(itemData).then(resolve);
+            }
+          },
+          cancel: {
+            icon: '<i class="fas fa-times"></i>',
+            label: "Cancel"
+          }
+        },
+        default: "create",
+        close: () => resolve(null)
+      }).render(true);
+    });
   }
 }
 

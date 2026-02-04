@@ -7,4 +7,24 @@ export class TtBItemSheet extends foundry.appv1.sheets.ItemSheet {
       height: 400
     });
   }
+  
+  getData() {
+    const context = super.getData();
+    context.system = context.item.system || {};
+    return context;
+  }
+  
+  activateListeners(html) {
+    super.activateListeners(html);
+    
+    html.find('input, textarea').change(ev => {
+      const input = ev.currentTarget;
+      const name = input.name;
+      const value = input.value;
+      
+      this.item.update({
+        [name]: value
+      });
+    });
+  }
 }

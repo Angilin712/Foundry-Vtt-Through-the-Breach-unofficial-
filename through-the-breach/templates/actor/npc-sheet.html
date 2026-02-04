@@ -1,0 +1,79 @@
+<form class="{{cssClass}} flexcol" autocomplete="off">
+  {{!-- Header --}}
+  <header class="sheet-header">
+    <img class="profile-img" src="{{actor.img}}" data-edit="img" title="{{actor.name}}" />
+    <div class="header-fields">
+      <h1 class="charname">
+        <input name="name" type="text" value="{{actor.name}}" placeholder="{{localize 'TTB.Name'}}" />
+      </h1>
+      <div class="resources grid grid-2col">
+        <div class="resource flex-group-center">
+          <label for="system.attributes.health.value" class="resource-label">{{localize 'TTB.AttributeHealth'}}</label>
+          <div class="resource-content flexrow flex-center flex-between">
+            <input type="number" name="system.attributes.health.value" value="{{system.attributes.health.value}}" data-dtype="Number" />
+            <span>/</span>
+            <input type="number" name="system.attributes.health.max" value="{{system.attributes.health.max}}" data-dtype="Number" />
+          </div>
+        </div>
+        
+        <div class="resource flex-group-center">
+          <label for="system.attributes.fate.value" class="resource-label">{{localize 'TTB.AttributeFate'}}</label>
+          <div class="resource-content flexrow flex-center flex-between">
+            <input type="number" name="system.attributes.fate.value" value="{{system.attributes.fate.value}}" data-dtype="Number" />
+            <span>/</span>
+            <input type="number" name="system.attributes.fate.max" value="{{system.attributes.fate.max}}" data-dtype="Number" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  {{!-- Навигация --}}
+  <nav class="sheet-tabs tabs" data-group="primary">
+    <a class="item" data-tab="attributes">{{localize 'TTB.Attributes'}}</a>
+    <a class="item" data-tab="notes">{{localize 'TTB.Notes'}}</a>
+  </nav>
+
+  {{!-- Основное содержимое --}}
+  <section class="sheet-body">
+    
+    {{!-- Вкладка Атрибутов --}}
+    <div class="tab attributes flexcol" data-group="primary" data-tab="attributes">
+      <div class="abilities grid grid-3col">
+        {{#each system.abilities as |ability key|}}
+        <div class="ability flexcol flex-group-center">
+          <label class="resource-label">{{lookup ../labels.abilities key}}</label>
+          <div class="ability-value flexrow flex-between">
+            <input type="number" name="system.abilities.{{key}}.value" value="{{ability.value}}" data-dtype="Number" />
+            <span>/ {{ability.max}}</span>
+          </div>
+        </div>
+        {{/each}}
+      </div>
+      
+      <div class="defenses grid grid-3col" style="margin-top: 20px;">
+        <div class="defense flexcol flex-group-center">
+          <label class="resource-label">{{localize 'TTB.Defense'}}</label>
+          <input type="number" name="system.defenses.defense.value" value="{{system.defenses.defense.value}}" data-dtype="Number" />
+        </div>
+        
+        <div class="defense flexcol flex-group-center">
+          <label class="resource-label">{{localize 'TTB.Soak'}}</label>
+          <input type="number" name="system.defenses.soak.value" value="{{system.defenses.soak.value}}" data-dtype="Number" />
+        </div>
+        
+        <div class="defense flexcol flex-group-center">
+          <label class="resource-label">{{localize 'TTB.Armor'}}</label>
+          <input type="number" name="system.defenses.armor.value" value="{{system.defenses.armor.value}}" data-dtype="Number" />
+        </div>
+      </div>
+    </div>
+    
+    {{!-- Вкладка Заметок --}}
+    <div class="tab notes flexcol" data-group="primary" data-tab="notes">
+      <label class="resource-label">{{localize 'TTB.Notes'}}</label>
+      <textarea name="system.details.notes" rows="14">{{system.details.notes}}</textarea>
+    </div>
+    
+  </section>
+</form>
