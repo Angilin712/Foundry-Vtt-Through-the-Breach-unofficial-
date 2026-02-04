@@ -2,7 +2,7 @@
   "id": "through-the-breach",
   "title": "Through the Breach",
   "description": "A Foundry VTT system for Through the Breach RPG",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "compatibility": {
     "minimum": "13",
     "verified": "13",
@@ -10,8 +10,8 @@
   },
   "authors": [
     {
-      "name": "Your Name",
-      "discord": "your_discord_username"
+      "name": "Angilin712",
+      "discord": "angilin"
     }
   ],
   "esmodules": ["scripts/ttb.js"],
@@ -52,4 +52,5 @@
   "readme": "README.md",
   "changelog": "CHANGELOG.md",
   "bugs": "https://github.com/your-username/through-the-breach/issues"
+
 }
