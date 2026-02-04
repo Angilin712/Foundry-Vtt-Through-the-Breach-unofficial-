@@ -1,0 +1,144 @@
+{
+  "TTB": {
+    "AbilityStr": "Сила",
+    "AbilityAgi": "Ловкость",
+    "AbilityInt": "Интеллект",
+    "AbilityCun": "Хитрость",
+    "AbilityWil": "Сила воли",
+    "AbilityPre": "Обаяние",
+    
+    "SkillMelee": "Ближний бой",
+    "SkillShooting": "Стрельба",
+    "SkillSpellcasting": "Колдовство",
+    "SkillStealth": "Скрытность",
+    "SkillNotice": "Внимательность",
+    "SkillPersuasion": "Убеждение",
+    "SkillIntimidation": "Запугивание",
+    "SkillInvestigation": "Расследование",
+    "SkillRepair": "Ремонт",
+    "SkillSurvival": "Выживание",
+    
+    "AttributeHealth": "Здоровье",
+    "AttributeFate": "Судьба",
+    "AttributeWounds": "Раны",
+    "AttributeExperience": "Опыт",
+    "AttributeRank": "Ранг",
+    "Attributes": "Характеристики",
+    
+    "Defense": "Защита",
+    "Soak": "Стойкость",
+    "Armor": "Броня",
+    
+    "SuitRams": "Баран",
+    "SuitTomes": "Том",
+    "SuitMasks": "Маска",
+    "SuitCrows": "Ворон",
+    
+    "CardBlackJoker": "Чёрный Джокер",
+    "CardRedJoker": "Красный Джокер",
+    
+    "Profession": "Профессия",
+    "Concept": "Концепция",
+    "Pursuit": "Призвание",
+    "Name": "Имя",
+    
+    "Novice": "Новичок",
+    "Seasoned": "Бывалый",
+    "Veteran": "Ветеран",
+    "Master": "Мастер",
+    
+    "Talents": "Таланты",
+    "Spells": "Заклинания",
+    "Weapons": "Оружие",
+    "Equipment": "Снаряжение",
+    "Inventory": "Инвентарь",
+    
+    "Description": "Описание",
+    "Requirements": "Требования",
+    "Damage": "Урон",
+    "Range": "Дистанция",
+    "Duration": "Длительность",
+    "Casting": "Направление",
+    "Effect": "Эффект",
+    "Cost": "Стоимость",
+    
+    "SkillCheck": "Проверка навыка",
+    "DrawCard": "Вытянуть карту",
+    "AttackRoll": "Атака",
+    "Difficulty": "Сложность",
+    "Success": "Успех",
+    "Failure": "Провал",
+    "TestButton": "Тестовая кнопка",
+    
+    "CharacterSheet": "Лист персонажа",
+    "NPCSheet": "Лист NPC",
+    "FateSheet": "Лист судьбы",
+    "ItemSheet": "Лист предмета",
+    
+    "CreateActor": "Создать актёра",
+    "CreateItem": "Создать предмет",
+    "Edit": "Редактировать",
+    "Delete": "Удалить",
+    
+    "Type": "Тип",
+    "Quantity": "Количество",
+    "Weight": "Вес",
+    "Price": "Цена",
+    
+    "Notes": "Заметки",
+    "Appearance": "Внешность",
+    "Biography": "Биография",
+    
+    "Active": "Активно",
+    "Inactive": "Неактивно",
+    "Enabled": "Включено",
+    "Disabled": "Выключено",
+    
+    "Save": "Сохранить",
+    "Cancel": "Отмена",
+    "Close": "Закрыть",
+    "Submit": "Отправить",
+    "Reset": "Сброс",
+    
+    "Yes": "Да",
+    "No": "Нет",
+    "Confirm": "Подтвердить",
+    
+    "Loading": "Загрузка...",
+    "Error": "Ошибка",
+    "Warning": "Предупреждение",
+    "Information": "Информация",
+    
+    "SystemName": "Through the Breach",
+    "SystemDescription": "Система Foundry VTT для RPG Through the Breach",
+    
+    "Roll": "Бросок",
+    "Modifier": "Модификатор",
+    "Total": "Всего",
+    "Base": "База",
+    "Bonus": "Бонус",
+    "Penalty": "Штраф",
+    
+    "MeleeWeapons": "Ближнее оружие",
+    "RangedWeapons": "Дальнее оружие",
+    "Armors": "Доспехи",
+    "Consumables": "Расходники",
+    "Other": "Прочее",
+    
+    "Initiative": "Инициатива",
+    "Speed": "Скорость",
+    "Size": "Размер",
+    "Vision": "Зрение",
+    
+    "GM": "Мастер",
+    "Player": "Игрок",
+    
+    "Character": "Персонаж",
+    "NPC": "НИП",
+    "Talent": "Талант",
+    "Spell": "Заклинание",
+    "Weapon": "Оружие",
+       
+    "Skills": "Навыки"
+  }
+}

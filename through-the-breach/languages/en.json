@@ -1,0 +1,144 @@
+{
+  "TTB": {
+    "AbilityStr": "Strength",
+    "AbilityAgi": "Agility",
+    "AbilityInt": "Intellect",
+    "AbilityCun": "Cunning",
+    "AbilityWil": "Willpower",
+    "AbilityPre": "Presence",
+    
+    "SkillMelee": "Melee",
+    "SkillShooting": "Shooting",
+    "SkillSpellcasting": "Spellcasting",
+    "SkillStealth": "Stealth",
+    "SkillNotice": "Notice",
+    "SkillPersuasion": "Persuasion",
+    "SkillIntimidation": "Intimidation",
+    "SkillInvestigation": "Investigation",
+    "SkillRepair": "Repair",
+    "SkillSurvival": "Survival",
+    
+    "AttributeHealth": "Health",
+    "AttributeFate": "Fate",
+    "AttributeWounds": "Wounds",
+    "AttributeExperience": "Experience",
+    "AttributeRank": "Rank",
+    "Attributes": "Attributes",
+    
+    "Defense": "Defense",
+    "Soak": "Soak",
+    "Armor": "Armor",
+    
+    "SuitRams": "Rams",
+    "SuitTomes": "Tomes",
+    "SuitMasks": "Masks",
+    "SuitCrows": "Crows",
+    
+    "CardBlackJoker": "Black Joker",
+    "CardRedJoker": "Red Joker",
+    
+    "Profession": "Profession",
+    "Concept": "Concept",
+    "Pursuit": "Pursuit",
+    "Name": "Name",
+    
+    "Novice": "Novice",
+    "Seasoned": "Seasoned",
+    "Veteran": "Veteran",
+    "Master": "Master",
+    
+    "Talents": "Talents",
+    "Spells": "Spells",
+    "Weapons": "Weapons",
+    "Equipment": "Equipment",
+    "Inventory": "Inventory",
+    
+    "Description": "Description",
+    "Requirements": "Requirements",
+    "Damage": "Damage",
+    "Range": "Range",
+    "Duration": "Duration",
+    "Casting": "Casting",
+    "Effect": "Effect",
+    "Cost": "Cost",
+    
+    "SkillCheck": "Skill Check",
+    "DrawCard": "Draw Card",
+    "AttackRoll": "Attack Roll",
+    "Difficulty": "Difficulty",
+    "Success": "Success",
+    "Failure": "Failure",
+    "TestButton": "Test Button",
+    
+    "CharacterSheet": "Character Sheet",
+    "NPCSheet": "NPC Sheet",
+    "FateSheet": "Fate Sheet",
+    "ItemSheet": "Item Sheet",
+    
+    "CreateActor": "Create Actor",
+    "CreateItem": "Create Item",
+    "Edit": "Edit",
+    "Delete": "Delete",
+    
+    "Type": "Type",
+    "Quantity": "Quantity",
+    "Weight": "Weight",
+    "Price": "Price",
+    
+    "Notes": "Notes",
+    "Appearance": "Appearance",
+    "Biography": "Biography",
+    
+    "Active": "Active",
+    "Inactive": "Inactive",
+    "Enabled": "Enabled",
+    "Disabled": "Disabled",
+    
+    "Save": "Save",
+    "Cancel": "Cancel",
+    "Close": "Close",
+    "Submit": "Submit",
+    "Reset": "Reset",
+    
+    "Yes": "Yes",
+    "No": "No",
+    "Confirm": "Confirm",
+    
+    "Loading": "Loading...",
+    "Error": "Error",
+    "Warning": "Warning",
+    "Information": "Information",
+    
+    "SystemName": "Through the Breach",
+    "SystemDescription": "A Foundry VTT system for Through the Breach RPG",
+    
+    "Roll": "Roll",
+    "Modifier": "Modifier",
+    "Total": "Total",
+    "Base": "Base",
+    "Bonus": "Bonus",
+    "Penalty": "Penalty",
+    
+    "MeleeWeapons": "Melee Weapons",
+    "RangedWeapons": "Ranged Weapons",
+    "Armors": "Armors",
+    "Consumables": "Consumables",
+    "Other": "Other",
+    
+    "Initiative": "Initiative",
+    "Speed": "Speed",
+    "Size": "Size",
+    "Vision": "Vision",
+    
+    "GM": "Game Master",
+    "Player": "Player",
+    
+    "Character": "Character",
+    "NPC": "NPC",
+    "Talent": "Talent",
+    "Spell": "Spell",
+    "Weapon": "Weapon",
+        
+    "Skills": "Skills"
+  }
+}

@@ -1,0 +1,189 @@
+/* Through the Breach System Styles */
+
+.through-the-breach {
+  /* Основные цвета темы */
+  --ttb-color-primary: #8b4513;
+  --ttb-color-secondary: #654321;
+  --ttb-color-accent: #d2691e;
+  --ttb-color-light: #f5deb3;
+  --ttb-color-dark: #3d2b1f;
+  
+  /* Фон */
+  background: url('../assets/parchment.jpg') repeat;
+  color: var(--ttb-color-dark);
+  font-family: 'Times New Roman', serif;
+}
+
+/* Header */
+.through-the-breach .sheet-header {
+  background: linear-gradient(to bottom, var(--ttb-color-primary), var(--ttb-color-secondary));
+  color: var(--ttb-color-light);
+  padding: 10px;
+  border-bottom: 2px solid var(--ttb-color-accent);
+}
+
+.through-the-breach .charname input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--ttb-color-light);
+  color: var(--ttb-color-light);
+  font-size: 24px;
+  font-weight: bold;
+}
+
+/* Resources */
+.through-the-breach .resource {
+  background: rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--ttb-color-accent);
+  border-radius: 5px;
+  padding: 5px;
+}
+
+.through-the-breach .resource-label {
+  font-weight: bold;
+  color: var(--ttb-color-light);
+}
+
+/* Abilities & Skills */
+.through-the-breach .ability,
+.through-the-breach .skill {
+  background: rgba(139, 69, 19, 0.1);
+  border: 1px solid var(--ttb-color-primary);
+  border-radius: 3px;
+  padding: 8px;
+  margin: 3px 0;
+}
+
+.through-the-breach .ability:hover,
+.through-the-breach .skill:hover {
+  background: rgba(139, 69, 19, 0.2);
+}
+
+.through-the-breach .rollable {
+  cursor: pointer;
+  color: var(--ttb-color-primary);
+}
+
+.through-the-breach .rollable:hover {
+  text-shadow: 0 0 8px var(--ttb-color-accent);
+}
+
+/* Items List */
+.through-the-breach .items-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.through-the-breach .item {
+  background: rgba(245, 222, 179, 0.3);
+  border: 1px solid var(--ttb-color-primary);
+  border-radius: 3px;
+  padding: 5px;
+  margin: 3px 0;
+  align-items: center;
+}
+
+.through-the-breach .item:hover {
+  background: rgba(245, 222, 179, 0.5);
+}
+
+/* Tabs */
+.through-the-breach .tabs {
+  background: var(--ttb-color-secondary);
+  border-bottom: 2px solid var(--ttb-color-accent);
+}
+
+.through-the-breach .tabs .item {
+  color: var(--ttb-color-light);
+  border: 1px solid transparent;
+  border-bottom: none;
+}
+
+.through-the-breach .tabs .item.active {
+  background: var(--ttb-color-primary);
+  border-color: var(--ttb-color-accent);
+}
+
+/* Buttons */
+.through-the-breach button {
+  background: var(--ttb-color-primary);
+  color: var(--ttb-color-light);
+  border: 1px solid var(--ttb-color-accent);
+  border-radius: 3px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.through-the-breach button:hover {
+  background: var(--ttb-color-accent);
+}
+
+/* Inputs */
+.through-the-breach input[type="text"],
+.through-the-breach input[type="number"],
+.through-the-breach select {
+  background: rgba(245, 222, 179, 0.8);
+  border: 1px solid var(--ttb-color-primary);
+  border-radius: 3px;
+  padding: 3px;
+  color: var(--ttb-color-dark);
+}
+
+.through-the-breach input:readonly {
+  background: rgba(0, 0, 0, 0.1);
+  cursor: not-allowed;
+}
+
+/* Grid layouts */
+.through-the-breach .grid {
+  display: grid;
+  gap: 10px;
+}
+
+.through-the-breach .grid-2col {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.through-the-breach .grid-3col {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+/* Flex utilities */
+.through-the-breach .flexcol {
+  display: flex;
+  flex-direction: column;
+}
+
+.through-the-breach .flexrow {
+  display: flex;
+  flex-direction: row;
+}
+
+.through-the-breach .flex-group-center {
+  align-items: center;
+  justify-content: center;
+}
+
+.through-the-breach .flex-between {
+  justify-content: space-between;
+}
+
+/* Roll Results */
+.through-the-breach .ttb-roll {
+  background: rgba(245, 222, 179, 0.9);
+  border: 2px solid var(--ttb-color-primary);
+  border-radius: 5px;
+  padding: 10px;
+  margin: 10px 0;
+}
+
+.through-the-breach .ttb-roll .success {
+  color: #2ecc71;
+  font-weight: bold;
+}
+
+.through-the-breach .ttb-roll .failure {
+  color: #e74c3c;
+  font-weight: bold;
+}

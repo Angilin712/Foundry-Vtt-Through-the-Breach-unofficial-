@@ -1,0 +1,55 @@
+{
+  "id": "through-the-breach",
+  "title": "Through the Breach",
+  "description": "A Foundry VTT system for Through the Breach RPG",
+  "version": "0.0.1",
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13",
+    "maximum": "13"
+  },
+  "authors": [
+    {
+      "name": "Your Name",
+      "discord": "your_discord_username"
+    }
+  ],
+  "esmodules": ["scripts/ttb.js"],
+  "styles": ["styles/ttb.css"],
+  "socket": false,
+  "grid": {
+    "distance": 1,
+    "units": "yd"
+  },
+  "primaryTokenAttribute": "attributes.health",
+  "secondaryTokenAttribute": "attributes.fate",
+  "initiative": "1d13",
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "languages/en.json"
+    },
+    {
+      "lang": "ru",
+      "name": "Russian",
+      "path": "languages/ru.json"
+    }
+  ],
+  "packs": [
+    {
+      "name": "talents",
+      "label": "Talents",
+      "path": "packs/talents.db",
+      "type": "Item",
+      "system": "through-the-breach"
+    }
+  ],
+  "url": "https://github.com/your-username/through-the-breach",
+  "manifest": "https://raw.githubusercontent.com/your-username/through-the-breach/main/system.json",
+  "download": "https://github.com/your-username/through-the-breach/releases/download/v0.0.1/through-the-breach.zip",
+  "license": "LICENSE.md",
+  "readme": "README.md",
+  "changelog": "CHANGELOG.md",
+  "bugs": "https://github.com/your-username/through-the-breach/issues"
+}
