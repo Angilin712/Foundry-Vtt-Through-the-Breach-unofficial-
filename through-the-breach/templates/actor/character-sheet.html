@@ -96,12 +96,9 @@
         <div class="detail flexcol">
           <label class="resource-label">{{localize 'TTB.AttributeRank'}}</label>
           <select name="system.attributes.rank.value" data-dtype="String">
-            {{#select system.attributes.rank.value}}
-            <option value="Novice">{{localize 'TTB.Novice'}}</option>
-            <option value="Seasoned">{{localize 'TTB.Seasoned'}}</option>
-            <option value="Veteran">{{localize 'TTB.Veteran'}}</option>
-            <option value="Master">{{localize 'TTB.Master'}}</option>
-            {{/select}}
+            {{#each ../rankOptions}}
+            <option value="{{this.value}}" {{#if this.selected}}selected{{/if}}>{{this.label}}</option>
+            {{/each}}
           </select>
         </div>
       </div>
@@ -110,7 +107,7 @@
     {{!-- Вкладка Навыков --}}
     <div class="tab skills flexcol" data-group="primary" data-tab="skills">
       <div class="skills-list">
-        {{#each system.skills as |skill key|}}
+        {{#each skillsWithTotals as |skill key|}}
         <div class="skill flexrow flex-group-center">
           <label class="skill-label rollable" data-roll="skill" data-skill="{{key}}">{{lookup ../labels.skills key}}</label>
           <div class="skill-value">
@@ -121,7 +118,7 @@
             <span class="linked-value">({{lookup (lookup ../system.abilities skill.linked) 'value'}})</span>
           </div>
           <div class="skill-total">
-            <span class="total-value">{{sum skill.value (lookup (lookup ../system.abilities skill.linked) 'value')}}</span>
+            <span class="total-value">{{skill.total}}</span>
           </div>
         </div>
         {{/each}}
@@ -134,7 +131,7 @@
       <div class="items-section">
         <h3 class="items-header">{{localize 'TTB.Talents'}}</h3>
         <ol class="items-list">
-          {{#each items as |item id|}}
+          {{#each actor.items as |item id|}}
           {{#if (eq item.type 'talent')}}
           <li class="item flexrow" data-item-id="{{item._id}}">
             <div class="item-name">
@@ -155,7 +152,7 @@
       <div class="items-section">
         <h3 class="items-header">{{localize 'TTB.Weapons'}}</h3>
         <ol class="items-list">
-          {{#each items as |item id|}}
+          {{#each actor.items as |item id|}}
           {{#if (eq item.type 'weapon')}}
           <li class="item flexrow" data-item-id="{{item._id}}">
             <div class="item-name">
@@ -180,17 +177,17 @@
     <div class="tab biography flexcol" data-group="primary" data-tab="biography">
       <div class="biography-section">
         <label class="resource-label">{{localize 'TTB.Appearance'}}</label>
-        {{editor system.details.appearance target="system.details.appearance" button=true owner=owner editable=editable}}
+        <textarea name="system.details.appearance" rows="4">{{system.details.appearance}}</textarea>
       </div>
       
       <div class="biography-section">
         <label class="resource-label">{{localize 'TTB.Biography'}}</label>
-        {{editor system.details.biography target="system.details.biography" button=true owner=owner editable=editable}}
+        <textarea name="system.details.biography" rows="8">{{system.details.biography}}</textarea>
       </div>
       
       <div class="biography-section">
         <label class="resource-label">{{localize 'TTB.Notes'}}</label>
-        {{editor system.details.notes target="system.details.notes" button=true owner=owner editable=editable}}
+        <textarea name="system.details.notes" rows="4">{{system.details.notes}}</textarea>
       </div>
     </div>
     

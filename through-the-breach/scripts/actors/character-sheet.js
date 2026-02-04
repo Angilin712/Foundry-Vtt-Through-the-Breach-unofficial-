@@ -34,12 +34,24 @@ export class TtBCharacterSheet extends foundry.appv1.sheets.ActorSheet {
       context.labels.skills[key] = game.i18n.localize(`TTB.Skill${key.charAt(0).toUpperCase() + key.slice(1)}`);
     }
     
-    // Добавляем хелперы для шаблона
-    context.helpers = {
-      eq: (a, b) => a === b,
-      sum: (a, b) => (parseInt(a) || 0) + (parseInt(b) || 0)
-    };
-    
+    // Вычисляем тоталы навыков и добавляем в контекст
+    if (context.system.skills) {
+      context.skillsWithTotals = {};
+      for (const [key, skill] of Object.entries(context.system.skills)) {
+        const abilityValue = context.system.abilities[skill.linked]?.value || 0;
+        context.skillsWithTotals[key] = {
+          ...skill,
+          total: skill.value + abilityValue
+        };
+      }
+    }
+    // Опции для ранга
+context.rankOptions = [
+  { value: "Novice", label: game.i18n.localize("TTB.Novice"), selected: context.system.attributes?.rank?.value === "Novice" },
+  { value: "Seasoned", label: game.i18n.localize("TTB.Seasoned"), selected: context.system.attributes?.rank?.value === "Seasoned" },
+  { value: "Veteran", label: game.i18n.localize("TTB.Veteran"), selected: context.system.attributes?.rank?.value === "Veteran" },
+  { value: "Master", label: game.i18n.localize("TTB.Master"), selected: context.system.attributes?.rank?.value === "Master" }
+];
     return context;
   }
   
