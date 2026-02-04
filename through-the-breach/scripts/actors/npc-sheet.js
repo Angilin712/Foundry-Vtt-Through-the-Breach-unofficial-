@@ -15,16 +15,18 @@ export class TtBNPCSheet extends foundry.appv1.sheets.ActorSheet {
 
   getData() {
     const context = super.getData();
+    const actor = this.actor;
     
-    // Добавляем локализацию
-    context.system = context.actor.system || {};
+    context.system = actor.system || {};
+    context.actor = actor;
+    
+    // Локализация характеристик
     context.labels = {
       abilities: {}
     };
     
-    // Локализуем названия способностей
-    for (const [key, ability] of Object.entries(context.system.abilities || {})) {
-      context.labels.abilities[key] = game.i18n.localize(`TTB.Ability${key.charAt(0).toUpperCase() + key.slice(1)}`);
+    for (const [key, value] of Object.entries(CONFIG.TTB?.abilities || {})) {
+      context.labels.abilities[key] = game.i18n.localize(value);
     }
     
     return context;
@@ -33,20 +35,17 @@ export class TtBNPCSheet extends foundry.appv1.sheets.ActorSheet {
   activateListeners(html) {
     super.activateListeners(html);
     
-    // Простая обработка ввода для NPC
-    html.find('input').change(ev => {
-      this._onChangeInput(ev);
-    });
-  }
-  
-  _onChangeInput(event) {
-    const input = event.currentTarget;
-    const value = input.value;
-    const name = input.name;
-    
-    // Обновляем данные актора
-    this.actor.update({
-      [name]: value
+    // Простая обработка ввода
+    html.find('input, textarea').change(ev => {
+      const input = ev.currentTarget;
+      const name = input.name;
+      let value = input.value;
+      
+      if (input.type === 'number') {
+        value = parseInt(value) || 0;
+      }
+      
+      this.actor.update({ [name]: value });
     });
   }
 }

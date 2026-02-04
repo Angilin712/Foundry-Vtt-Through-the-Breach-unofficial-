@@ -1,21 +1,403 @@
 <form class="{{cssClass}} flexcol" autocomplete="off">
+  {{!-- Header --}}
   <header class="sheet-header">
-    <img class="profile-img" src="{{item.img}}" data-edit="img" title="{{item.name}}" />
+    <img class="profile-img" src="{{actor.img}}" data-edit="img" title="{{actor.name}}" />
     <div class="header-fields">
-      <h1 class="itemname">
-        <input name="name" type="text" value="{{item.name}}" placeholder="{{localize 'TTB.Name'}}" />
+      <h1 class="charname">
+        <input name="name" type="text" value="{{actor.name}}" placeholder="{{localize 'TTB.Name'}}" />
       </h1>
-      <div class="item-type">
-        <label>{{localize 'TTB.Type'}}: </label>
-        <span>{{item.type}}</span>
+      
+      <div class="resources grid grid-4col">
+        <div class="resource flex-group-center">
+          <label class="resource-label">{{localize 'TTB.AttributeHealth'}}</label>
+          <div class="resource-content flexrow flex-center flex-between">
+            <input type="number" name="system.attributes.health.value" value="{{system.attributes.health.value}}" 
+                   data-dtype="Number" min="0" max="{{system.attributes.health.max}}" />
+            <span>/</span>
+            <span class="resource-value-max">{{system.attributes.health.max}}</span>
+          </div>
+        </div>
+        
+        <div class="resource flex-group-center">
+          <label class="resource-label">{{localize 'TTB.AttributeFate'}}</label>
+          <div class="resource-content flexrow flex-center flex-between">
+            <input type="number" name="system.attributes.fate.value" value="{{system.attributes.fate.value}}" 
+                   data-dtype="Number" min="0" max="{{system.attributes.fate.max}}" />
+            <span>/</span>
+            <span class="resource-value-max">{{system.attributes.fate.max}}</span>
+          </div>
+        </div>
+        
+        <div class="resource flex-group-center">
+          <label class="resource-label">{{localize 'TTB.AttributeWounds'}}</label>
+          <div class="resource-content flexrow flex-center flex-between">
+            <input type="number" name="system.attributes.wounds" value="{{system.attributes.wounds}}" 
+                   data-dtype="Number" min="0" />
+          </div>
+        </div>
+        
+        <div class="resource flex-group-center">
+          <label class="resource-label">{{localize 'TTB.Defense'}}</label>
+          <div class="resource-content flexrow flex-center flex-between">
+            <span class="resource-value">{{system.defenses.defense.value}}</span>
+          </div>
+        </div>
       </div>
     </div>
   </header>
 
-  <div class="sheet-content flexcol">
-    <div class="item-description">
-      <label class="resource-label">{{localize 'TTB.Description'}}</label>
-      <textarea name="system.description" rows="10">{{system.description}}</textarea>
+  {{!-- Навигация --}}
+  <nav class="sheet-tabs tabs" data-group="primary">
+    <a class="item" data-tab="details">{{localize 'TTB.Details'}}</a>
+    <a class="item" data-tab="abilities">{{localize 'TTB.Abilities'}}</a>
+    <a class="item" data-tab="skills">{{localize 'TTB.Skills'}}</a>
+    <a class="item" data-tab="inventory">{{localize 'TTB.Inventory'}}</a>
+    <a class="item" data-tab="biography">{{localize 'TTB.Biography'}}</a>
+  </nav>
+
+  {{!-- Основное содержимое --}}
+  <section class="sheet-body">
+    
+    {{!-- Вкладка Деталей --}}
+    <div class="tab details flexcol" data-group="primary" data-tab="details">
+      <div class="grid grid-3col">
+        <div class="flexcol">
+          <label class="resource-label">{{localize 'TTB.Profession'}}</label>
+          <input type="text" name="system.details.profession" value="{{system.details.profession}}" data-dtype="String" />
+        </div>
+        
+        <div class="flexcol">
+          <label class="resource-label">{{localize 'TTB.Concept'}}</label>
+          <input type="text" name="system.details.concept" value="{{system.details.concept}}" data-dtype="String" />
+        </div>
+        
+        <div class="flexcol">
+          <label class="resource-label">{{localize 'TTB.Pursuit'}}</label>
+          <input type="text" name="system.details.pursuit" value="{{system.details.pursuit}}" data-dtype="String" />
+        </div>
+        
+        <div class="flexcol">
+          <label class="resource-label">{{localize 'TTB.AttributeRank'}}</label>
+          <select name="system.attributes.rank.value" data-dtype="String">
+            {{#select system.attributes.rank.value}}
+            <option value="Novice">{{localize 'TTB.Novice'}}</option>
+            <option value="Seasoned">{{localize 'TTB.Seasoned'}}</option>
+            <option value="Veteran">{{localize 'TTB.Veteran'}}</option>
+            <option value="Master">{{localize 'TTB.Master'}}</option>
+            {{/select}}
+          </select>
+        </div>
+        
+        <div class="flexcol">
+          <label class="resource-label">{{localize 'TTB.AttributeExperience'}}</label>
+          <input type="number" name="system.attributes.experience" value="{{system.attributes.experience}}" data-dtype="Number" min="0" />
+        </div>
+        
+        <div class="flexcol">
+          <label class="resource-label">{{localize 'TTB.Gender'}}</label>
+          <input type="text" name="system.details.gender" value="{{system.details.gender}}" data-dtype="String" />
+        </div>
+        
+        <div class="flexcol">
+          <label class="resource-label">{{localize 'TTB.Age'}}</label>
+          <input type="text" name="system.details.age" value="{{system.details.age}}" data-dtype="String" />
+        </div>
+        
+        <div class="flexcol">
+          <label class="resource-label">{{localize 'TTB.Height'}}</label>
+          <input type="text" name="system.details.height" value="{{system.details.height}}" data-dtype="String" />
+        </div>
+        
+        <div class="flexcol">
+          <label class="resource-label">{{localize 'TTB.Weight'}}</label>
+          <input type="text" name="system.details.weight" value="{{system.details.weight}}" data-dtype="String" />
+        </div>
+      </div>
+      
+      <div class="defenses-section" style="margin-top: 20px;">
+        <h3 class="section-header">{{localize 'TTB.Defenses'}}</h3>
+        <div class="grid grid-3col">
+          <div class="defense flexcol flex-group-center">
+            <label class="resource-label">{{localize 'TTB.Defense'}}</label>
+            <input type="number" name="system.defenses.defense.value" value="{{system.defenses.defense.value}}" 
+                   data-dtype="Number" readonly />
+          </div>
+          
+          <div class="defense flexcol flex-group-center">
+            <label class="resource-label">{{localize 'TTB.Soak'}}</label>
+            <input type="number" name="system.defenses.soak.value" value="{{system.defenses.soak.value}}" 
+                   data-dtype="Number" />
+          </div>
+          
+          <div class="defense flexcol flex-group-center">
+            <label class="resource-label">{{localize 'TTB.Armor'}}</label>
+            <input type="number" name="system.defenses.armor.value" value="{{system.defenses.armor.value}}" 
+                   data-dtype="Number" />
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
+    
+    {{!-- Вкладка Характеристик --}}
+    <div class="tab abilities flexcol" data-group="primary" data-tab="abilities">
+      <div class="abilities-grid grid grid-3col">
+        {{#each system.abilities as |ability key|}}
+        <div class="ability-card flexcol" data-ability="{{key}}">
+          <div class="ability-header flex-group-center">
+            <h4 class="ability-name rollable" data-action="ability" data-ability="{{key}}">
+              {{lookup ../labels.abilities key}}
+            </h4>
+          </div>
+          
+          <div class="ability-body flexrow flex-between">
+            <div class="ability-value flexcol">
+              <label class="resource-label">{{localize 'TTB.Value'}}</label>
+              <input type="number" name="system.abilities.{{key}}.value" value="{{ability.value}}" 
+                     data-dtype="Number" min="1" max="{{ability.max}}" />
+            </div>
+            
+            <div class="ability-max flexcol">
+              <label class="resource-label">{{localize 'TTB.Max'}}</label>
+              <span class="ability-max-value">{{ability.max}}</span>
+            </div>
+            
+            <div class="ability-roll flexcol flex-group-center">
+              <a class="ability-roll-button rollable" data-action="ability" data-ability="{{key}}" 
+                 title="{{localize 'TTB.Roll'}} {{lookup ../labels.abilities key}}">
+                <i class="fas fa-dice-d20"></i>
+              </a>
+            </div>
+          </div>
+          
+          <div class="ability-linked-skills">
+            <h5>{{localize 'TTB.LinkedSkills'}}:</h5>
+            <div class="skill-tags">
+              {{#each (getLinkedSkills ../system.skills key) as |skill|}}
+              <span class="skill-tag">{{skill}}</span>
+              {{/each}}
+            </div>
+          </div>
+        </div>
+        {{/each}}
+      </div>
+    </div>
+    
+    {{!-- Вкладка Навыков --}}
+    <div class="tab skills flexcol" data-group="primary" data-tab="skills">
+      <div class="skills-list">
+        {{#each system.skills as |skill key|}}
+        <div class="skill-item flexrow flex-group-center" data-skill="{{key}}">
+          <div class="skill-name">
+            <label class="skill-label rollable" data-action="skill" data-skill="{{key}}">
+              {{lookup ../labels.skills key}}
+            </label>
+          </div>
+          
+          <div class="skill-value">
+            <input type="number" name="system.skills.{{key}}.value" value="{{skill.value}}" 
+                   data-dtype="Number" min="0" />
+          </div>
+          
+          <div class="skill-linked">
+            <span class="linked-label">{{localize 'TTB.Linked'}}:</span>
+            <span class="linked-ability">{{lookup ../labels.abilities skill.linked}}</span>
+            <span class="linked-value">({{skill.linkedValue}})</span>
+          </div>
+          
+          <div class="skill-total">
+            <span class="total-label">{{localize 'TTB.Total'}}:</span>
+            <span class="total-value">{{skill.total}}</span>
+          </div>
+          
+          <div class="skill-roll">
+            <a class="skill-roll-button rollable" data-action="skill" data-skill="{{key}}" 
+               title="{{localize 'TTB.Roll'}} {{lookup ../labels.skills key}}">
+              <i class="fas fa-dice-d20"></i>
+            </a>
+          </div>
+        </div>
+        {{/each}}
+      </div>
+    </div>
+    
+    {{!-- Вкладка Инвентаря --}}
+    <div class="tab inventory flexcol" data-group="primary" data-tab="inventory">
+      {{!-- Таланты --}}
+      <div class="items-section">
+        <div class="items-header flexrow">
+          <h3 class="items-title">{{localize 'TTB.Talents'}}</h3>
+          <a class="item-control item-create" data-type="talent" title="{{localize 'TTB.CreateItem'}} {{localize 'TTB.Talent'}}">
+            <i class="fas fa-plus"></i> {{localize 'TTB.Add'}}
+          </a>
+        </div>
+        
+        <ol class="items-list">
+          {{#each itemTypes.talents as |item id|}}
+          <li class="item flexrow" data-item-id="{{item._id}}">
+            <div class="item-name">
+              <h4>{{item.name}}</h4>
+              {{#if item.system.rank}}
+              <span class="item-subtitle">({{item.system.rank}})</span>
+              {{/if}}
+            </div>
+            
+            <div class="item-description">
+              {{#if item.system.description}}
+              <div class="item-description-text">{{item.system.description}}</div>
+              {{/if}}
+            </div>
+            
+            <div class="item-controls">
+              <a class="item-control item-edit" title="{{localize 'TTB.Edit'}}"><i class="fas fa-edit"></i></a>
+              <a class="item-control item-delete" title="{{localize 'TTB.Delete'}}"><i class="fas fa-trash"></i></a>
+            </div>
+          </li>
+          {{/each}}
+        </ol>
+      </div>
+      
+      {{!-- Заклинания --}}
+      <div class="items-section">
+        <div class="items-header flexrow">
+          <h3 class="items-title">{{localize 'TTB.Spells'}}</h3>
+          <a class="item-control item-create" data-type="spell" title="{{localize 'TTB.CreateItem'}} {{localize 'TTB.Spell'}}">
+            <i class="fas fa-plus"></i> {{localize 'TTB.Add'}}
+          </a>
+        </div>
+        
+        <ol class="items-list">
+          {{#each itemTypes.spells as |item id|}}
+          <li class="item flexrow" data-item-id="{{item._id}}">
+            <div class="item-name">
+              <h4>{{item.name}}</h4>
+              {{#if item.system.suit}}
+              <span class="item-subtitle">({{lookup ../labels.suits item.system.suit}})</span>
+              {{/if}}
+            </div>
+            
+            <div class="item-details flexrow">
+              {{#if item.system.casting}}
+              <span class="item-detail">{{localize 'TTB.Casting'}}: {{item.system.casting}}</span>
+              {{/if}}
+              {{#if item.system.range}}
+              <span class="item-detail">{{localize 'TTB.Range'}}: {{item.system.range}}</span>
+              {{/if}}
+            </div>
+            
+            <div class="item-controls">
+              <a class="item-control item-edit" title="{{localize 'TTB.Edit'}}"><i class="fas fa-edit"></i></a>
+              <a class="item-control item-delete" title="{{localize 'TTB.Delete'}}"><i class="fas fa-trash"></i></a>
+            </div>
+          </li>
+          {{/each}}
+        </ol>
+      </div>
+      
+      {{!-- Оружие --}}
+      <div class="items-section">
+        <div class="items-header flexrow">
+          <h3 class="items-title">{{localize 'TTB.Weapons'}}</h3>
+          <a class="item-control item-create" data-type="weapon" title="{{localize 'TTB.CreateItem'}} {{localize 'TTB.Weapon'}}">
+            <i class="fas fa-plus"></i> {{localize 'TTB.Add'}}
+          </a>
+        </div>
+        
+        <ol class="items-list">
+          {{#each itemTypes.weapons as |item id|}}
+          <li class="item flexrow" data-item-id="{{item._id}}">
+            <div class="item-name">
+              <h4>{{item.name}}</h4>
+            </div>
+            
+            <div class="item-details flexrow">
+              {{#if item.system.damage}}
+              <span class="item-detail">{{localize 'TTB.Damage'}}: {{item.system.damage}}</span>
+              {{/if}}
+              {{#if item.system.range}}
+              <span class="item-detail">{{localize 'TTB.Range'}}: {{item.system.range}}</span>
+              {{/if}}
+            </div>
+            
+            <div class="item-controls">
+              <a class="item-control item-edit" title="{{localize 'TTB.Edit'}}"><i class="fas fa-edit"></i></a>
+              <a class="item-control item-delete" title="{{localize 'TTB.Delete'}}"><i class="fas fa-trash"></i></a>
+            </div>
+          </li>
+          {{/each}}
+        </ol>
+      </div>
+      
+      {{!-- Снаряжение и Броня --}}
+      <div class="items-section">
+        <div class="items-header flexrow">
+          <h3 class="items-title">{{localize 'TTB.Equipment'}}</h3>
+          <a class="item-control item-create" data-type="equipment" title="{{localize 'TTB.CreateItem'}} {{localize 'TTB.Equipment'}}">
+            <i class="fas fa-plus"></i> {{localize 'TTB.Add'}}
+          </a>
+          <a class="item-control item-create" data-type="armor" title="{{localize 'TTB.CreateItem'}} {{localize 'TTB.Armor'}}">
+            <i class="fas fa-plus"></i> {{localize 'TTB.Armor'}}
+          </a>
+        </div>
+        
+        <ol class="items-list">
+          {{#each itemTypes.equipment as |item id|}}
+          <li class="item flexrow" data-item-id="{{item._id}}">
+            <div class="item-name">
+              <h4>{{item.name}}</h4>
+              {{#if item.system.quantity}}
+              <span class="item-subtitle">(x{{item.system.quantity}})</span>
+              {{/if}}
+            </div>
+            
+            <div class="item-controls">
+              <a class="item-control item-edit" title="{{localize 'TTB.Edit'}}"><i class="fas fa-edit"></i></a>
+              <a class="item-control item-delete" title="{{localize 'TTB.Delete'}}"><i class="fas fa-trash"></i></a>
+            </div>
+          </li>
+          {{/each}}
+          
+          {{#each itemTypes.armor as |item id|}}
+          <li class="item flexrow" data-item-id="{{item._id}}">
+            <div class="item-name">
+              <h4>{{item.name}}</h4>
+            </div>
+            
+            <div class="item-details flexrow">
+              {{#if item.system.armor}}
+              <span class="item-detail">{{localize 'TTB.Armor'}}: +{{item.system.armor}}</span>
+              {{/if}}
+              {{#if item.system.soak}}
+              <span class="item-detail">{{localize 'TTB.Soak'}}: +{{item.system.soak}}</span>
+              {{/if}}
+            </div>
+            
+            <div class="item-controls">
+              <a class="item-control item-edit" title="{{localize 'TTB.Edit'}}"><i class="fas fa-edit"></i></a>
+              <a class="item-control item-delete" title="{{localize 'TTB.Delete'}}"><i class="fas fa-trash"></i></a>
+            </div>
+          </li>
+          {{/each}}
+        </ol>
+      </div>
+    </div>
+    
+    {{!-- Вкладка Биографии --}}
+    <div class="tab biography flexcol" data-group="primary" data-tab="biography">
+      <div class="biography-section flexcol">
+        <label class="resource-label">{{localize 'TTB.Appearance'}}</label>
+        <textarea name="system.details.appearance" rows="4" data-dtype="String">{{system.details.appearance}}</textarea>
+      </div>
+      
+      <div class="biography-section flexcol">
+        <label class="resource-label">{{localize 'TTB.Background'}}</label>
+        <textarea name="system.details.background" rows="8" data-dtype="String">{{system.details.background}}</textarea>
+      </div>
+      
+      <div class="biography-section flexcol">
+        <label class="resource-label">{{localize 'TTB.Notes'}}</label>
+        <textarea name="system.details.notes" rows="6" data-dtype="String">{{system.details.notes}}</textarea>
+      </div>
+    </div>
+    
+  </section>
 </form>

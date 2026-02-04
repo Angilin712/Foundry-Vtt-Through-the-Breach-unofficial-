@@ -139,6 +139,9 @@
     "Spell": "Spell",
     "Weapon": "Weapon",
         
-    "Skills": "Skills"
+    "Skills": "Skills",
+    "DeleteItemTitle": "Delete {name}",
+    "DeleteItemContent": "Are you sure you want to delete {name}?",
+    "TargetNumber": "Target Number"
   }
 }

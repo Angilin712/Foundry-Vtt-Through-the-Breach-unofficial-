@@ -139,6 +139,10 @@
     "Spell": "Заклинание",
     "Weapon": "Оружие",
        
-    "Skills": "Навыки"
+    "Skills": "Навыки",
+    "DeleteItemTitle": "Delete {name}",
+    "DeleteItemContent": "Are you sure you want to delete {name}?",
+    "Modifiers": "Modifiers",
+    "TargetNumber": "Target Number"
   }
 }

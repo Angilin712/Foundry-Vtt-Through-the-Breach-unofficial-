@@ -6,6 +6,17 @@
       "type": "character",
       "img": "icons/svg/mystery-man.svg",
       "system": {
+        "details": {
+          "concept": "",
+          "profession": "",
+          "pursuit": "",
+          "gender": "",
+          "age": "",
+          "height": "",
+          "weight": "",
+          "appearance": "",
+          "background": ""
+        },
         "abilities": {
           "strength": { "value": 3, "max": 13 },
           "agility": { "value": 3, "max": 13 },
@@ -34,100 +45,12 @@
           "rank": { "value": "Novice" }
         },
         "defenses": {
-          "defense": { "value": 3 },
+          "defense": { "value": 0 },
           "soak": { "value": 0 },
           "armor": { "value": 0 }
-        },
-        "details": {
-          "profession": "",
-          "concept": "",
-          "pursuit": "",
-          "age": "",
-          "height": "",
-          "weight": "",
-          "appearance": "",
-          "biography": "",
-          "notes": ""
         }
       },
       "items": []
-    },
-    "npc": {
-      "name": "",
-      "type": "npc",
-      "img": "icons/svg/mystery-man.svg",
-      "system": {
-        "abilities": {
-          "strength": { "value": 3, "max": 13 },
-          "agility": { "value": 3, "max": 13 },
-          "intellect": { "value": 3, "max": 13 },
-          "cunning": { "value": 3, "max": 13 },
-          "willpower": { "value": 3, "max": 13 },
-          "presence": { "value": 3, "max": 13 }
-        },
-        "attributes": {
-          "health": { "value": 10, "max": 10 },
-          "fate": { "value": 3, "max": 3 }
-        }
-      },
-      "items": []
-    }
-  },
-  "Item": {
-    "types": ["talent", "spell", "weapon", "equipment"],
-    "talent": {
-      "name": "",
-      "type": "talent",
-      "img": "icons/svg/upgrade.svg",
-      "system": {
-        "description": "",
-        "cost": 0,
-        "requirements": "",
-        "rank": "Novice",
-        "activation": {
-          "type": "none",
-          "cost": 0
-        }
-      }
-    },
-    "spell": {
-      "name": "",
-      "type": "spell",
-      "img": "icons/svg/fire.svg",
-      "system": {
-        "description": "",
-        "rank": "Novice",
-        "suit": "any",
-        "casting": 0,
-        "range": "",
-        "duration": "",
-        "effect": ""
-      }
-    },
-    "weapon": {
-      "name": "",
-      "type": "weapon",
-      "img": "icons/svg/sword.svg",
-      "system": {
-        "description": "",
-        "skill": "melee",
-        "damage": "2d6",
-        "critical": "3",
-        "range": "melee",
-        "hands": 1,
-        "properties": []
-      }
-    },
-    "equipment": {
-      "name": "",
-      "type": "equipment",
-      "img": "icons/svg/item-bag.svg",
-      "system": {
-        "description": "",
-        "quantity": 1,
-        "weight": 0,
-        "price": 0
-      }
     }
   }
 }
