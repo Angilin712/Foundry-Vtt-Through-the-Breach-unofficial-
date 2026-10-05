@@ -1,0 +1,29 @@
+# Development notes
+
+The installable package is `through-the-breach/`; only that directory goes into a user's Foundry `Data/systems` directory. The parent workspace contains research, QA, tests, and build tools and is not part of the system.
+
+No bundler, npm install, or remote runtime dependency is required. ES modules run directly in Foundry 14. `system.json` declares Actor/Item types; models use TypeDataModel and sheets use ApplicationV2. The Russian interface is deliberately local-first; localization extraction is deferred.
+
+## Authority and state
+
+Player operations are requests in GM-whispered ChatMessages. Foundry 14 validates ChatMessage.author against the creating user server-side. The designated `game.users.activeGM` snapshots the request and processes it through one promise queue. Actor permissions and parameters are checked again on the authority. A world setting records request IDs before mutations. A started request is not replayed after reconnect; the GM must inspect state. This protocol uses core document persistence, not a socket which trusts a supplied user ID.
+
+The ledger is append-only for this prototype. GM failover observes `userConnected`. A request interrupted between persistence operations can leave a partially completed action; native Cards.pass itself spans multiple writes and is not a database transaction. Do not claim transactional exactly-once recovery. Retained duel flags and the GM cancel action support ordinary interrupted-check recovery. Severe partial database failures may require manual GM inspection of native cards. Full crash recovery, archived request compaction, hostile client hardening and multi-GM failover tests remain future work.
+
+The native deck holds originals with drawn=true while copies reside in hands/active/discard stacks. Shuffle returns only discard through Cards.pass; never call deck.recall for ordinary reshuffling. Personal hands have OBSERVER access for actor owners; decks and discards have default NONE. GM authorizes every mutation exposed by this system. This is normal tabletop ownership behavior, not an anti-cheat security boundary against a modified Foundry client.
+
+Duels use GM-authored public messages. Selection discards unchosen cards, but the chosen card remains in the active stack until replaced or finalized. Replacement originates from the actor's own hand and returns to its own discard. World actors and unlinked token actors resolve by UUID. Fated actors default to linked tokens.
+
+## Verification
+
+Commands for a developer (not needed by the player):
+
+```
+node --test tests/rules.test.mjs tests/cards.test.mjs tests/native.test.mjs
+python tools/build-assets.py
+node tools/preview.mjs
+```
+
+The native schema tests use the installed Foundry `common/server.mjs` without starting a licensed world. Set FOUNDRY_APP if installation differs. The integration harness mocks persistence and Cards movement; it does not claim to test the actual network/database or live ApplicationV2 events. The preview renders real templates and CSS with real model contexts but a stub application base. Tests currently run against locally installed 14.365 schema and a v14 API target; live 14.368 verification is outstanding.
+
+Before declaring verified compatibility, test a fresh world in 14.368 with a GM and two player browser sessions: install/boot, sheet edits survive reload, two users draw concurrently, observers cannot view another hand, bonus draws and selected discards, black/red jokers, reload with a live duel, GM disconnect/reconnect, NPC token overrides, initiative tracker, and an optional Babele-only run. The end-user guide provides the first smoke-test steps.
