@@ -19,7 +19,7 @@ Duels use GM-authored public messages. Selection discards unchosen cards, but th
 Commands for a developer (not needed by the player):
 
 ```
-node --test tests/rules.test.mjs tests/cards.test.mjs tests/native.test.mjs
+node --test tests/*.test.mjs
 python tools/build-assets.py
 node tools/preview.mjs
 ```
@@ -27,3 +27,13 @@ node tools/preview.mjs
 The native schema tests use the installed Foundry `common/server.mjs` without starting a licensed world. Set FOUNDRY_APP if installation differs. The integration harness mocks persistence and Cards movement; it does not claim to test the actual network/database or live ApplicationV2 events. The preview renders real templates and CSS with real model contexts but a stub application base. Tests currently run against locally installed 14.365 schema and a v14 API target; live 14.368 verification is outstanding.
 
 Before declaring verified compatibility, test a fresh world in 14.368 with a GM and two player browser sessions: install/boot, sheet edits survive reload, two users draw concurrently, observers cannot view another hand, bonus draws and selected discards, black/red jokers, reload with a live duel, GM disconnect/reconnect, NPC token overrides, initiative tracker, and an optional Babele-only run. The end-user guide provides the first smoke-test steps.
+
+## Combat in 0.2.0
+
+Weapon items remain equipment with an isWeapon flag, avoiding a new server document type. Attack messages snapshot weapon values and Actor UUIDs. NPC/Fated attacks reverse the flip to the defender, while NPC/NPC uses rank. Fated/Fated generates both flips, persists the initial cheating order once selections and joker suits are resolved, and lets the aggressor win a final tie. Player permissions are checked against the attacker for damage and against the flipping actor for choice/cheat/finish; damage application/critical/consciousness/undo is GM-only.
+
+Application persists intent before wounds are changed. Child damage/consciousness operations persist a pending marker before creation; interrupted markers require manual inspection. Critical generation also marks intent before drawing. The request ledger prevents automatic replay, but these are still multiple document writes, not a database transaction. Undo checks current wounds and conditions against the recorded applied state and refuses after consciousness starts. It restores wounds and notes but does not return spent cards.
+
+Critical tables provide concise rule reminders, table transitions, location and immediate extra numeric wounds. Durations, bleeding, special checks and creature exceptions are GM-managed. Unconscious failure sets unconscious/prone and current AP=0; there is no automatic AP refresh engine or timed condition scheduler. Future compatibility is allowed by minimum14 with no maximum; verified remains the actually tested14.365.
+
+47 automated scenarios pass. Live14.365 covers tracker initiative for both types, weapon persistence, attack/damage/armor/minimum1, application/undo, critical note/undo, and synthetic target damage without changing the world actor. Fated/Fated and full consciousness branch coverage are harness-tested, not yet live multiclient-certified.

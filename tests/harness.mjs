@@ -42,6 +42,7 @@ export const gm={id:'gamemaster000001',isGM:true,active:true},player={id:'player
 export function actor(name='Анна',type='fated',owner=player){
   const model=new BreachActorModel();model.prepareDerivedData();
   const doc={id:id(),documentName:'Actor',name,type,system:model,items:new Collection(),apps:{},isOwner:true,testUserPermission:u=>u.isGM||u.id===owner.id};
+  doc.update=async data=>{for(const [k,v] of Object.entries(data))foundry.utils.setProperty(doc,k,clone(v));return doc;};
   doc.uuid=`Actor.${doc.id}`;game.actors.set(doc.id,doc);return doc;
 }
 export function reset(){

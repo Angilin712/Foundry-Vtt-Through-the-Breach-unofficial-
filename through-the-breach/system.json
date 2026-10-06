@@ -2,11 +2,10 @@
   "id": "through-the-breach",
   "title": "Сквозь Пролом — Through the Breach",
   "description": "Листы персонажей и карточные механики второго издания. Русский интерфейс. Неофициальная система.",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "compatibility": {
     "minimum": "14",
-    "verified": "14.365",
-    "maximum": "14"
+    "verified": "14.365"
   },
   "authors": [
     {
@@ -45,7 +44,7 @@
   "secondaryTokenAttribute": "ap",
   "url": "https://github.com/Angilin712/Foundry-Vtt-Through-the-Breach-unofficial-",
   "manifest": "https://raw.githubusercontent.com/Angilin712/Foundry-Vtt-Through-the-Breach-unofficial-/main/through-the-breach/system.json",
-  "download": "https://raw.githubusercontent.com/Angilin712/Foundry-Vtt-Through-the-Breach-unofficial-/main/dist/through-the-breach-0.1.1.zip",
+  "download": "https://raw.githubusercontent.com/Angilin712/Foundry-Vtt-Through-the-Breach-unofficial-/main/dist/through-the-breach-0.2.0.zip",
   "bugs": "https://github.com/Angilin712/Foundry-Vtt-Through-the-Breach-unofficial-/issues",
   "readme": "https://github.com/Angilin712/Foundry-Vtt-Through-the-Breach-unofficial-/blob/main/through-the-breach/README.ru.md",
   "changelog": "https://github.com/Angilin712/Foundry-Vtt-Through-the-Breach-unofficial-/blob/main/CHANGELOG.md"

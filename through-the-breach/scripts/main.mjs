@@ -2,23 +2,18 @@ import {ID} from "./rules.mjs";
 import {BreachActorModel,BreachItemModel} from "./models.mjs";
 import {BreachSheet,BreachItemSheet,FateTable,handleChat,safely} from "./ui.mjs";
 import {request,processRequest,syncHand,enqueue,authority} from "./cards.mjs";
+import {compareCombatants} from './battle.mjs';
 const {Actor,Item,Combat}=foundry.documents;
 
 class BreachCombat extends Combat {
   async rollInitiative(ids,options={}){
-    for(const id of typeof ids==="string"?[ids]:ids){
+    for(const id of typeof ids==="string"?[ids]:(ids??this.combatants.filter(c=>c.initiative===null).map(c=>c.id))){
       const c=this.combatants.get(id);if(!c?.actor||!c.isOwner)continue;
       await request({op:"duel",actorId:c.actor.id,actorUuid:c.actor.uuid,kind:"initiative",combatId:this.id,combatantId:c.id});
     }
     return this;
   }
-  _sortCombatants(a,b){
-    const initiative=(b.initiative??-Infinity)-(a.initiative??-Infinity);
-    if(initiative&&!Number.isNaN(initiative))return initiative;
-    const fated=Number(b.actor?.type==="fated")-Number(a.actor?.type==="fated");
-    if(fated)return fated;
-    return (b.actor?.system.aspects.speed??0)-(a.actor?.system.aspects.speed??0)||a.name.localeCompare(b.name,"ru");
-  }
+  _sortCombatants(a,b){return compareCombatants(a,b);}
 }
 Hooks.once("init",()=>{
   CONFIG.Actor.dataModels.fated=BreachActorModel;CONFIG.Actor.dataModels.npc=BreachActorModel;
@@ -51,7 +46,9 @@ Hooks.on("renderChatMessageHTML",(message,html)=>{
   const d=message.getFlag(ID,"duel");if(!d||!message.author?.isGM)return;
   const actor=d.actorUuid?fromUuidSync(d.actorUuid):game.actors.get(d.actorId);
   html.querySelectorAll("[data-ttb]").forEach(button=>{
-    if(!actor?.isOwner){button.hidden=true;return;}
+    const gmOnly=['applyDamage','undoDamage','critical','consciousness'].includes(button.dataset.ttb);
+    const controller=button.dataset.ttb==='attackDamage'?fromUuidSync(d.attack.sourceUuid):actor;
+    if(!controller?.isOwner||(gmOnly&&!game.user.isGM)){button.hidden=true;return;}
     button.addEventListener("click",event=>{event.preventDefault();button.disabled=true;safely(()=>handleChat(message,button.dataset.ttb,button)).finally(()=>{button.disabled=false;});});
   });
 });
