@@ -5,6 +5,16 @@ const clone=o=>foundry.utils.deepClone(o);
 let tarotCache;
 export async function tarotTables(){return tarotCache??=await fetch(`systems/${ID}/data/tarot.json`).then(r=>{assert(r.ok,'Не удалось загрузить таблицы Таро.');return r.json();});}
 export const catalogMeta=i=>i.flags?.[ID]?.catalog??{};
+export async function repairCreatedPursuit(actor){
+ if(!actor.getFlag(ID,'creation')?.complete)return;
+ const wrongId=actor.system.currentPursuitId,current=actor.items.get(wrongId);
+ if(current?.system.category==='pursuit')return;
+ const pursuits=actor.items.filter(i=>catalogMeta(i).kind==='pursuit');
+ const progress=actor.system.pursuitProgress;
+ if(pursuits.length!==1||!progress.some(x=>x.id===wrongId&&x.step===0)||progress.some(x=>x.id===wrongId&&x.step!==0))return;
+ const pursuit=pursuits[0];
+ await actor.update({'system.currentPursuitId':pursuit.id,'system.pursuitProgress':progress.map(x=>x.id===wrongId?{...x,id:pursuit.id}:x)});
+}
 export async function catalogDocuments(name){const pack=game.packs.get(`${ID}.${name}`);assert(pack,'Библиотека ещё не загружена: полностью перезапустите Foundry.');return pack.getDocuments();}
 async function catalogItem(uuid){
  const match=/^Compendium\.through-the-breach\.(skills|stations|pursuits|talents|equipment|magic)\.Item\.([A-Za-z0-9]{16})$/.exec(String(uuid));
@@ -94,7 +104,8 @@ export async function executeCreation(user,p){
   const spread=stack('creationSpread',actor.id);assert(spread?.cards.size===5&&draft?.cards?.length===5&&new Set(draft.cards.map(c=>c.cardId)).size===5&&draft.cards.every(c=>{const native=spread.cards.get(c.cardId);return native&&native.value===c.value&&native.suit===c.suit;}),'Черновик не совпадает с сохранёнными мастером картами Таро.');
   const catalog=(await Promise.all(['pursuits','talents','equipment','magic'].map(catalogDocuments))).flat();const plan=creationPlan(draft,p.form,await tarotTables(),catalog);
   await actor.update({'system.operationPending':'Создание персонажа: сверить предметы и поля, не повторять автоматически'});
-  const items=await actor.createEmbeddedDocuments('Item',plan.documents);const pursuit=items[0];
+  const items=await actor.createEmbeddedDocuments('Item',plan.documents);const pursuit=items.find(i=>catalogMeta(i).kind==='pursuit');
+  assert(pursuit?.system.category==='pursuit','Созданное Стремление не найдено: мастер должен сверить лист перед продолжением.');
   const grimoire=items.find(i=>catalogMeta(i).kind==='creationGrimoire');if(grimoire)await actor.updateEmbeddedDocuments('Item',items.filter(i=>i.flags[ID]?.creationGrimoireMember).map(i=>({_id:i.id,'system.grimoireId':grimoire.id})));
   await actor.update({...plan.update,'system.currentPursuitId':pursuit.id,'system.pursuitProgress':[{id:pursuit.id,step:0}]});
   await setupActor(actor);await actor.setFlag(ID,'creation',{...draft,form:clone(p.form),complete:true,manualStarter:plan.manualStarter});await actor.update({'system.operationPending':''});return;

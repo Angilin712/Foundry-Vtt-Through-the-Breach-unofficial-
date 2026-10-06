@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {reset,actor,gm,player,other,ID,clone} from './harness.mjs';
-const {creationPlan,executeCreation}=await import('../through-the-breach/scripts/creation.mjs');
+const {creationPlan,executeCreation,repairCreatedPursuit}=await import('../through-the-breach/scripts/creation.mjs');
 import {SKILLS} from '../through-the-breach/scripts/rules.mjs';
 const {stack,setupActor,createStack}=await import('../through-the-breach/scripts/cards.mjs');
 const tarot=JSON.parse(await readFile('through-the-breach/data/tarot.json','utf8'));
@@ -24,6 +24,24 @@ test('Native creation Tarot is separate, persists same five cards and rejects fo
 test('Catalog validates source, money and ownership before charging or adding',async()=>{reset();packs();const a=prepareActor(),uuid=one(i=>i.name==='Охотничий нож').uuid;await executeCreation(player,{op:'catalogBuy',actorUuid:a.uuid,uuid,quantity:2});assert.equal(a.system.scrip,6);assert.equal(a.items.size,1);assert.equal([...a.items][0].system.quantity,2);await assert.rejects(executeCreation(other,{op:'catalogBuy',actorUuid:a.uuid,uuid}));await assert.rejects(executeCreation(player,{op:'catalogImport',actorUuid:a.uuid,uuid}));await assert.rejects(executeCreation(player,{op:'catalogBuy',actorUuid:a.uuid,uuid,quantity:99}));await assert.rejects(executeCreation(player,{op:'catalogBuy',actorUuid:a.uuid,uuid:'Compendium.other.pack.Item.1234567890123456'}));assert.equal(a.system.scrip,6);});
 test('Prologue ledger prevents repeat and player invocation; partial draw blocks retry',async()=>{reset();const a=prepareActor();await setupActor(a);const p={op:'sessionStart',session:'Сессия 1',actorIds:[a.id]};await assert.rejects(executeCreation(player,p));await executeCreation(gm,p);await executeCreation(gm,p);assert.equal(stack('hand',a.id).cards.size,3);const ledger=game.settings.get(ID,'sessions');ledger['Сессия 2']={actors:{[a.id]:'pending'}};await game.settings.set(ID,'sessions',ledger);await assert.rejects(executeCreation(gm,{...p,session:'Сессия 2'}));assert.equal(stack('hand',a.id).cards.size,3);});
 test('Creation commit rejects forged Tarot, is GM only and cannot replay after completion',async()=>{reset();packs();globalThis.fetch=async()=>({ok:true,json:async()=>tarot});const a=prepareActor();await stage(a);await assert.rejects(executeCreation(player,{op:'creationApply',actorUuid:a.uuid,form:form()}));const saved=clone(a.getFlag(ID,'creation'));const forged=clone(saved);forged.cards[0].value=2;await a.setFlag(ID,'creation',forged);await assert.rejects(executeCreation(gm,{op:'creationApply',actorUuid:a.uuid,form:form()}));assert.equal(a.items.size,0);assert.equal(a.system.scrip,10);await a.setFlag(ID,'creation',saved);await executeCreation(gm,{op:'creationApply',actorUuid:a.uuid,form:form()});assert.equal(a.system.scrip,8);assert.equal(a.getFlag(ID,'creation').complete,true);assert.equal(stack('twist',a.id).cards.size,13);await assert.rejects(executeCreation(gm,{op:'creationApply',actorUuid:a.uuid,form:form()}));assert.equal(a.items.size,5);});
+test('Creation links current pursuit even when Foundry returns embedded items in another order',async()=>{
+ reset();packs();globalThis.fetch=async()=>({ok:true,json:async()=>tarot});const a=prepareActor();
+ const create=a.createEmbeddedDocuments;a.createEmbeddedDocuments=async(...args)=>(await create(...args)).reverse();
+ await stage(a);await executeCreation(gm,{op:'creationApply',actorUuid:a.uuid,form:form()});
+ const pursuit=a.items.get(a.system.currentPursuitId);assert.equal(pursuit.system.category,'pursuit');
+ assert.deepEqual(a.system.pursuitProgress,[{id:pursuit.id,step:0}]);
+ const {executeAutomation}=await import('../through-the-breach/scripts/automation.mjs');
+ await executeAutomation(gm,{op:'epilogue',actorUuid:a.uuid,session:'Reordered items',eligible:['notice','doctor'],pursuitId:pursuit.id});
+ assert.equal(a.system.xp,1);assert.equal(a.system.pursuitProgress[0].step,1);
+});
+test('Repair of an already created sheet restores only the mistaken step zero pursuit link',async()=>{
+ reset();packs();globalThis.fetch=async()=>({ok:true,json:async()=>tarot});const a=prepareActor();await stage(a);
+ await executeCreation(gm,{op:'creationApply',actorUuid:a.uuid,form:form()});const correct=a.system.currentPursuitId;
+ const wrong=[...a.items].find(i=>meta(i).kind==='step0').id;
+ await a.update({'system.currentPursuitId':wrong,'system.pursuitProgress':[{id:wrong,step:0}]});
+ await repairCreatedPursuit(a);assert.equal(a.system.currentPursuitId,correct);assert.deepEqual(a.system.pursuitProgress,[{id:correct,step:0}]);
+ await a.update({'system.currentPursuitId':wrong,'system.pursuitProgress':[{id:wrong,step:2}]});await repairCreatedPursuit(a);assert.equal(a.system.currentPursuitId,wrong);
+});
 test('Dabbler starter grants linked grimoire, one Sorcery, another school and three distinct Immuto',async()=>{
  reset();packs();globalThis.fetch=async()=>({ok:true,json:async()=>tarot});const a=prepareActor();
  a.updateEmbeddedDocuments=async(_kind,docs)=>{for(const d of docs){const item=a.items.get(d._id);for(const [k,v] of Object.entries(d))if(k!=='_id')foundry.utils.setProperty(item,k,v);}};

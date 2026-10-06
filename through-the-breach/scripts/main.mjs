@@ -1,4 +1,5 @@
 import {createCharacter,beginSession,endScene,endSession} from './creation-ui.mjs';
+import {repairCreatedPursuit} from './creation.mjs';
 import {ID} from "./rules.mjs";
 import {BreachActorModel,BreachItemModel} from "./models.mjs";
 import {BreachSheet,BreachItemSheet,FateTable,handleChat,safely} from "./ui.mjs";
@@ -39,7 +40,7 @@ Hooks.on("createChatMessage",message=>processRequest(message));
 Hooks.once("ready",()=>{
   if(authority()?.id===game.user.id){
     game.messages.forEach(processRequest);
-    for(const actor of game.actors)enqueue(()=>syncHand(actor));
+    for(const actor of game.actors)enqueue(async()=>{await repairCreatedPursuit(actor);await syncHand(actor);});
   }
   ui.notifications.info("Сквозь Пролом: откройте «Стол Судьбы» из листа персонажа или настроек системы.");
 });
