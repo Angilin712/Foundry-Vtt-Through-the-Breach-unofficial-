@@ -1,4 +1,5 @@
 import {availableTriggers} from './automation.mjs';
+import {createCharacter,browseCatalog} from './creation-ui.mjs';
 import {ID,SUITS,SYMBOLS,ASPECTS,SKILLS,GROUPS,TWIST_ROLES,derived,skillValue,aspectValue,canCheat,escapeHTML as e} from "./rules.mjs";
 import {stack,request,authority} from "./cards.mjs";
 import {EFFECT_LABELS} from './turns.mjs';
@@ -62,8 +63,10 @@ export async function handleChat(message,op,element){
   }
 }
 export class BreachSheet extends HandlebarsApplicationMixin(foundry.applications.sheets.ActorSheetV2){
-  static DEFAULT_OPTIONS={classes:["ttb","ttb-sheet"],position:{width:880,height:820},window:{resizable:true},form:{submitOnChange:true},actions:{sheetTab:BreachSheet.tab,check:BreachSheet.check,hand:BreachSheet.hand,table:BreachSheet.table,item:BreachSheet.item,createWeapon:BreachSheet.createWeapon,attack:BreachSheet.attack,tieOrder:BreachSheet.tieOrder,turnAction:BreachSheet.turnAction,automation:BreachSheet.automation,createRecord:BreachSheet.createRecord}};
+  static DEFAULT_OPTIONS={classes:["ttb","ttb-sheet"],position:{width:880,height:820},window:{resizable:true},form:{submitOnChange:true},actions:{creation:BreachSheet.creation,catalog:BreachSheet.catalog,sheetTab:BreachSheet.tab,check:BreachSheet.check,hand:BreachSheet.hand,table:BreachSheet.table,item:BreachSheet.item,createWeapon:BreachSheet.createWeapon,attack:BreachSheet.attack,tieOrder:BreachSheet.tieOrder,turnAction:BreachSheet.turnAction,automation:BreachSheet.automation,createRecord:BreachSheet.createRecord}};
   static PARTS={body:{template:`systems/${ID}/templates/actor.hbs`,scrollable:[".ttb-body"]}};
+  static creation(){return safely(()=>createCharacter(this.actor));}
+  static catalog(){return safely(()=>browseCatalog(this.actor));}
   _tab="main";
   get title(){return `${this.actor.name} · ${this.actor.type==="npc"?"Персонаж мастера":"Сужденный"}`;}
   async _prepareContext(options){

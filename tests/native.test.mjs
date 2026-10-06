@@ -22,6 +22,16 @@ test('Manifest permits world creation on the tested build and later v14 builds',
 });
 test('Actual Foundry TypeDataModel: actor defaults, derived fields and serialized save',()=>{const m=new BreachActorModel({aspects:{resilience:3},skills:{toughness:{rank:2}}});m.prepareDerivedData();assert.equal(m.wounds.max,8);assert.equal(m.skills.literacy.aspect,'intellect');assert.equal(Object.keys(m.skills).length,56);const copy=new BreachActorModel(m.toObject());copy.prepareDerivedData();assert.equal(copy.wounds.max,8);assert.equal(new BreachActorModel({skills:{literacy:{rank:6}}}).skills.literacy.rank,5);});
 test('Actual item model remains plain text and preserves Cyrillic',()=>{const m=new BreachItemModel({description:'Талант: карта в рукаве',quantity:2});assert.equal(m.toObject().description,'Талант: карта в рукаве');});
+test('Compendium sources validate as actual Foundry Item and Macro documents',async()=>{
+  game.system.documentTypes.Item={equipment:{},talent:{},magic:{}};game.system.documentTypes.Macro={};game.modules=new Map();CONFIG.Macro={dataModels:{}};
+  game.model.Macro={script:{},chat:{}};
+  const packs=JSON.parse(await readFile('through-the-breach/data/pack-sources.json','utf8'));
+  for(const [pack,docs] of Object.entries(packs))for(const data of docs){
+    const doc=pack==='macros'?new foundry.documents.BaseMacro(data):new foundry.documents.BaseItem(data);
+    assert.equal(doc.invalid,false,`${pack}: ${data.name}`);assert.equal(doc.id,data._id);
+    if(pack!=='macros'){assert.ok(doc.system instanceof BreachItemModel);assert.equal(doc.toObject().name,data.name);}
+  }
+});
 test('Actual weapon and unconscious state survive native model serialization',()=>{const w=new BreachItemModel({isWeapon:true,skill:'pistol',damage:'2/3/5',range:'10 ярдов',ignoreArmor:true,defense:'willpower'});const copy=new BreachItemModel(w.toObject());assert.equal(copy.damage,'2/3/5');assert.equal(copy.skill,'pistol');assert.equal(copy.ignoreArmor,true);assert.equal(copy.defense,'willpower');const a=new BreachActorModel({unconscious:true,armor:3,wounds:{value:-2},conditions:'Глубокая рана'});const saved=new BreachActorModel(a.toObject());assert.equal(saved.unconscious,true);assert.equal(saved.wounds.value,-2);assert.equal(saved.conditions,'Глубокая рана');});
 
 test('Structured sheet automation fields preserve references, progress and triggers through native serialization',()=>{

@@ -1,4 +1,5 @@
 import {AUTOMATION_OPS,executeAutomation,duelModifiers,availableTriggers} from './automation.mjs';
+import {CREATION_OPS,executeCreation} from './creation.mjs';
 import {executeBattle,battleButtons,attackMargin} from './actions.mjs';
 import {executeTurnAction,hasEffect,actionPenalty} from './turns.mjs';
 import {ID,SUITS,SKILLS,ASPECTS,makeFateDeck,makeTwistDeck,cardName,assert,integer,modifier,selectable,canCheat,parseSuits,derived,defenseSuits,skillValue,aspectValue,outcome,escapeHTML as e} from "./rules.mjs";
@@ -19,7 +20,7 @@ function cardData(c,index){const key=c.value===0?"black-joker":c.value===14?"red
   faces:[{img:`systems/${ID}/assets/cards/${key}.svg`,name:cardName(c)}],
   back:{img:`systems/${ID}/assets/cards/back.svg`},width:240,height:340
 };}
-async function createStack(role,name,type,actorId="",cards=[]){
+export async function createStack(role,name,type,actorId="",cards=[]){
   if(stack(role,actorId))return stack(role,actorId);
   return Cards.create({name,type,ownership:{default:0},cards:cards.map(cardData),flags:{[ID]:{role,actorId}},img:`systems/${ID}/assets/cards/back.svg`});
 }
@@ -38,7 +39,7 @@ export async function syncHand(actor){
   for(const user of game.users)if(!user.isGM && actor.testUserPermission(user,"OWNER"))ownership[user.id]=2;
   await hand.update({ownership},{diff:false,recursive:false});
 }
-async function setupActor(actor){
+export async function setupActor(actor){
   assert(actor.type==="fated","Личная колода есть только у Сужденного.");
   await setup();
   const exists=stack("twist",actor.id);
@@ -69,7 +70,7 @@ export async function drawFrom(deck,discard,to,count,benefit=false){
   }
   return drawn;
 }
-async function drawHand(actor,count){
+export async function drawHand(actor,count){
   const hand=stack("hand",actor.id),deck=stack("twist",actor.id),discard=stack("twistDiscard",actor.id);
   assert(hand&&deck&&discard,"Мастер должен создать личную колоду персонажа.");
   assert(deck.availableCards.length+discard.cards.size>=count,"В личной колоде и сбросе недостаточно карт.");
@@ -207,6 +208,7 @@ async function finish(message,d,actor){
   if(d.opposed){const other=game.messages.get(d.opposed.otherId);if(other)await saveDuel(other,foundry.utils.deepClone(other.getFlag(ID,'duel')));}
 }
 export async function execute(user,p){
+  if(CREATION_OPS.includes(p.op))return executeCreation(user,p);
   if(AUTOMATION_OPS.includes(p.op)){assert(user?.active,'Пользователь не подключён.');return executeAutomation(user,p);}
   if(['spendAP','clearEffect','endSceneEffects','hyperventilation','addEffect','recoverTurn'].includes(p.op)){assert(user?.active,'Пользователь не подключён.');return executeTurnAction(user,p);}
     if(['attack','attackDamage','applyDamage','undoDamage','critical','consciousness','criticalConsciousness'].includes(p.op)){assert(user?.active,"Пользователь не подключён.");return executeBattle(user,p);}

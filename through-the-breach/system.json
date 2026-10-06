@@ -2,7 +2,7 @@
   "id": "through-the-breach",
   "title": "Сквозь Пролом — Through the Breach",
   "description": "Листы персонажей и карточные механики второго издания. Русский интерфейс. Неофициальная система.",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "compatibility": {
     "minimum": "14",
     "verified": "14.365"
@@ -44,8 +44,87 @@
   "secondaryTokenAttribute": "ap",
   "url": "https://github.com/Angilin712/Foundry-Vtt-Through-the-Breach-unofficial-",
   "manifest": "https://raw.githubusercontent.com/Angilin712/Foundry-Vtt-Through-the-Breach-unofficial-/main/through-the-breach/system.json",
-  "download": "https://raw.githubusercontent.com/Angilin712/Foundry-Vtt-Through-the-Breach-unofficial-/main/dist/through-the-breach-0.4.0.zip",
+  "download": "https://raw.githubusercontent.com/Angilin712/Foundry-Vtt-Through-the-Breach-unofficial-/main/dist/through-the-breach-0.5.0.zip",
   "bugs": "https://github.com/Angilin712/Foundry-Vtt-Through-the-Breach-unofficial-/issues",
   "readme": "https://github.com/Angilin712/Foundry-Vtt-Through-the-Breach-unofficial-/blob/main/through-the-breach/README.ru.md",
-  "changelog": "https://github.com/Angilin712/Foundry-Vtt-Through-the-Breach-unofficial-/blob/main/CHANGELOG.md"
+  "changelog": "https://github.com/Angilin712/Foundry-Vtt-Through-the-Breach-unofficial-/blob/main/CHANGELOG.md",
+  "packs": [
+    {
+      "name": "skills",
+      "label": "Навыки",
+      "path": "packs/skills",
+      "type": "Item",
+      "system": "through-the-breach",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "stations",
+      "label": "Станции Таро",
+      "path": "packs/stations",
+      "type": "Item",
+      "system": "through-the-breach",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "pursuits",
+      "label": "Базовые Стремления",
+      "path": "packs/pursuits",
+      "type": "Item",
+      "system": "through-the-breach",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "talents",
+      "label": "Таланты",
+      "path": "packs/talents",
+      "type": "Item",
+      "system": "through-the-breach",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "equipment",
+      "label": "Снаряжение",
+      "path": "packs/equipment",
+      "type": "Item",
+      "system": "through-the-breach",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "magic",
+      "label": "Магии и Иммуто",
+      "path": "packs/magic",
+      "type": "Item",
+      "system": "through-the-breach",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "macros",
+      "label": "Команды мастера",
+      "path": "packs/macros",
+      "type": "Macro",
+      "system": "through-the-breach",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    }
+  ]
 }

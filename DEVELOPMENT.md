@@ -47,3 +47,13 @@ Item bonuses are declarative, never evaluated code. Active quantity/equipped ent
 Epilogues are saved on the actor with unique session ID, eligible skills and the selected advancement. Pursuit steps are actor records keyed by item ID so XP and step grant are one Actor.update; talent rewards and step0 must be selected separately. Magic follows configured structured values, active-grimoire access and repeated Immuto caps. Fated resistance uses the existing two-message cheating sequence; casting TN/suits must also pass. Narrative spell effects and theories remain explicit GM work.
 
 83 automated scenarios pass. Additional browser previews use actual templates and model contexts, including populated equipment/magic/development and long item forms. Live player/network tests of0.4.0 have not been run. Installing package files does not mutate world documents; existing fields get native schema defaults on the next world load.
+# Compendiums and creation 0.5.0
+
+`tools/extract-catalog.py` reads creation tables using PDF cell coordinates and records the user-authorized correction to Mind Ace of Crows. Input PDF and extracted research remain ignored. `tools/build-packs.mjs` compiles reviewed sources to native Item/Macro LevelDB sublevels using the installed Foundry dependency. Pack IDs are stable SHA256-derived document IDs; source documents are also retained in `data/pack-sources.json` for validation.
+
+Package building includes native WAL `.log`, SST and manifest files, but excludes diagnostic `LOG` and `LOCK`. Native compendium sources and copied databases are tested independently. Never overwrite pack databases open in a running Foundry process: first-time packs can be installed before restart; subsequent pack replacements require the application to be closed.
+
+Creation/catalog/session operations use the existing authoritative GM queue. Incoming item data is never trusted; entries are fetched from an allowlisted system compendium UUID. Player drafts cannot complete creation. A cross-document lock precedes mutations; a failure must be reconciled manually rather than replayed. Session prologue records pending/done per actor before/after drawing. Epilogue reuses the existing unique-session ledger on each Actor.
+
+Current catalog coverage and manual effects are documented in the Russian system README. Future work: full merchandise, pursuit-step talent selection, reliable prerequisite expressions and special effects, construct/prosthetic creation, Immuto parameter choices, and a compact step-by-step UI.
+

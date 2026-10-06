@@ -16,5 +16,9 @@
 **/.env*
 **/*.pdf
 **/*.log
+!through-the-breach/packs/**/*.log
+through-the-breach/packs/**/LOCK
+through-the-breach/packs/**/LOG
+through-the-breach/packs/**/LOG.old
 **/.DS_Store
 **/Thumbs.db

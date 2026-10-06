@@ -1,3 +1,4 @@
+import {createCharacter,beginSession,endScene,endSession} from './creation-ui.mjs';
 import {ID} from "./rules.mjs";
 import {BreachActorModel,BreachItemModel} from "./models.mjs";
 import {BreachSheet,BreachItemSheet,FateTable,handleChat,safely} from "./ui.mjs";
@@ -28,7 +29,8 @@ Hooks.once("init",()=>{
   foundry.applications.apps.DocumentSheetConfig.registerSheet(Item,ID,BreachItemSheet,{types:["equipment","talent","magic"],makeDefault:true,label:"Сквозь Пролом"});
   game.settings.register(ID,"requests",{scope:"world",config:false,type:Object,default:{}});
   game.settings.registerMenu(ID,"table",{name:"Стол Судьбы",label:"Открыть Стол Судьбы",hint:"Подготовка колод, раздача и личные руки.",icon:"fas fa-cards",type:FateTable,restricted:false});
-  game.ttb={openTable:()=>new FateTable().render({force:true}),request};
+  game.settings.register(ID,"sessions",{scope:"world",config:false,type:Object,default:{}});
+  game.ttb={createCharacter,beginSession,endScene,endSession,openTable:()=>new FateTable().render({force:true}),request};
 });
 Hooks.on("preCreateActor",(actor)=>{
   actor.updateSource({prototypeToken:{actorLink:actor.type==="fated",bar1:{attribute:"wounds"},displayName:20},...(actor.type==="npc"?{"system.characteristics":"Живой"}:{})});

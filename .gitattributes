@@ -8,3 +8,4 @@
 *.py text eol=lf
 *.svg text eol=lf
 *.zip binary
+through-the-breach/packs/** binary

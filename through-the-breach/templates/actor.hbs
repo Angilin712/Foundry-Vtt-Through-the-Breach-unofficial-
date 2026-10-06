@@ -1,5 +1,6 @@
 <div class="ttb-layout">
   <header class="ttb-masthead"><img src="{{actor.img}}" data-action="editImage" data-edit="img" alt="Портрет"><div><div class="ttb-eyebrow">THROUGH THE BREACH · СКВОЗЬ ПРОЛОМ</div><input class="ttb-name" name="name" value="{{actor.name}}" aria-label="Имя персонажа"><div class="ttb-subtitle">{{#if isNPC}}Персонаж Мастера Судьбы{{else}}Сужденный · личное досье{{/if}}</div></div><button type="button" data-action="table" class="ttb-table-button">Стол Судьбы</button></header>
+  {{#if editable}}<div class="ttb-checks">{{#unless isNPC}}<button type="button" data-action="creation">Создание по Таро</button>{{/unless}}<button type="button" data-action="catalog">Добавить из библиотеки / купить</button></div>{{/if}}
   <nav class="ttb-tabs">{{#each tabs}}<button type="button" data-action="sheetTab" data-tab="{{id}}" class="{{#if active}}active{{/if}}">{{label}}</button>{{/each}}</nav>
   <div class="ttb-body">
   {{#unless masterOnline}}<p class="ttb-alert">Мастер не подключён. Лист можно редактировать; карточные действия ждут подключения мастера.</p>{{/unless}}
