@@ -23,8 +23,8 @@ class BreachCombat extends Combat {
 Hooks.once("init",()=>{
   CONFIG.Actor.dataModels.fated=BreachActorModel;CONFIG.Actor.dataModels.npc=BreachActorModel;
   for(const t of ["equipment","talent","magic"])CONFIG.Item.dataModels[t]=BreachItemModel;
-  CONFIG.Actor.typeLabels.fated="Сужденный";CONFIG.Actor.typeLabels.npc="Персонаж мастера";
-  Object.assign(CONFIG.Item.typeLabels,{equipment:"Снаряжение",talent:"Талант",magic:"Магия"});
+  CONFIG.Actor.typeLabels.fated="TYPES.Actor.fated";CONFIG.Actor.typeLabels.npc="TYPES.Actor.npc";
+  Object.assign(CONFIG.Item.typeLabels,{equipment:"TYPES.Item.equipment",talent:"TYPES.Item.talent",magic:"TYPES.Item.magic"});
   CONFIG.Combat.documentClass=BreachCombat;
   foundry.applications.apps.DocumentSheetConfig.registerSheet(Actor,ID,BreachSheet,{types:["fated","npc"],makeDefault:true,label:"Сквозь Пролом"});
   foundry.applications.apps.DocumentSheetConfig.registerSheet(Item,ID,BreachItemSheet,{types:["equipment","talent","magic"],makeDefault:true,label:"Сквозь Пролом"});

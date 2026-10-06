@@ -28,14 +28,14 @@ export async function handleChat(message,op,element){
   }
 }
 export class BreachSheet extends HandlebarsApplicationMixin(foundry.applications.sheets.ActorSheetV2){
-  static DEFAULT_OPTIONS={classes:["ttb","ttb-sheet"],position:{width:880,height:820},window:{resizable:true},form:{submitOnChange:true},actions:{tab:BreachSheet.tab,check:BreachSheet.check,hand:BreachSheet.hand,table:BreachSheet.table,item:BreachSheet.item}};
+  static DEFAULT_OPTIONS={classes:["ttb","ttb-sheet"],position:{width:880,height:820},window:{resizable:true},form:{submitOnChange:true},actions:{sheetTab:BreachSheet.tab,check:BreachSheet.check,hand:BreachSheet.hand,table:BreachSheet.table,item:BreachSheet.item}};
   static PARTS={body:{template:`systems/${ID}/templates/actor.hbs`,scrollable:[".ttb-body"]}};
   _tab="main";
   get title(){return `${this.actor.name} · ${this.actor.type==="npc"?"Персонаж мастера":"Сужденный"}`;}
   async _prepareContext(options){
     const context=await super._prepareContext(options),s=this.actor.system,c=derived(s),hand=stack("hand",this.actor.id);
     const canViewHand=this.actor.isOwner && hand?.testUserPermission(game.user,"OBSERVER");
-    return {...context,actor:this.actor,s,c,isGM:game.user.isGM,isNPC:this.actor.type==="npc",editable:this.isEditable,
+    return {...context,systemVersion:game.system.version,actor:this.actor,s,c,isGM:game.user.isGM,isNPC:this.actor.type==="npc",editable:this.isEditable,
       tabs:[['main','Персонаж'],['skills','Навыки'],['fate','Судьба и рука'],['story','Снаряжение и история']].map(([id,label])=>({id,label,active:this._tab===id})),
       main:this._tab==="main",skillsTab:this._tab==="skills",fateTab:this._tab==="fate",storyTab:this._tab==="story",
       aspects:Object.entries(ASPECTS).map(([key,label])=>({key,label,value:s.aspects[key]})),aspectOptions:ASPECTS,suitOptions:SUITS,

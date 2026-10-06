@@ -11,5 +11,13 @@ const {BreachActorModel,BreachItemModel}=await import('../through-the-breach/scr
 CONFIG.Actor.dataModels={fated:BreachActorModel,npc:BreachActorModel};
 CONFIG.Item.dataModels={equipment:BreachItemModel,talent:BreachItemModel,magic:BreachItemModel};
 test('Manifest validates against installed Foundry v14 BaseSystem schema',async()=>{const data=JSON.parse(await readFile('through-the-breach/system.json','utf8'));const m=new foundry.packages.BaseSystem(data);assert.equal(m.id,'through-the-breach');assert.equal(m.invalid,false);});
+
+test('Manifest permits world creation on the tested build and later v14 builds',async()=>{
+  const data=JSON.parse(await readFile('through-the-breach/system.json','utf8'));
+  for(const build of [365,368]){
+    const availability=foundry.packages.BaseSystem.testAvailability(data,{release:{version:`14.${build}`,generation:14,maxStableGeneration:14,maxGeneration:14}});
+    assert.ok([CONST.PACKAGE_AVAILABILITY_CODES.VERIFIED,CONST.PACKAGE_AVAILABILITY_CODES.UNVERIFIED_BUILD].includes(availability));
+  }
+});
 test('Actual Foundry TypeDataModel: actor defaults, derived fields and serialized save',()=>{const m=new BreachActorModel({aspects:{resilience:3},skills:{toughness:{rank:2}}});m.prepareDerivedData();assert.equal(m.wounds.max,8);assert.equal(m.skills.literacy.aspect,'intellect');assert.equal(Object.keys(m.skills).length,56);const copy=new BreachActorModel(m.toObject());copy.prepareDerivedData();assert.equal(copy.wounds.max,8);assert.equal(new BreachActorModel({skills:{literacy:{rank:6}}}).skills.literacy.rank,5);});
 test('Actual item model remains plain text and preserves Cyrillic',()=>{const m=new BreachItemModel({description:'Талант: карта в рукаве',quantity:2});assert.equal(m.toObject().description,'Талант: карта в рукаве');});

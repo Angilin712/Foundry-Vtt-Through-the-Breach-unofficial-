@@ -1,6 +1,6 @@
 <div class="ttb-layout">
   <header class="ttb-masthead"><img src="{{actor.img}}" data-action="editImage" data-edit="img" alt="Портрет"><div><div class="ttb-eyebrow">THROUGH THE BREACH · СКВОЗЬ ПРОЛОМ</div><input class="ttb-name" name="name" value="{{actor.name}}" aria-label="Имя персонажа"><div class="ttb-subtitle">{{#if isNPC}}Персонаж Мастера Судьбы{{else}}Сужденный · личное досье{{/if}}</div></div><button type="button" data-action="table" class="ttb-table-button">Стол Судьбы</button></header>
-  <nav class="ttb-tabs">{{#each tabs}}<button type="button" data-action="tab" data-tab="{{id}}" class="{{#if active}}active{{/if}}">{{label}}</button>{{/each}}</nav>
+  <nav class="ttb-tabs">{{#each tabs}}<button type="button" data-action="sheetTab" data-tab="{{id}}" class="{{#if active}}active{{/if}}">{{label}}</button>{{/each}}</nav>
   <div class="ttb-body">
   {{#unless masterOnline}}<p class="ttb-alert">Мастер не подключён. Лист можно редактировать; карточные действия ждут подключения мастера.</p>{{/unless}}
   {{#if main}}
@@ -29,5 +29,5 @@
     <h2>Предсказание судьбы</h2><textarea name="system.fate" class="ttb-long" placeholder="Корень, тело, разум, станция и стремление; карты Таро и пророчество">{{s.fate}}</textarea>
   {{/if}}
   {{#if storyTab}}<h2>Оружие и снаряжение</h2><textarea class="ttb-long" name="system.gear" placeholder="Название, навык, дальность, урон слабый/умеренный/тяжёлый, боезапас и свойства">{{s.gear}}</textarea><h2>Таланты и способности Стремления</h2><textarea class="ttb-long" name="system.talents">{{s.talents}}</textarea><div class="ttb-fields"><label>Магическая теория<input name="system.magicTheory" value="{{s.magicTheory}}"></label><label>Гримуары, Магия и Иммуто<textarea name="system.grimoire">{{s.grimoire}}</textarea></label></div><h2>Предметы Foundry</h2>{{#each items}}<p><button type="button" data-action="item" data-item-id="{{id}}">{{name}}</button> × {{quantity}} · {{description}}</p>{{else}}<p class="ttb-help">Можно перетащить предметы из вкладки «Предметы» Foundry в этот лист.</p>{{/each}}<h2>История и заметки</h2><textarea class="ttb-long" name="system.notes">{{s.notes}}</textarea>{{/if}}
-  </div><footer class="ttb-footer">Изменения сохраняются автоматически · Правила второго издания · 0.1.0</footer>
+  </div><footer class="ttb-footer">Изменения сохраняются автоматически · Правила второго издания · {{systemVersion}}</footer>
 </div>
