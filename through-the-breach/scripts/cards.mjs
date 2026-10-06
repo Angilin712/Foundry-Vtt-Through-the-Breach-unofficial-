@@ -152,10 +152,11 @@ export async function startDuel(actor,p){
     else throw new Error("Неизвестный навык или аспект.");
   }
   base+=integer(p.bonus??0);
+  if(p.checkReason)label+=` · ${p.checkReason}`;
   const mod=p.kind==="initiative"?0:modifier(p.positive,p.negative);
   if(npc&&p.kind==="duel")base+=2*mod;
   const d={actorId:actor.id,actorUuid:actor.uuid,actorName:actor.name,kind:p.kind,npc,label,base,baseSuits,tn:integer(p.tn??0,0,99),required:parseSuits(p.required),mod,cards:[],selected:null,replacement:null,redSuit:"",cheated:false,closed:false,stage:"drawing",track:(p.track??[1,2,3]).map(n=>integer(n,0,999)),combatantId:p.combatantId??null,combatId:p.combatId??null};
-  Object.assign(d,{attack:p.attack??null,targetUuid:p.targetUuid??null,ignoreArmor:p.ignoreArmor===true,parentAttackId:p.parentAttackId??null,unconsciousCheck:p.unconsciousCheck===true});
+  Object.assign(d,{attack:p.attack??null,targetUuid:p.targetUuid??null,ignoreArmor:p.ignoreArmor===true,parentAttackId:p.parentAttackId??null,unconsciousCheck:p.unconsciousCheck===true,checkReason:p.checkReason??null});
   assert(d.track.length===3,"Укажите три значения урона.");
   assert(stack("fate")&&stack("active")&&stack("discard"),"Мастер должен подготовить общую колоду.");
   const message=await ChatMessage.create({speaker:ChatMessage.getSpeaker({actor}),content:`<p>${e(actor.name)}: подготовка ${e(label)}…</p>`,flags:{[ID]:{duel:d}}});
@@ -190,7 +191,7 @@ async function finish(message,d,actor){
   if(d.opposed){const other=game.messages.get(d.opposed.otherId);if(other)await saveDuel(other,foundry.utils.deepClone(other.getFlag(ID,'duel')));}
 }
 export async function execute(user,p){
-  if(['attack','attackDamage','applyDamage','undoDamage','critical','consciousness'].includes(p.op)){assert(user?.active,"Пользователь не подключён.");return executeBattle(user,p);}
+    if(['attack','attackDamage','applyDamage','undoDamage','critical','consciousness','criticalConsciousness'].includes(p.op)){assert(user?.active,"Пользователь не подключён.");return executeBattle(user,p);}
   assert(user?.active,"Пользователь не подключён.");
   const gmOps=["setup","setupActor","shuffle","prologue","endDrama","give","recover"];
   if(gmOps.includes(p.op))requireGM(user);

@@ -14,9 +14,10 @@ export function battleButtons(d){
   if(d.closed&&d.attack&&attackMargin(d)!==null&&!d.damageMessageId)html+='<button type="button" data-ttb="attackDamage">Флип урона атаки</button>';
   if(d.closed&&d.kind==='damage'&&d.targetUuid&&!d.application)html+='<button type="button" data-ttb="applyDamage">Применить урон к цели</button>';
   if(d.application&&!d.application.undone&&!d.application.pending&&!d.application.criticalPending){
-    html+='<button type="button" data-ttb="undoDamage">Отменить применение урона</button>';
+    if(!d.consciousnessMessageId&&!d.criticalConsciousnessMessageId)html+='<button type="button" data-ttb="undoDamage">Отменить применение урона</button>';
     if(d.application.criticalLevel&&!d.criticalResult)html+='<button type="button" data-ttb="critical">Критический эффект</button>';
     if(d.application.after<=0&&!d.consciousnessMessageId)html+='<button type="button" data-ttb="consciousness">Проверка сознания</button>';
+    if(d.criticalConsciousness&&(!d.criticalConsciousnessMessageId||d.criticalConsciousness.repeat&&game.messages.get(d.criticalConsciousnessMessageId)?.getFlag(ID,'duel')?.closed))html+=`<button type="button" data-ttb="criticalConsciousness">${d.criticalConsciousness.repeat?'Сознание при действии (травма нервов)':'Сознание от критической раны'}</button>`;
   }
   return html;
 }
@@ -56,6 +57,18 @@ export async function executeBattle(user,p){
     d.damageMessageId=child.id;return saveDuel(m,d);
   }
   assert(user.isGM,'Урон, критические последствия и отмену применения подтверждает мастер.');
+  if(p.op==='criticalConsciousness'){
+    const effect=d.criticalConsciousness;
+    assert(effect&&d.application&&!d.application.undone&&!d.application.pending&&!d.application.criticalPending,'Нет завершённой критической раны с проверкой сознания.');
+    const previous=d.criticalConsciousnessMessageId;
+    assert(!previous||effect.repeat&&game.messages.get(previous)?.getFlag(ID,'duel')?.closed,'Проверка уже начата или выполнена.');
+    assert(!effect.livingOnly||p.living===true,'Этот эффект требует живую цель; применимость подтверждает мастер.');
+    const a=targetOf(d.targetUuid);assert(!a.system.unconscious,'Цель уже без сознания.');requireReady(a);
+    const tn=integer(effect.baseTN+Math.max(0,-a.system.wounds.value),0,99),positive=integer(p.positive??0,0,99),negative=integer(p.negative??0,0,99);
+    d.criticalConsciousnessMessageId='pending';await saveDuel(m,d);
+    const child=await startDuel(a,{kind:'duel',skill:'toughness',aspect:'resilience',tn,positive,negative,unconsciousCheck:true,checkReason:effect.repeat?'Травма нервов: сознание при действии':'Сознание от критической раны'});
+    d.criticalConsciousnessMessageId=child.id;return saveDuel(m,d);
+  }
   if(p.op==='consciousness'){
     assert(d.application&&!d.application.pending&&!d.application.criticalPending&&!d.application.undone&&d.application.after<=0&&!d.consciousnessMessageId,'Проверка сознания не требуется или уже выполнена.');
     const a=targetOf(d.targetUuid);assert(a.system.wounds.value===d.application.after,'Ранения цели изменились: проверьте сознание вручную по текущему состоянию.');
@@ -81,7 +94,7 @@ export async function executeBattle(user,p){
   const app=d.application;assert(app&&!app.undone&&!app.pending&&!app.criticalPending,'Нет завершённого применения урона или критический эффект прерван.');
   assert(target.system.wounds.value===app.after&&target.system.conditions===app.afterConditions,'Цель изменилась после применения. Проверьте её лист вручную, чтобы не затереть новые изменения.');
   if(p.op==='undoDamage'){
-    assert(!d.consciousnessMessageId,'После проверки сознания отмените последствия вручную, чтобы не затереть новые события.');
+    assert(!d.consciousnessMessageId&&!d.criticalConsciousnessMessageId,'После проверки сознания отмените последствия вручную, чтобы не затереть новые события.');
     await target.update({'system.wounds.value':app.before,'system.conditions':app.beforeConditions,'system.unconscious':app.beforeUnconscious});app.undone=true;return saveDuel(m,d);
   }
   if(p.op==='critical'){
@@ -98,6 +111,7 @@ export async function executeBattle(user,p){
     assert(result?.text,'Требуется ручное разрешение перехода между таблицами.');
     const location={rams:'грудь',tomes:'голова',crows:'рука',masks:'нога'}[card.suit]??'место выбирает мастер (джокер)';
     d.criticalResult=`Критический эффект (${location}): ${result.text} Карты: ${flips.join('; ')}. Состояния и их сроки контролирует мастер.`;
+    d.criticalConsciousness=result.consciousness;
     app.after-=result.extra;app.afterConditions=[app.afterConditions,d.criticalResult].filter(Boolean).join('\n');
     await target.update({'system.wounds.value':app.after,'system.conditions':app.afterConditions});app.criticalPending=false;return saveDuel(m,d);
   }

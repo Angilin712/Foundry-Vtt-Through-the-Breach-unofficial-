@@ -32,5 +32,8 @@ export function criticalEffect(level,value){
   if(level==='moderate'&&value>=15)return {reroll:'severe',min:3};
   if(level==='severe'&&value<=2)return {reroll:'moderate',max:14};
   const i=Math.min(rows[level].length-1,Math.max(0,Math.floor((value-1)/2)));
-  return {text:rows[level][i],extra:level==='weak'&&i===5?1:level==='severe'&&i===1?2:0};
+  const consciousness=level==='moderate'&&i===4?{baseTN:8,repeat:false,livingOnly:false}
+    :level==='severe'&&i===4?{baseTN:8,repeat:true,livingOnly:false}
+    :level==='severe'&&i>=8?{baseTN:i===8?8:10,repeat:false,livingOnly:true}:null;
+  return {text:rows[level][i],extra:level==='weak'&&i===5?1:level==='severe'&&i===1?2:0,consciousness};
 }

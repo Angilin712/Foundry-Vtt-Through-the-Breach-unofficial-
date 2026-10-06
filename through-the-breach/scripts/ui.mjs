@@ -26,6 +26,12 @@ export async function handleChat(message,op,element){
   if(op==="pick")return request({op,messageId:message.id,index:Number(element.dataset.index)});
   if(op==="finish")return request({op,messageId:message.id});
   if(['undoDamage','consciousness'].includes(op))return request({op,messageId:message.id});
+  if(op==='criticalConsciousness'){
+    const target=fromUuidSync(d.targetUuid),effect=d.criticalConsciousness;if(!target||!effect)return;
+    const tn=effect.baseTN+Math.max(0,-target.system.wounds.value);
+    const f=await formDialog('Сознание от критической раны',`<p>${e(target.name)} · Жесткость · СЛ ${tn} (${effect.baseTN} + отрицательные ранения). Для ПМ используется ранг вместо карты.</p>${effect.repeat?'<p>Начинайте проверку только при действии, указанном для поражённого места. Снятие травмы контролирует мастер.</p>':''}${effect.livingOnly?'<label><input type="checkbox" name="living" required>Цель живая и не погибла от поражения головы или груди</label>':''}<label>Дополнительных +<input name="positive" type="number" value="0" min="0" max="99"></label><label>Дополнительных −<input name="negative" type="number" value="0" min="0" max="99"></label>`,'Начать проверку');
+    if(f)return request({op,messageId:message.id,living:f.living==='on',positive:Number(f.positive),negative:Number(f.negative)});
+  }
   if(op==='applyDamage'){
     const f=await formDialog('Применить урон',`<p>Цель: ${e(fromUuidSync(d.targetUuid)?.name??'не найдена')}. Броня учитывается автоматически.</p><label><input type="checkbox" name="ignoreArmor">Игнорировать броню</label>`,'Применить');
     if(f)return request({op,messageId:message.id,ignoreArmor:f.ignoreArmor==='on'});

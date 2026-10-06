@@ -46,7 +46,7 @@ Hooks.on("renderChatMessageHTML",(message,html)=>{
   const d=message.getFlag(ID,"duel");if(!d||!message.author?.isGM)return;
   const actor=d.actorUuid?fromUuidSync(d.actorUuid):game.actors.get(d.actorId);
   html.querySelectorAll("[data-ttb]").forEach(button=>{
-    const gmOnly=['applyDamage','undoDamage','critical','consciousness'].includes(button.dataset.ttb);
+    const gmOnly=['applyDamage','undoDamage','critical','consciousness','criticalConsciousness'].includes(button.dataset.ttb);
     const controller=button.dataset.ttb==='attackDamage'?fromUuidSync(d.attack.sourceUuid):actor;
     if(!controller?.isOwner||(gmOnly&&!game.user.isGM)){button.hidden=true;return;}
     button.addEventListener("click",event=>{event.preventDefault();button.disabled=true;safely(()=>handleChat(message,button.dataset.ttb,button)).finally(()=>{button.disabled=false;});});

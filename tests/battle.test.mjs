@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {reset,actor,gm,player,other,setTop,ID} from './harness.mjs';
 import {weaponData,reducedDamage,compareCombatants,criticalEffect} from '../through-the-breach/scripts/battle.mjs';
 const {execute,stack}=await import('../through-the-breach/scripts/cards.mjs');
+const {battleButtons}=await import('../through-the-breach/scripts/actions.mjs');
 beforeEach(reset);
 function weapon(a){const w={id:'weapon1',name:'Пистолет',system:{isWeapon:true,skill:'pistol',range:'10 ярдов',damage:'2/3/5',defense:'defense',ignoreArmor:false}};a.items.set(w.id,w);a.system.skills.pistol.rank=2;a.system.aspects.grace=2;return w;}
 const last=()=>game.messages.filter(m=>m.getFlag(ID,'duel')).at(-1);
@@ -20,3 +21,45 @@ test('Consciousness: minion automatically fails, enforcer succeeds, Fated toughn
 test('Fated opposed attacks flip both sides first, enforce cheat order, and aggressor wins ties',async()=>{const a=actor('Агрессор'),b=actor('Защитник','fated',other);weapon(a);await execute(gm,{op:'setup'});setTop(stack('fate'),[8,6]);await execute(gm,{op:'attack',actorUuid:a.uuid,itemId:'weapon1',targetUuid:b.uuid});const offense=last(),defense=game.messages.get(offense.getFlag(ID,'duel').opposed.otherId);assert.equal(stack('active').cards.size,2);await assert.rejects(()=>execute(player,{op:'finish',messageId:offense.id}));await execute(other,{op:'finish',messageId:defense.id});await execute(player,{op:'finish',messageId:offense.id});assert.match(offense.content,/Победа/);assert.equal(offense.getFlag(ID,'duel').tn,0);setTop(stack('fate'),[3,4,5]);await execute(player,{op:'attackDamage',messageId:offense.id});assert.equal(last().getFlag(ID,'duel').mod,-2);});
 test('Critical exhaustion recycles only shared discard and grants each personal hand a credit',async()=>{const b=actor('Страж','npc',gm);b.system.wounds.value=1;const f=actor();await execute(gm,{op:'setupActor',actorId:f.id});const m=await damage(b,8);await execute(gm,{op:'applyDamage',messageId:m.id});const deck=stack('fate');await deck.pass(stack('discard'),deck.availableCards.map(c=>c.id));await execute(gm,{op:'critical',messageId:m.id});assert.equal(stack('hand',f.id).getFlag(ID,'credits'),1);assert.equal(stack('active').cards.size,0);assert.equal(deck.availableCards.length+stack('discard').cards.size,54);});
 test('A pending shuffle credit blocks damage without consuming its one-use action',async()=>{const a=actor(),b=actor('Страж','npc',gm);weapon(a);await execute(gm,{op:'setupActor',actorId:a.id});setTop(stack('fate'),[12]);await execute(player,{op:'attack',actorUuid:a.uuid,itemId:'weapon1',targetUuid:b.uuid});const m=last();await finish(m);await execute(gm,{op:'shuffle'});await assert.rejects(()=>execute(player,{op:'attackDamage',messageId:m.id}));assert.equal(m.getFlag(ID,'duel').damageMessageId,undefined);await execute(player,{op:'declineCredit',actorId:a.id});await execute(player,{op:'attackDamage',messageId:m.id});assert.notEqual(m.getFlag(ID,'duel').damageMessageId,'pending');});
+
+test('Critical consciousness table thresholds distinguish immediate, recurring and living-only checks',()=>{
+  assert.deepEqual(criticalEffect('moderate',9).consciousness,{baseTN:8,repeat:false,livingOnly:false});
+  assert.equal(criticalEffect('moderate',8).consciousness,null);
+  assert.equal(criticalEffect('moderate',11).consciousness,null);
+  assert.deepEqual(criticalEffect('severe',10).consciousness,{baseTN:8,repeat:true,livingOnly:false});
+  assert.deepEqual(criticalEffect('severe',18).consciousness,{baseTN:8,repeat:false,livingOnly:true});
+  assert.equal(criticalEffect('severe',19).consciousness.baseTN,10);
+  assert.equal(criticalEffect('severe',21).consciousness.baseTN,10);
+});
+async function criticalWound(target,damageCard,criticalCard){
+  const m=await damage(target,damageCard);await execute(gm,{op:'applyDamage',messageId:m.id});
+  setTop(stack('fate'),[criticalCard]);await execute(gm,{op:'critical',messageId:m.id});return m;
+}
+test('Rank 6 NPC must resolve critical consciousness normally, not auto-pass; GM only, no card drawn',async()=>{
+  const b=actor('Силовик','npc',gm);b.system.rank=6;b.system.wounds.value=2;
+  const m=await criticalWound(b,8,8);assert.equal(m.getFlag(ID,'duel').application.after,-1);
+  await assert.rejects(()=>execute(player,{op:'criticalConsciousness',messageId:m.id}));
+  const count=stack('fate').availableCards.length;await execute(gm,{op:'criticalConsciousness',messageId:m.id});
+  const check=last();assert.equal(check.getFlag(ID,'duel').tn,9);assert.equal(check.getFlag(ID,'duel').cards[0].rank,true);
+  assert.equal(stack('fate').availableCards.length,count);await finish(check);assert.equal(b.system.unconscious,true);
+  assert.equal(b.system.prone,true);assert.equal(b.system.ap.value,0);
+  await assert.rejects(()=>execute(gm,{op:'criticalConsciousness',messageId:m.id}));
+  await assert.rejects(()=>execute(gm,{op:'undoDamage',messageId:m.id}));
+  assert.doesNotMatch(battleButtons(m.getFlag(ID,'duel')),/undoDamage/);
+});
+test('Fated special check uses current wounds and owner can finish; ordinary check stays separate',async()=>{
+  const b=actor();b.system.wounds.value=2;const m=await criticalWound(b,8,8);
+  b.system.wounds.value=-3;setTop(stack('fate'),[12]);await execute(gm,{op:'criticalConsciousness',messageId:m.id});
+  const check=last();assert.equal(check.getFlag(ID,'duel').tn,11);await execute(player,{op:'finish',messageId:check.id});
+  assert.equal(b.system.unconscious,false);assert.equal(m.getFlag(ID,'duel').consciousnessMessageId,undefined);
+});
+test('Nerve injury repeats only after prior check closes; immediate living-only check requires applicability',async()=>{
+  const b=actor('Силовик','npc',gm);b.system.rank=10;b.system.wounds.value=4;
+  const m=await criticalWound(b,11,8);await execute(gm,{op:'criticalConsciousness',messageId:m.id});
+  await assert.rejects(()=>execute(gm,{op:'criticalConsciousness',messageId:m.id}));await finish(last());
+  b.system.wounds.value=-2;await execute(gm,{op:'criticalConsciousness',messageId:m.id});assert.equal(last().getFlag(ID,'duel').tn,10);await finish(last());
+  const c=actor('Живая цель','npc',gm);c.system.wounds.value=-4;const n=await criticalWound(c,11,8);
+  await assert.rejects(()=>execute(gm,{op:'criticalConsciousness',messageId:n.id}));
+  assert.equal(n.getFlag(ID,'duel').criticalConsciousnessMessageId,undefined);
+  await execute(gm,{op:'criticalConsciousness',messageId:n.id,living:true});assert.equal(last().getFlag(ID,'duel').tn,17);
+});
