@@ -7,3 +7,4 @@
 .ttb label.ttb-check{display:flex;flex-direction:row;align-items:center;gap:8px;line-height:1.5}
 .ttb .ttb-hand-card span{min-height:24px;gap:7px}
 .ttb-dialog input[type="checkbox"]{width:16px;height:16px;flex:0 0 16px;appearance:auto}
+.message.ttb-request-done{display:none!important}

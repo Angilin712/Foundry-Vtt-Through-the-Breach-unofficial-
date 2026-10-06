@@ -45,7 +45,7 @@ Hooks.on("updateUser",()=>{if(authority()?.id===game.user.id)game.messages.forEa
 Hooks.on("userConnected",()=>{if(authority()?.id===game.user.id)game.messages.forEach(processRequest);});
 Hooks.on("updateActor",actor=>{if(authority()?.id===game.user.id)enqueue(()=>syncHand(actor));});
 Hooks.on("renderChatMessageHTML",(message,html)=>{
-  if(message.getFlag(ID,"status")==="done"&&message.getFlag(ID,"request")){(html.closest('.message')??html).hidden=true;return;}
+  if(message.getFlag(ID,"status")==="done"&&message.getFlag(ID,"request")){const row=html.closest('.message')??html;row.classList.add('ttb-request-done');row.hidden=true;return;}
   const d=message.getFlag(ID,"duel");if(!d||!message.author?.isGM)return;
   const actor=d.actorUuid?fromUuidSync(d.actorUuid):game.actors.get(d.actorId);
   html.querySelectorAll("[data-ttb]").forEach(button=>{
