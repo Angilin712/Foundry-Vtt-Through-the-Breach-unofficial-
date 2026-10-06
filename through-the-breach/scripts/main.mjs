@@ -3,9 +3,12 @@ import {BreachActorModel,BreachItemModel} from "./models.mjs";
 import {BreachSheet,BreachItemSheet,FateTable,handleChat,safely} from "./ui.mjs";
 import {request,processRequest,syncHand,enqueue,authority} from "./cards.mjs";
 import {compareCombatants} from './battle.mjs';
+import {turnLifecycle} from './turns.mjs';
 const {Actor,Item,Combat}=foundry.documents;
 
 class BreachCombat extends Combat {
+  async _onStartTurn(combatant,context){await super._onStartTurn(combatant,context);return enqueue(()=>safely(()=>turnLifecycle(this,combatant,context,'start')));}
+  async _onEndTurn(combatant,context){await super._onEndTurn(combatant,context);return enqueue(()=>safely(()=>turnLifecycle(this,combatant,context,'end')));}
   async rollInitiative(ids,options={}){
     for(const id of typeof ids==="string"?[ids]:(ids??this.combatants.filter(c=>c.initiative===null).map(c=>c.id))){
       const c=this.combatants.get(id);if(!c?.actor||!c.isOwner)continue;
@@ -42,7 +45,7 @@ Hooks.on("updateUser",()=>{if(authority()?.id===game.user.id)game.messages.forEa
 Hooks.on("userConnected",()=>{if(authority()?.id===game.user.id)game.messages.forEach(processRequest);});
 Hooks.on("updateActor",actor=>{if(authority()?.id===game.user.id)enqueue(()=>syncHand(actor));});
 Hooks.on("renderChatMessageHTML",(message,html)=>{
-  if(message.getFlag(ID,"status")==="done"&&message.getFlag(ID,"request")){html.hidden=true;return;}
+  if(message.getFlag(ID,"status")==="done"&&message.getFlag(ID,"request")){(html.closest('.message')??html).hidden=true;return;}
   const d=message.getFlag(ID,"duel");if(!d||!message.author?.isGM)return;
   const actor=d.actorUuid?fromUuidSync(d.actorUuid):game.actors.get(d.actorId);
   html.querySelectorAll("[data-ttb]").forEach(button=>{

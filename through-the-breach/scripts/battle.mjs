@@ -6,7 +6,7 @@ export function weaponData(item){
   const track=String(s.damage).split('/').map(n=>integer(n,0,999));
   assert(track.length===3 && track.every((n,i)=>i===0||n>=track[i-1]),'Урон оружия: три возрастающих значения, например 2/3/4.');
   assert(['defense','willpower'].includes(s.defense),'Выберите Защиту или Силу воли.');
-  return {id:item.id,name:item.name,skill:s.skill,range:s.range,track,defense:s.defense,ignoreArmor:s.ignoreArmor};
+  return {id:item.id,name:item.name,skill:s.skill,range:s.range,track,defense:s.defense,ignoreArmor:s.ignoreArmor,apCost:integer(s.apCost??1,0,99)};
 }
 export function reducedDamage(raw,armor,ignore=false){
   raw=integer(raw,0,999);armor=integer(armor,0,3);
@@ -35,5 +35,7 @@ export function criticalEffect(level,value){
   const consciousness=level==='moderate'&&i===4?{baseTN:8,repeat:false,livingOnly:false}
     :level==='severe'&&i===4?{baseTN:8,repeat:true,livingOnly:false}
     :level==='severe'&&i>=8?{baseTN:i===8?8:10,repeat:false,livingOnly:true}:null;
-  return {text:rows[level][i],extra:level==='weak'&&i===5?1:level==='severe'&&i===1?2:0,consciousness};
+  const effects=level==='weak'?({1:['stunned'],3:['negative'],4:['slow'],6:['paralyzed']}[i]??[]):level==='moderate'&&i===2?['hyperventilation']:level==='severe'&&i===6?['pain']:level==='severe'&&i===7?['openWound']:[];
+  const bleeding=level==='severe'?(i===3?1:i===8?3:i>=9?5:0):0;
+  return {text:rows[level][i],extra:level==='weak'&&i===5?1:level==='severe'&&i===1?2:0,consciousness,effects,bleeding,prone:level==='weak'&&i===2};
 }

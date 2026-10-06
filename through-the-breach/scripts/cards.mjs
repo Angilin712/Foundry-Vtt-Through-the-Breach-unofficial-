@@ -1,4 +1,5 @@
 import {executeBattle,battleButtons,attackMargin} from './actions.mjs';
+import {executeTurnAction,hasEffect,actionPenalty} from './turns.mjs';
 import {ID,SUITS,SKILLS,ASPECTS,makeFateDeck,makeTwistDeck,cardName,assert,integer,modifier,selectable,canCheat,parseSuits,derived,defenseSuits,outcome,escapeHTML as e} from "./rules.mjs";
 const {Cards,ChatMessage}=foundry.documents;
 
@@ -6,7 +7,7 @@ export const stack=(role,actorId="")=>game.cards.find(s=>s.getFlag(ID,"role")===
 export const authority=()=>game.users.activeGM;
 const nativeCard=c=>({id:c.id,value:c.value,suit:c.suit,name:c.name,img:c.faces[0]?.img});
 const gms=()=>game.users.filter(u=>u.isGM).map(u=>u.id);
-const ACTION_LABELS={setup:"Подготовка колоды",setupActor:"Личная колода",shuffle:"Перетасовка",prologue:"Конец пролога",endDrama:"Конец сцены",give:"Выдача карты",discard:"Сброс карт",credit:"Добор за перетасовку",declineCredit:"Отказ от добора",refresh:"Обновление руки",duel:"Проверка",pick:"Выбор карты",red:"Масть джокера",cheat:"Обман судьбы",finish:"Завершение проверки",recover:"Отмена проверки",attack:"Атака оружием",attackDamage:"Урон атаки",applyDamage:"Применение урона",undoDamage:"Отмена урона",critical:"Критический эффект",consciousness:"Проверка сознания"};
+const ACTION_LABELS={spendAP:"Расход ОД",recoverTurn:"Восстановление хода",addEffect:"Добавление состояния",clearEffect:"Снятие состояния",endSceneEffects:"Завершение состояний сцены",hyperventilation:"Снятие гипервентиляции",setup:"Подготовка колоды",setupActor:"Личная колода",shuffle:"Перетасовка",prologue:"Конец пролога",endDrama:"Конец сцены",give:"Выдача карты",discard:"Сброс карт",credit:"Добор за перетасовку",declineCredit:"Отказ от добора",refresh:"Обновление руки",duel:"Проверка",pick:"Выбор карты",red:"Масть джокера",cheat:"Обман судьбы",finish:"Завершение проверки",recover:"Отмена проверки",attack:"Атака оружием",attackDamage:"Урон атаки",applyDamage:"Применение урона",undoDamage:"Отмена урона",critical:"Критический эффект",consciousness:"Проверка сознания"};
 const publicNote=content=>ChatMessage.create({content:`<div class="ttb-chat">${content}</div>`});
 let queue=Promise.resolve();
 const seen=new Set();
@@ -153,9 +154,10 @@ export async function startDuel(actor,p){
   }
   base+=integer(p.bonus??0);
   if(p.checkReason)label+=` · ${p.checkReason}`;
-  const mod=p.kind==="initiative"?0:modifier(p.positive,p.negative);
+  const mod=p.kind==="initiative"?0:modifier(p.positive,Number(p.negative??0)+(p.kind==='duel'&&hasEffect(s,'negative')?1:0));
   if(npc&&p.kind==="duel")base+=2*mod;
-  const d={actorId:actor.id,actorUuid:actor.uuid,actorName:actor.name,kind:p.kind,npc,label,base,baseSuits,tn:integer(p.tn??0,0,99),required:parseSuits(p.required),mod,cards:[],selected:null,replacement:null,redSuit:"",cheated:false,closed:false,stage:"drawing",track:(p.track??[1,2,3]).map(n=>integer(n,0,999)),combatantId:p.combatantId??null,combatId:p.combatId??null};
+  const d={actorId:actor.id,actorUuid:actor.uuid,actorName:actor.name,kind:p.kind,npc,label,base,baseSuits,tn:integer(Number(p.tn??0)+(p.action?actionPenalty(s):0),0,99),required:parseSuits(p.required),mod,cards:[],selected:null,replacement:null,redSuit:"",cheated:false,closed:false,stage:"drawing",track:(p.track??[1,2,3]).map(n=>integer(n,0,999)),combatantId:p.combatantId??null,combatId:p.combatId??null};
+  d.removeEffectId=p.removeEffectId??null;
   Object.assign(d,{attack:p.attack??null,targetUuid:p.targetUuid??null,ignoreArmor:p.ignoreArmor===true,parentAttackId:p.parentAttackId??null,unconsciousCheck:p.unconsciousCheck===true,checkReason:p.checkReason??null});
   assert(d.track.length===3,"Укажите три значения урона.");
   assert(stack("fate")&&stack("active")&&stack("discard"),"Мастер должен подготовить общую колоду.");
@@ -187,10 +189,12 @@ async function finish(message,d,actor){
     if(combatant?.actor?.uuid===actor.uuid)await combat.setInitiative(combatant.id,outcome(d).total);
   }
   if(d.unconsciousCheck&&!outcome(d).success)await actor.update({'system.unconscious':true,'system.prone':true,'system.ap.value':0});
+  if(d.removeEffectId&&outcome(d).success){const kind=actor.system.effects.find(x=>x.id===d.removeEffectId)?.kind;if(kind)await actor.update({'system.effects':actor.system.effects.filter(x=>x.kind!==kind)});}
   d.closed=true;d.stage="closed";await saveDuel(message,d);
   if(d.opposed){const other=game.messages.get(d.opposed.otherId);if(other)await saveDuel(other,foundry.utils.deepClone(other.getFlag(ID,'duel')));}
 }
 export async function execute(user,p){
+  if(['spendAP','clearEffect','endSceneEffects','hyperventilation','addEffect','recoverTurn'].includes(p.op)){assert(user?.active,'Пользователь не подключён.');return executeTurnAction(user,p);}
     if(['attack','attackDamage','applyDamage','undoDamage','critical','consciousness','criticalConsciousness'].includes(p.op)){assert(user?.active,"Пользователь не подключён.");return executeBattle(user,p);}
   assert(user?.active,"Пользователь не подключён.");
   const gmOps=["setup","setupActor","shuffle","prologue","endDrama","give","recover"];
@@ -202,6 +206,8 @@ export async function execute(user,p){
   }
   if(p.op==="endDrama"){
     for(const hand of game.cards.filter(s=>s.getFlag(ID,"role")==="hand"))await hand.setFlag(ID,"refresh",true);
+    const actors=new Map([...game.actors,...(game.combat?.combatants?.map(c=>c.actor).filter(Boolean)??[])].map(a=>[a.uuid,a]));
+    for(const a of actors.values())await executeTurnAction(user,{op:'endSceneEffects',actorUuid:a.uuid});
     return publicNote("Драматическое время завершено. Выберите карты для сброса в листе и нажмите «Обновить руку после сцены»: добор до трёх.");
   }
   if(p.op==="recover"){
@@ -274,7 +280,7 @@ export function processRequest(message){
     if(ledger[message.id]){await message.update({[`flags.${ID}.status`]:"error",[`flags.${ID}.error`]:"Запрос был прерван. Мастеру нужно проверить открытые проверки и колоды перед повторением.",content:"<p>Прерванный запрос: требуется проверка мастером. Повторно автоматически не выполняется.</p>"});return;}
     // Fail closed after interruption: an already started request is never replayed automatically.
     ledger[message.id]="started";await game.settings.set(ID,"requests",ledger);
-    try{await execute(user,payload);await message.update({[`flags.${ID}.status`]:"done",content:"<p>Карточное действие выполнено.</p>"});}
+    try{await execute(user,payload);await message.update({[`flags.${ID}.status`]:"done",content:""});}
     catch(err){console.error(`${ID} | request ${message.id}`,err);await message.update({[`flags.${ID}.status`]:"error",[`flags.${ID}.error`]:err.message,content:`<p>Действие не завершено: ${e(err.message)}</p>`});}
   });
 }

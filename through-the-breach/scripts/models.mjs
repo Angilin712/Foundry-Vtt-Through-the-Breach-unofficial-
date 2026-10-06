@@ -9,6 +9,9 @@ export class BreachActorModel extends foundry.abstract.TypeDataModel {
     bonuses:new SchemaField(Object.fromEntries(["defense","willpower","wounds","initiative","walk","charge"].map(k=>[k,number()]))),
     wounds:new SchemaField({value:number(4,-100,999)}),ap:new SchemaField({value:number(2,0,99),max:number(2,0,99)}),
     armor:number(0,0,3),height:number(2,0,99),rank:number(5,0,20),walkRoundUp:new BooleanField({initial:true}),unconscious:new BooleanField({initial:false}),prone:new BooleanField({initial:false}),
+    living:new BooleanField({initial:true}),dead:new BooleanField({initial:false}),bleeding:number(0,0,99),turnCount:number(0,0,999999),
+    openWoundFirst:new BooleanField({initial:false}),
+    effects:new ArrayField(new SchemaField({id:string(),kind:string(),ends:number(0,0,999999),starts:number(0,0,999999),source:string()})),
     xp:number(0,0,9999),scrip:new NumberField({initial:10,min:0,required:true,nullable:false}),
     pursuit:string(),station:string(),characteristics:string("Живой, Сужденный"),player:string(),
     fate:string(),notes:string(),conditions:string(),magicTheory:string(),grimoire:string(),
@@ -19,5 +22,5 @@ export class BreachActorModel extends foundry.abstract.TypeDataModel {
   prepareDerivedData(){super.prepareDerivedData();this.computed=derived(this);this.wounds.max=this.computed.wounds;}
 }
 export class BreachItemModel extends foundry.abstract.TypeDataModel {
-  static defineSchema(){return {description:string(),quantity:number(1,0,9999),isWeapon:new BooleanField({initial:false}),skill:string("melee"),range:string("1 ярд"),damage:string("1/2/3"),defense:string("defense"),ignoreArmor:new BooleanField({initial:false})};}
+  static defineSchema(){return {description:string(),quantity:number(1,0,9999),isWeapon:new BooleanField({initial:false}),skill:string("melee"),range:string("1 ярд"),damage:string("1/2/3"),defense:string("defense"),ignoreArmor:new BooleanField({initial:false}),apCost:number(1,0,99)};}
 }

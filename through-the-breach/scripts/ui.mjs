@@ -1,5 +1,6 @@
 import {ID,SUITS,SYMBOLS,ASPECTS,SKILLS,GROUPS,TWIST_ROLES,derived,canCheat,escapeHTML as e} from "./rules.mjs";
 import {stack,request,authority} from "./cards.mjs";
+import {EFFECT_LABELS} from './turns.mjs';
 const {HandlebarsApplicationMixin,ApplicationV2,DialogV2}=foundry.applications.api;
 const choices=(values,selected)=>Object.entries(values).map(([k,v])=>`<option value="${e(k)}" ${k===selected?"selected":""}>${e(v)}</option>`).join("");
 function targets(actor){
@@ -19,7 +20,7 @@ export async function checkDialog(actor,skill,kind="duel"){
   if(kind==='damage'){
     const f=await formDialog('Цель урона',`<label>Цель<select name="targetUuid"><option value="">Без применения к цели</option>${targetChoices(actor)}</select></label>`);if(!f)return;form.targetUuid=f.targetUuid||null;
   }
-  return request({op:"duel",actorId:actor.id,actorUuid:actor.uuid,kind,skill,...form,positive:Number(form.positive),negative:Number(form.negative),track:kind==="damage"?form.track.split("/").map(Number):[1,2,3]});
+  return request({op:"duel",actorId:actor.id,actorUuid:actor.uuid,kind,skill,action:kind==='duel'&&!['defense','willpower'].includes(skill),...form,positive:Number(form.positive),negative:Number(form.negative),track:kind==="damage"?form.track.split("/").map(Number):[1,2,3]});
 }
 export async function handleChat(message,op,element){
   const d=message.getFlag(ID,"duel"),actor=d.actorUuid?fromUuidSync(d.actorUuid):game.actors.get(d.actorId);
@@ -55,7 +56,7 @@ export async function handleChat(message,op,element){
   }
 }
 export class BreachSheet extends HandlebarsApplicationMixin(foundry.applications.sheets.ActorSheetV2){
-  static DEFAULT_OPTIONS={classes:["ttb","ttb-sheet"],position:{width:880,height:820},window:{resizable:true},form:{submitOnChange:true},actions:{sheetTab:BreachSheet.tab,check:BreachSheet.check,hand:BreachSheet.hand,table:BreachSheet.table,item:BreachSheet.item,createWeapon:BreachSheet.createWeapon,attack:BreachSheet.attack,tieOrder:BreachSheet.tieOrder}};
+  static DEFAULT_OPTIONS={classes:["ttb","ttb-sheet"],position:{width:880,height:820},window:{resizable:true},form:{submitOnChange:true},actions:{sheetTab:BreachSheet.tab,check:BreachSheet.check,hand:BreachSheet.hand,table:BreachSheet.table,item:BreachSheet.item,createWeapon:BreachSheet.createWeapon,attack:BreachSheet.attack,tieOrder:BreachSheet.tieOrder,turnAction:BreachSheet.turnAction}};
   static PARTS={body:{template:`systems/${ID}/templates/actor.hbs`,scrollable:[".ttb-body"]}};
   _tab="main";
   get title(){return `${this.actor.name} · ${this.actor.type==="npc"?"Персонаж мастера":"Сужденный"}`;}
@@ -63,6 +64,8 @@ export class BreachSheet extends HandlebarsApplicationMixin(foundry.applications
     const context=await super._prepareContext(options),s=this.actor.system,c=derived(s),hand=stack("hand",this.actor.id);
     const canViewHand=this.actor.isOwner && hand?.testUserPermission(game.user,"OBSERVER");
     return {...context,systemVersion:game.system.version,actor:this.actor,s,c,isGM:game.user.isGM,isNPC:this.actor.type==="npc",editable:this.isEditable,
+      effects:s.effects.map(x=>({...x,label:EFFECT_LABELS[x.kind]??x.kind,timed:!!x.ends})),
+      turnPending:!!game.combat?.getFlag(ID,'turnPending'),
       tabs:[['main','Персонаж'],['skills','Навыки'],['fate','Судьба и рука'],['story','Снаряжение и история']].map(([id,label])=>({id,label,active:this._tab===id})),
       main:this._tab==="main",skillsTab:this._tab==="skills",fateTab:this._tab==="fate",storyTab:this._tab==="story",
       aspects:Object.entries(ASPECTS).map(([key,label])=>({key,label,value:s.aspects[key]})),aspectOptions:ASPECTS,suitOptions:SUITS,
@@ -84,6 +87,18 @@ export class BreachSheet extends HandlebarsApplicationMixin(foundry.applications
   }
   async _onRender(context,options){await super._onRender(context,options);this.element.querySelectorAll('[data-hand-card]').forEach(el=>el.addEventListener("change",event=>event.stopPropagation()));}
   static tab(_event,target){this._tab=target.dataset.tab;this.render();}
+  static turnAction(_event,target){return safely(async()=>{
+    const op=target.dataset.op;
+    if(op==='recoverTurn'){
+      const f=await formDialog('Подтвердить последствия хода','<p>Сверьте ОД, кровотечение и состояния участников с чатом. Исправьте поля вручную. Подтверждение снимает блокировку и помечает прерванный шаг обработанным; повторно он не выполняется.</p>','Последствия проверены');
+      if(!f)return;
+    }
+    if(op==='addEffect'){
+      const f=await formDialog('Добавить состояние',`<label>Состояние<select name="kind">${choices(EFFECT_LABELS,'slow')}</select></label><label><input type="checkbox" name="temporary">До конца следующего хода персонажа</label>`,'Добавить');
+      if(f)return request({op,actorUuid:this.actor.uuid,kind:f.kind,temporary:f.temporary==='on'});return;
+    }
+    return request({op,actorUuid:this.actor.uuid,cost:Number(target.dataset.cost??0),effectId:target.dataset.effectId});
+  });}
   static table(){new FateTable().render({force:true});}
   static item(_event,target){this.actor.items.get(target.dataset.itemId)?.sheet.render({force:true});}
   static createWeapon(){return safely(async()=>{if(!this.isEditable)return;const [item]=await this.actor.createEmbeddedDocuments('Item',[{name:'Новое оружие',type:'equipment',system:{isWeapon:true}}]);item.sheet.render({force:true});});}
