@@ -37,3 +37,13 @@ Application persists intent before wounds are changed. Child damage/consciousnes
 Critical tables provide concise rule reminders, table transitions, location and immediate extra numeric wounds. Durations, bleeding, special checks and creature exceptions are GM-managed. Unconscious failure sets unconscious/prone and current AP=0; there is no automatic AP refresh engine or timed condition scheduler. Future compatibility is allowed by minimum14 with no maximum; verified remains the actually tested14.365.
 
 47 automated scenarios pass. Live14.365 covers tracker initiative for both types, weapon persistence, attack/damage/armor/minimum1, application/undo, critical note/undo, and synthetic target damage without changing the world actor. Fated/Fated and full consciousness branch coverage are harness-tested, not yet live multiclient-certified.
+
+## Sheet automation in 0.4.0
+
+The current audit and scope matrix are in TEST-PLAN.ru.md. `automation.mjs` handles GM-authorized operations through the existing request queue. Pure plans validate before mutation. Multi-document operations persist `system.operationPending` before resource writes and require GM reconciliation after failure. Invalid reload and insufficient AP do not create this marker. Spell/attack preflight validates configured modifiers, suits and parameters before costs. There is no database rollback guarantee.
+
+Item bonuses are declarative, never evaluated code. Active quantity/equipped entries affect numeric aspects/skills/derived stats; flip/suit bonuses only affect matching duels. Pursuit-ability bonuses apply only to the selected current pursuit. Rank-dependent derived stats use true ranks, not AV modifiers. Manual armor and calculated armor both cap at3 and subtract Defense. Old free-text records are not parsed or silently converted.
+
+Epilogues are saved on the actor with unique session ID, eligible skills and the selected advancement. Pursuit steps are actor records keyed by item ID so XP and step grant are one Actor.update; talent rewards and step0 must be selected separately. Magic follows configured structured values, active-grimoire access and repeated Immuto caps. Fated resistance uses the existing two-message cheating sequence; casting TN/suits must also pass. Narrative spell effects and theories remain explicit GM work.
+
+83 automated scenarios pass. Additional browser previews use actual templates and model contexts, including populated equipment/magic/development and long item forms. Live player/network tests of0.4.0 have not been run. Installing package files does not mutate world documents; existing fields get native schema defaults on the next world load.

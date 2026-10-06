@@ -1,3 +1,9 @@
+## 0.4.0 — Sheet automation foundation
+
+Rulebook audit recorded in TEST-PLAN.ru.md. Adds structured equipment/talents/pursuits/grimoires/Magia/Immuto, temporary aspect and active item modifiers, armor coverage and Defense penalty, ammunition and cumulative reloads, epilogue XP/skill advancement with one-use eligibility, learned trigger slots and one declaration, spell TN/suits/AP/Earth and Fated opposed resistance, purchases/consumables, capped healing with waking, numbered conditions and turn expiry, and optional Focus use. Adds Russian records/development tabs and scrollable item forms. Old text/weapon records and card state are preserved; capacity=0 retains untracked ammo.
+
+83 automated scenarios pass against installed v14.365 native schemas and mocked persistence. Static browser previews inspected; live tests deferred by user request. Special talents, pursuit reward tables, magic theories/durations, special AP, reactions, reactivation, and critical/consciousness after end-turn condition damage remain partly manual. Supports minimum14 without an upper bound; future versions are not certified.
+
 # История изменений
 
 ## 0.3.1 — 6 октября 2026

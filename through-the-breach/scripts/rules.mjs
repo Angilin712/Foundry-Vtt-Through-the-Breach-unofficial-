@@ -47,16 +47,26 @@ export function parseSuits(text="") {
   return [...clean].map(x=>map[x]);
 }
 export function containsSuits(have, need) { const left=[...have]; return need.every(s=>{const i=left.indexOf(s); if(i<0)return false; left.splice(i,1); return true;}); }
+export function activeItems(s){return Array.from(s.parent?.items??[]).filter(i=>i.system.equipped&&i.system.quantity>0&&(i.system.category!=='pursuit'||i.id===s.currentPursuitId));}
+export function itemBonus(s,target){return activeItems(s).filter(i=>i.system.bonusTarget===target).reduce((n,i)=>n+i.system.bonus,0);}
+export function aspectValue(s,key){return s.aspects[key]+(s.temporaryAspects?.[key]??0)+itemBonus(s,`aspect.${key}`);}
+export function skillValue(s,key,aspect=s.skills[key].aspect){assert(aspect in ASPECTS,'Неизвестный аспект.');return s.skills[key].rank+aspectValue(s,aspect)+itemBonus(s,`skill.${key}`);}
+export function armorValue(s){
+  if(!s.autoArmor)return Math.min(3,Math.max(0,(s.armor??0)+itemBonus(s,'armor')));
+  const slots=new Map();for(const i of activeItems(s)){const x=i.system;if(['arms','legs','head','chest'].includes(x.armorSlot)&&['light','heavy'].includes(x.armorType))slots.set(x.armorSlot,slots.get(x.armorSlot)==='heavy'?'heavy':x.armorType);}
+  const base=slots.size?slots.size>=3&&[...slots.values()].includes('heavy')?2:1:0;
+  return Math.min(3,Math.max(0,base+itemBonus(s,'armor')));
+}
 export function derived(s) {
-  const a=s.aspects, k=s.skills, b=s.bonuses;
+  const a=Object.fromEntries(Object.keys(ASPECTS).map(k=>[k,aspectValue(s,k)])), k=s.skills, b=Object.fromEntries(Object.keys(s.bonuses).map(k=>[k,s.bonuses[k]+itemBonus(s,k)]));
   const walk=4+(s.walkRoundUp?Math.ceil:Math.floor)(a.speed/2)+b.walk;
-  return {defense:2+Math.max(a.speed,k.evade.rank)+b.defense, willpower:2+Math.max(a.tenacity,k.centering.rank)+b.willpower,
+  return {armor:armorValue(s),defense:2+Math.max(a.speed,k.evade.rank)+b.defense-armorValue(s), willpower:2+Math.max(a.tenacity,k.centering.rank)+b.willpower,
     wounds:4+k.toughness.rank+Math.ceil(Math.max(0,a.resilience)/2)+b.wounds,
     initiative:a.speed+k.notice.rank+b.initiative,walk,charge:Math.max(walk,4+a.speed+b.charge)};
 }
 export function defenseSuits(s, stat) {
   const skill=stat==="defense"?"evade":"centering", aspect=stat==="defense"?"speed":"tenacity";
-  return s.skills[skill].rank>=s.aspects[aspect]?parseSuits(s.skills[skill].suits):[];
+  return s.skills[skill].rank>=aspectValue(s,aspect)?parseSuits(s.skills[skill].suits):[];
 }
 export function damage(card, track) {return card.value===0?0:track[card.value<=5?0:card.value<=10?1:2];}
 export function accuracy(margin) {return margin===0?-2:margin<=5?-1:margin<=10?0:1;}

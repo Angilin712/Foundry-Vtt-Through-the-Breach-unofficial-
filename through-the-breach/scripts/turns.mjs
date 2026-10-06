@@ -1,7 +1,7 @@
-import {ID,assert,integer,escapeHTML as e} from './rules.mjs';
+import {ID,assert,integer,armorValue,escapeHTML as e} from './rules.mjs';
 import {actorFor,requireReady,startDuel,stack} from './cards.mjs';
 
-export const EFFECT_LABELS={stunned:'Ошеломлён: СЛ действий +2',negative:'Минус к дуэлям следующего хода',slow:'Замедлен',fast:'Быстр',paralyzed:'Парализован',hyperventilation:'Гипервентиляция: СЛ действий +2',pain:'Мучительная боль: на 1 ОД меньше',openWound:'Открытая рана: Кровотечение +1 в конце хода'};
+export const EFFECT_LABELS={stunned:'Ошеломлён: СЛ действий +2',negative:'Минус к дуэлям следующего хода',slow:'Замедлен',fast:'Быстр',paralyzed:'Парализован',hyperventilation:'Гипервентиляция: СЛ действий +2',pain:'Мучительная боль: на 1 ОД меньше',openWound:'Открытая рана: Кровотечение +1 в конце хода',burning:'Горит',poison:'Отравлен',defensive:'Оборона',focus:'Сосредоточенность',insanity:'Безумие',blind:'Слеп: −− при использовании зрения'};
 export function hasEffect(s,kind){return (s.effects??[]).some(x=>x.kind===kind&&(!x.starts||x.starts<=(s.turnCount??0)));}
 export function actionPenalty(s){return (hasEffect(s,'stunned')?2:0)+(hasEffect(s,'hyperventilation')?2:0);}
 export function turnPlan(s,phase){
@@ -11,22 +11,29 @@ export function turnPlan(s,phase){
     const fast=hasEffect(next,'fast'),slow=hasEffect(next,'slow');
     let ap=Math.max(0,(s.ap.max??2)-(hasEffect(next,'pain')?1:0));
     if(fast&&!slow)ap++;if(slow&&!fast)ap=Math.max(1,ap-1);if(blocked)ap=0;
-    return {'system.turnCount':count,'system.ap.value':ap};
+    return {'system.turnCount':count,'system.ap.value':ap,'system.freeActionUsed':false,'system.effects':(s.effects??[]).filter(x=>x.endPhase!=='start'||!x.ends||x.ends>count)};
   }
   let bleeding=s.living?(s.bleeding??0):0;
   const open=s.living&&!s.dead?(s.effects??[]).filter(x=>x.kind==='openWound').length:0;
   if(s.openWoundFirst)bleeding+=open;
   if(bleeding>0&&!s.dead)bleeding++;
   if(!s.openWoundFirst)bleeding+=open;
-  return {'system.ap.value':0,'system.bleeding':bleeding,'system.dead':s.dead||bleeding>=10,'system.effects':(s.effects??[]).filter(x=>!x.ends||x.ends>count)};
+  const burn=(s.effects??[]).filter(x=>x.kind==='burning').reduce((n,x)=>n+(x.value??1),0),poison=s.living?(s.effects??[]).some(x=>x.kind==='poison'):false;
+  const changes={'system.ap.value':0,'system.bleeding':bleeding,'system.dead':s.dead||bleeding>=10,'system.effects':(s.effects??[]).filter(x=>x.kind!=='burning'&&(x.kind!=='poison'||s.living&&(x.value??1)>1)&&(x.endPhase==='start'||!x.ends||x.ends>count)).map(x=>x.kind==='poison'?{...x,value:x.value-1}:x)};
+  if(!s.dead&&(burn||poison))changes['system.wounds.value']=s.wounds.value-(burn?Math.max(1,burn-armorValue(s)):0)-(poison?1:0);
+  return changes;
 }
 export function canAct(actor){assert(!actor.system.dead&&!actor.system.unconscious&&!hasEffect(actor.system,'paralyzed'),'Персонаж не может действовать: погиб, без сознания или парализован.');}
-export async function spendAP(actor,cost){
+export function validateAP(actor,cost){
   canAct(actor);cost=integer(cost,0,99);
   const combat=game.combat;
   if(combat?.started){assert(combat.combatant?.actor?.uuid===actor.uuid,'Сейчас ход другого персонажа.');assert(!combat.getFlag(ID,'turnPending'),'Начало или конец хода не завершены; мастер должен проверить последствия.');}
   assert(actor.system.ap.value>=cost,'Недостаточно очков действий.');
-  await actor.update({'system.ap.value':actor.system.ap.value-cost});
+  if(combat?.started&&cost===0)assert(!actor.system.freeActionUsed,'В свой ход можно выполнить только одно действие (0).');
+}
+export async function spendAP(actor,cost){
+  validateAP(actor,cost);cost=integer(cost,0,99);
+  await actor.update({'system.ap.value':actor.system.ap.value-cost,...(game.combat?.started&&cost===0?{'system.freeActionUsed':true}:{})});
 }
 export async function turnLifecycle(combat,combatant,context,phase){
   if(!combatant?.actor||context.skipped)return;
@@ -35,11 +42,12 @@ export async function turnLifecycle(combat,combatant,context,phase){
   if(done[key])return;
   assert(!combat.getFlag(ID,'turnPending'),'Обработка хода прервана: проверьте ОД и последствия вручную.');
   await combat.setFlag(ID,'turnPending',key);
-  const wasDead=combatant.actor.system.dead;
+  const wasDead=combatant.actor.system.dead,beforeWounds=combatant.actor.system.wounds.value;
   await combatant.actor.update(turnPlan(combatant.actor.system,phase));
   await combat.setFlag(ID,'turnLedger',{...done,[key]:true});
   await combat.setFlag(ID,'turnPending','');
   if(phase==='end'&&!wasDead&&combatant.actor.system.dead)await ChatMessage.create({speaker:ChatMessage.getSpeaker({actor:combatant.actor}),content:`<p>${e(combatant.actor.name)}: погиб от кровотечения. Мастер проверяет исключения способностей.</p>`});
+  if(phase==='end'&&combatant.actor.system.wounds.value<beforeWounds)await ChatMessage.create({speaker:ChatMessage.getSpeaker({actor:combatant.actor}),content:`<p>${e(combatant.actor.name)}: урон Горения / Яда, ранения ${beforeWounds} → ${combatant.actor.system.wounds.value}.${combatant.actor.system.wounds.value<=0?' Мастер разрешает проверку сознания и слабый критический эффект отдельно за каждый источник урона (книга, стр. 302–303).':''}</p>`});
 }
 export async function executeTurnAction(user,p){
   const actor=actorFor(user,p.actorId,p.actorUuid);
@@ -50,10 +58,14 @@ export async function executeTurnAction(user,p){
   }
   if(p.op==='addEffect'){
     assert(user.isGM&&p.kind in EFFECT_LABELS,'Состояние добавляет мастер.');
-    const ends=p.temporary?actor.system.turnCount+1:0;
+    const current=game.combat?.started&&game.combat.combatant?.actor?.uuid===actor.uuid;
+    const standard=['fast','slow','focus','paralyzed','defensive'].includes(p.kind);
+    const ends=p.temporary?actor.system.turnCount+1:standard?actor.system.turnCount+(current&&p.kind!=='defensive'?0:1):0;
     let effects=foundry.utils.deepClone(actor.system.effects);
     const exists=effects.some(x=>x.kind===p.kind);
-    effects.push({id:foundry.utils.randomID(),kind:p.kind,ends,starts:0,source:'manual'});
+    const value=integer(p.value??1,1,99),old=effects.find(x=>x.kind===p.kind);
+    if(old){old.ends=!old.ends||!ends?0:Math.max(old.ends,ends);if(['burning','poison','defensive','focus','insanity'].includes(p.kind))old.value=(old.value??1)+value;}
+    else effects.push({id:foundry.utils.randomID(),kind:p.kind,ends,starts:0,source:'manual',value,endPhase:p.kind==='defensive'?'start':'end'});
     const changes={'system.effects':effects};
     if(game.combat?.started&&game.combat.combatant?.actor?.uuid===actor.uuid&&!exists){
       if(p.kind==='slow')changes['system.ap.value']=Math.max(0,actor.system.ap.value-1);

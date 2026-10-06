@@ -1,6 +1,7 @@
-import {ID,SKILLS,assert,integer,derived,outcome,accuracy,escapeHTML as e} from './rules.mjs';
+import {consumeWeapon} from './automation.mjs';
+import {ID,SKILLS,assert,integer,derived,armorValue,skillValue,outcome,accuracy,escapeHTML as e} from './rules.mjs';
 import {weaponData,reducedDamage,criticalEffect} from './battle.mjs';
-import {stack,startDuel,saveDuel,actorFor,drawFrom,requireReady} from './cards.mjs';
+import {stack,startDuel,saveDuel,actorFor,drawFrom,requireReady,duelPlan} from './cards.mjs';
 import {spendAP,canAct,hasEffect,actionPenalty} from './turns.mjs';
 
 export function attackMargin(d){
@@ -33,10 +34,15 @@ export async function executeBattle(user,p){
     const targetStat=derived(target.system)[weapon.defense];
     if(source.type==='fated'&&target.type==='fated'&&!target.system.unconscious)assert(user.isGM,'Дуэль двух Сужденных начинает мастер, задавая модификаторы обеих сторон.');
     requireReady(source);if(target.type==='fated'&&!target.system.unconscious)requireReady(target);
-    if(game.combat?.started)await spendAP(source,weapon.apCost);
+    integer(p.positive??0,0,99);integer(p.negative??0,0,99);integer(p.bonus??0);integer(p.defPositive??0,0,99);integer(p.defNegative??0,0,99);
+    duelPlan(source,{kind:'duel',skill:weapon.skill,aspect:k.aspect,tn:0,positive:p.positive,negative:p.negative,bonus:p.bonus,action:true,useFocus:p.useFocus});
+    if(target.type==='fated'&&!target.system.unconscious)duelPlan(target,{kind:'duel',skill:weapon.defense,tn:0,positive:p.defPositive??0,negative:p.defNegative??0});
+    assert(source.items.get(p.itemId).system.equipped!==false&&source.items.get(p.itemId).system.quantity!==0,'Оружие недоступно или не подготовлено.');
+    integer(targetStat+(target.system.unconscious?0:target.system.rank),0,99);
+    await consumeWeapon(source,source.items.get(p.itemId),weapon.apCost);
     const attack={sourceUuid:source.uuid,targetUuid:target.uuid,targetName:target.name,weapon,defending:source.type==='npc'&&target.type==='fated'&&!target.system.unconscious};
     if(attack.defending){
-      const tn=k.rank+source.system.aspects[k.aspect]+source.system.rank+integer(p.bonus??0)-actionPenalty(source.system)-(hasEffect(source.system,'negative')?2:0);
+      const tn=skillValue(source.system,weapon.skill,k.aspect)+source.system.rank+integer(p.bonus??0)-actionPenalty(source.system)-(hasEffect(source.system,'negative')?2:0);
       return startDuel(target,{kind:'duel',skill:weapon.defense,tn,positive:p.negative,negative:p.positive,required:'',attack});
     }
     // Both Fated flip before either cheats. Ties are won by the aggressor.
@@ -44,12 +50,12 @@ export async function executeBattle(user,p){
       assert(user.isGM,'Дуэль двух Сужденных начинает мастер, задавая модификаторы обеих сторон.');
       requireReady(source);requireReady(target);
       const defense=await startDuel(target,{kind:'duel',skill:weapon.defense,tn:0,positive:p.defPositive??0,negative:p.defNegative??0});
-      const offense=await startDuel(source,{kind:'duel',skill:weapon.skill,aspect:k.aspect,tn:0,positive:p.positive,negative:p.negative,bonus:Number(p.bonus??0)-actionPenalty(source.system),attack});
+      const offense=await startDuel(source,{kind:'duel',skill:weapon.skill,aspect:k.aspect,tn:0,positive:p.positive,negative:p.negative,bonus:Number(p.bonus??0)-actionPenalty(source.system),attack,action:true,useFocus:p.useFocus});
       const dd=foundry.utils.deepClone(defense.getFlag(ID,'duel')),od=foundry.utils.deepClone(offense.getFlag(ID,'duel'));
       dd.opposed={otherId:offense.id,role:'defense'};od.opposed={otherId:defense.id,role:'attack'};
       await saveDuel(defense,dd);await saveDuel(offense,od);return offense;
     }
-    return startDuel(source,{kind:'duel',skill:weapon.skill,aspect:k.aspect,tn:targetStat+(target.system.unconscious?0:target.system.rank),positive:p.positive,negative:p.negative,bonus:p.bonus,attack,action:true});
+    return startDuel(source,{kind:'duel',skill:weapon.skill,aspect:k.aspect,tn:targetStat+(target.system.unconscious?0:target.system.rank),positive:p.positive,negative:p.negative,bonus:p.bonus,attack,action:true,useFocus:p.useFocus});
   }
   const {m,d}=messageOf(p.messageId);
   if(p.op==='attackDamage'){
@@ -88,9 +94,9 @@ export async function executeBattle(user,p){
   const target=targetOf(d.targetUuid);
   if(p.op==='applyDamage'){
     assert(d.kind==='damage'&&d.closed&&d.stage!=='cancelled'&&!d.application,'Урон уже применён либо флип не завершён.');
-    const r=outcome(d),amount=reducedDamage(r.damage,target.system.armor,d.ignoreArmor||p.ignoreArmor===true),before=target.system.wounds.value,after=before-amount;
+    const r=outcome(d),amount=reducedDamage(r.damage,armorValue(target.system),d.ignoreArmor||p.ignoreArmor===true),before=target.system.wounds.value,after=before-amount;
     const level=r.critical?'severe':amount>0&&after<=0?(r.card.value<=5?'weak':r.card.value<=10?'moderate':'severe'):null;
-    d.application={before,after,amount,armor:target.system.armor,criticalLevel:level,beforeConditions:target.system.conditions,afterConditions:target.system.conditions,beforeUnconscious:target.system.unconscious};
+    d.application={before,after,amount,armor:armorValue(target.system),criticalLevel:level,beforeConditions:target.system.conditions,afterConditions:target.system.conditions,beforeUnconscious:target.system.unconscious};
     Object.assign(d.application,{beforeEffects:foundry.utils.deepClone(target.system.effects),afterEffects:foundry.utils.deepClone(target.system.effects),beforeBleeding:target.system.bleeding,afterBleeding:target.system.bleeding,beforeProne:target.system.prone,afterProne:target.system.prone,beforeDead:target.system.dead,afterDead:target.system.dead,beforeAP:target.system.ap.value,afterAP:target.system.ap.value});
     // Record intent before mutation. Interrupted application cannot be replayed silently.
     d.application.pending=true;await saveDuel(m,d);

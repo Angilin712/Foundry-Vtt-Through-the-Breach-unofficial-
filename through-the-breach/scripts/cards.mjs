@@ -1,6 +1,7 @@
+import {AUTOMATION_OPS,executeAutomation,duelModifiers,availableTriggers} from './automation.mjs';
 import {executeBattle,battleButtons,attackMargin} from './actions.mjs';
 import {executeTurnAction,hasEffect,actionPenalty} from './turns.mjs';
-import {ID,SUITS,SKILLS,ASPECTS,makeFateDeck,makeTwistDeck,cardName,assert,integer,modifier,selectable,canCheat,parseSuits,derived,defenseSuits,outcome,escapeHTML as e} from "./rules.mjs";
+import {ID,SUITS,SKILLS,ASPECTS,makeFateDeck,makeTwistDeck,cardName,assert,integer,modifier,selectable,canCheat,parseSuits,derived,defenseSuits,skillValue,aspectValue,outcome,escapeHTML as e} from "./rules.mjs";
 const {Cards,ChatMessage}=foundry.documents;
 
 export const stack=(role,actorId="")=>game.cards.find(s=>s.getFlag(ID,"role")===role && (s.getFlag(ID,"actorId")??"")===actorId);
@@ -102,15 +103,16 @@ export function duelHTML(d){
   if(d.opposed){
     const od=game.messages.get(d.opposed.otherId)?.getFlag(ID,'duel');
     result=`Итог: <b>${r?.total??'выберите карту'}</b> · ${d.opposed.role==='attack'?'Агрессор':'Защитник'}. Обе стороны сначала выбирают карты. Первым обманывает судьбу проигрывающий (при ничьей — защитник), затем вторая сторона. Каждый нажимает «Завершить» после своей возможности Обмана.`;
-    if(d.closed&&od?.closed&&d.stage!=='cancelled'&&od.stage!=='cancelled'){const margin=outcome(d).total-outcome(od).total;result+=`<p>${margin>0||margin===0&&d.opposed.role==='attack'?'Победа':'Поражение'} · разница ${margin}. При ничьей побеждает агрессор.</p>`;}
+    if(d.closed&&od?.closed&&d.stage!=='cancelled'&&od.stage!=='cancelled'){const margin=outcome(d).total-outcome(od).total;result+=`<p>${(d.opposed.role==='attack'?margin>=0&&(!d.spellTN||outcome(d).success):margin>0||od.spellTN&&!outcome(od).success)?'Победа':'Поражение'} · разница ${margin}. При ничьей побеждает агрессор.${d.spellTN?` СЛ заклинания ${d.spellTN}: ${outcome(d).success?'выполнена':'не выполнена (число или масти)'}.`:od.spellTN&&!outcome(od).success?' Заклинание не состоялось: не выполнены его СЛ или масти.':''}</p>`;}
   }
   if(d.attack)result+=`<p>${e(d.attack.weapon.name)} → ${e(d.attack.targetName)}</p>`;
   if(d.application)result+=`<p>Урон ${d.application.undone?'отменён':d.application.pending?'ожидает проверки мастером':'применён'}: ${d.application.amount}. Ранения: ${d.application.before} → ${d.application.after}.</p>`;
   if(d.criticalResult)result+=`<p>${e(d.criticalResult)}</p>`;
   if(d.application?.criticalPending)result+='<p>Критический эффект прерван или выполняется. Перед дальнейшими действиями мастер проверяет карты и лист цели.</p>';
+  if(d.triggerText)result+=`<p>Объявлен триггер: ${e(d.triggerText)}</p>`;
   if(d.consciousnessResult)result+=`<p>${e(d.consciousnessResult)}</p>`;
   if(d.stage==="cancelled")result="Проверка отменена мастером. Результат не применяется.";
-  return `<section class="ttb-chat" data-duel="true"><header>${e(d.actorName)} · ${e(d.label)}</header><p>Модификатор судьбы: ${d.mod>0?"+":""}${d.mod}${d.npc&&d.kind!=="damage"?" · фиксированное значение ранга":""}</p><div class="ttb-flips">${options}</div>${d.replacement?`<p>Обман судьбы: <b>${e(d.replacement.name)}</b></p>`:""}<div class="ttb-result">${result}</div>${!d.closed&&r?`<div class="ttb-chat-actions">${selected?.value===14&&!selected.rank?`<button type="button" data-ttb="red">Масть джокера${d.redSuit?`: ${e(SUITS[d.redSuit])}`:""}</button>`:""}${canCheat(d)?`<button type="button" data-ttb="cheat">Обмануть судьбу</button>`:""}<button type="button" data-ttb="finish">Завершить</button></div>`:""}${battleButtons(d)}<footer>${d.closed?(d.stage==="cancelled"?"Проверка отменена · карты сброшены":"Проверка завершена · карты сброшены"):"Проверка открыта · карты удерживаются на столе"}</footer></section>`;
+  return `<section class="ttb-chat" data-duel="true"><header>${e(d.actorName)} · ${e(d.label)}</header><p>Модификатор судьбы: ${d.mod>0?"+":""}${d.mod}${d.npc&&d.kind!=="damage"?" · фиксированное значение ранга":""}</p><div class="ttb-flips">${options}</div>${d.replacement?`<p>Обман судьбы: <b>${e(d.replacement.name)}</b></p>`:""}<div class="ttb-result">${result}</div>${!d.closed&&r?`<div class="ttb-chat-actions">${selected?.value===14&&!selected.rank?`<button type="button" data-ttb="red">Масть джокера${d.redSuit?`: ${e(SUITS[d.redSuit])}`:""}</button>`:""}${canCheat(d)?`<button type="button" data-ttb="cheat">Обмануть судьбу</button>`:""}<button type="button" data-ttb="finish">Завершить</button></div>`:""}${battleButtons(d)}${d.closed&&d.kind==='duel'&&!d.triggerId&&d.stage!=='cancelled'&&availableTriggers((fromUuidSync(d.actorUuid)??game.actors.get(d.actorId))?.system??{},d).length?'<button type="button" data-ttb="declareTrigger">Объявить один триггер</button>':''}<footer>${d.closed?(d.stage==="cancelled"?"Проверка отменена · карты сброшены":"Проверка завершена · карты сброшены"):"Проверка открыта · карты удерживаются на столе"}</footer></section>`;
 }
 const SYMBOL=s=>({rams:"♥",crows:"♠",tomes:"♣",masks:"♦"}[s]??"");
 export async function saveDuel(message,d){await message.update({[`flags.${ID}.duel`]:d,content:duelHTML(d)});}
@@ -140,28 +142,39 @@ export function requireReady(actor){
   assert(!(stack("hand",actor.id)?.getFlag(ID,"credits")>0),"Сначала возьмите или отклоните карту за перетасовку во вкладке «Судьба и рука».");
   assert(!game.messages.some(m=>{const d=m.getFlag(ID,"duel");return m.author?.isGM&&(d?.actorUuid??d?.actorId)===(d?.actorUuid?actor.uuid:actor.id)&&!d?.closed;}),"Сначала завершите предыдущую проверку этого персонажа в чате.");
 }
-export async function startDuel(actor,p){
+export function duelPlan(actor,p){
   requireReady(actor);
   assert(["duel","initiative","damage"].includes(p.kind),"Неизвестный вид проверки.");
   const npc=actor.type==="npc",s=actor.system,computed=derived(s);
   let base=0,baseSuits=[],label=p.kind==="damage"?"Флип урона":p.kind==="initiative"?"Инициатива":"Проверка";
   if(p.kind==="initiative")base=computed.initiative;
   else if(p.kind==="duel"){
-    if(p.skill in SKILLS){const k=s.skills[p.skill];assert(p.aspect in ASPECTS,"Выберите аспект.");base=k.rank+s.aspects[p.aspect];baseSuits=parseSuits(k.suits);label=SKILLS[p.skill].label;}
+    if(p.skill in SKILLS){const k=s.skills[p.skill];assert(p.aspect in ASPECTS,"Выберите аспект.");base=skillValue(s,p.skill,p.aspect);baseSuits=parseSuits(k.suits);label=SKILLS[p.skill].label;}
     else if(["defense","willpower"].includes(p.skill)){base=computed[p.skill];baseSuits=defenseSuits(s,p.skill);label=p.skill==="defense"?"Защита":"Сила воли";}
-    else if(p.skill in ASPECTS){base=s.aspects[p.skill];label=ASPECTS[p.skill];}
+    else if(p.skill in ASPECTS){base=aspectValue(s,p.skill);label=ASPECTS[p.skill];}
     else throw new Error("Неизвестный навык или аспект.");
   }
   base+=integer(p.bonus??0);
   if(p.checkReason)label+=` · ${p.checkReason}`;
-  const mod=p.kind==="initiative"?0:modifier(p.positive,Number(p.negative??0)+(p.kind==='duel'&&hasEffect(s,'negative')?1:0));
+  const extra=p.kind==='duel'?duelModifiers(s,p):{flips:0,suits:[]};baseSuits.push(...extra.suits);
+  if(p.kind==='duel'&&['intellect','charm','cunning','tenacity'].includes(p.aspect))base-=(s.effects??[]).filter(x=>x.kind==='insanity').reduce((n,x)=>n+(x.value??1),0);
+  const defensive=p.skill==='defense'?Math.min(3,(s.effects??[]).filter(x=>x.kind==='defensive').reduce((n,x)=>n+(x.value??1),0)):0;
+  const focused=p.kind==='duel'&&p.action&&(p.useFocus===true||p.useFocus==='on')?(s.effects??[]).filter(x=>x.kind==='focus'):[];
+  if(focused.length&&game.combat?.started)assert(game.combat.combatant?.actor?.uuid===actor.uuid,'Сосредоточенность применяется при объявлении действия в свой ход.');
+  const focus=Math.min(3,focused.reduce((n,x)=>n+(x.value??1),0));
+  const mod=p.kind==="initiative"?0:modifier(Number(p.positive??0)+Math.max(0,extra.flips)+defensive+focus,Number(p.negative??0)+Math.max(0,-extra.flips)+(p.sight&&hasEffect(s,'blind')?2:0)+(p.kind==='duel'&&hasEffect(s,'negative')?1:0));
   if(npc&&p.kind==="duel")base+=2*mod;
-  const d={actorId:actor.id,actorUuid:actor.uuid,actorName:actor.name,kind:p.kind,npc,label,base,baseSuits,tn:integer(Number(p.tn??0)+(p.action?actionPenalty(s):0),0,99),required:parseSuits(p.required),mod,cards:[],selected:null,replacement:null,redSuit:"",cheated:false,closed:false,stage:"drawing",track:(p.track??[1,2,3]).map(n=>integer(n,0,999)),combatantId:p.combatantId??null,combatId:p.combatId??null};
+  const d={skill:p.skill,actorId:actor.id,actorUuid:actor.uuid,actorName:actor.name,kind:p.kind,npc,label,base,baseSuits,tn:integer(Number(p.tn??0)+(p.action?actionPenalty(s):0),0,99),required:parseSuits(p.required),mod,cards:[],selected:null,replacement:null,redSuit:"",cheated:false,closed:false,stage:"drawing",track:(p.track??[1,2,3]).map(n=>integer(n,0,999)),combatantId:p.combatantId??null,combatId:p.combatId??null};
   d.removeEffectId=p.removeEffectId??null;
   Object.assign(d,{attack:p.attack??null,targetUuid:p.targetUuid??null,ignoreArmor:p.ignoreArmor===true,parentAttackId:p.parentAttackId??null,unconsciousCheck:p.unconsciousCheck===true,checkReason:p.checkReason??null});
   assert(d.track.length===3,"Укажите три значения урона.");
   assert(stack("fate")&&stack("active")&&stack("discard"),"Мастер должен подготовить общую колоду.");
+  return {d,focused};
+}
+export async function startDuel(actor,p){
+  const {d,focused}=duelPlan(actor,p),s=actor.system,npc=d.npc,mod=d.mod,label=d.label;
   const message=await ChatMessage.create({speaker:ChatMessage.getSpeaker({actor}),content:`<p>${e(actor.name)}: подготовка ${e(label)}…</p>`,flags:{[ID]:{duel:d}}});
+  if(focused.length)await actor.update({'system.effects':s.effects.filter(x=>x.kind!=='focus')});
   if(npc&&p.kind!=="damage")d.cards=[{id:"rank",rank:true,value:s.rank,suit:"",name:`Ранг ${s.rank}`,img:`systems/${ID}/assets/cards/back.svg`}];
   else {
     // Draw one at a time so exhaustion in the middle preserves already drawn cards.
@@ -194,6 +207,7 @@ async function finish(message,d,actor){
   if(d.opposed){const other=game.messages.get(d.opposed.otherId);if(other)await saveDuel(other,foundry.utils.deepClone(other.getFlag(ID,'duel')));}
 }
 export async function execute(user,p){
+  if(AUTOMATION_OPS.includes(p.op)){assert(user?.active,'Пользователь не подключён.');return executeAutomation(user,p);}
   if(['spendAP','clearEffect','endSceneEffects','hyperventilation','addEffect','recoverTurn'].includes(p.op)){assert(user?.active,'Пользователь не подключён.');return executeTurnAction(user,p);}
     if(['attack','attackDamage','applyDamage','undoDamage','critical','consciousness','criticalConsciousness'].includes(p.op)){assert(user?.active,"Пользователь не подключён.");return executeBattle(user,p);}
   assert(user?.active,"Пользователь не подключён.");

@@ -60,4 +60,4 @@ function refreshApps(){clearTimeout(renderTimer);renderTimer=setTimeout(()=>{
   for(const actor of game.actors)for(const app of Object.values(actor.apps))if(app.rendered)app.render({force:false});
   const table=foundry.applications.instances.get("ttb-fate-table");if(table?.rendered)table.render({force:false});
 },100);}
-for(const hook of ["createCards","updateCards","deleteCards","createCard","updateCard","deleteCard"])Hooks.on(hook,refreshApps);
+for(const hook of ["createCards","updateCards","deleteCards","createCard","updateCard","deleteCard","createItem","updateItem","deleteItem"])Hooks.on(hook,refreshApps);

@@ -39,9 +39,11 @@ export class MockMessage extends Doc {
   static async create(data){const doc=new this(data);doc.author=game.user;game.messages.set(doc.id,doc);return doc;}
 }
 export const gm={id:'gamemaster000001',isGM:true,active:true},player={id:'player0000000001',isGM:false,active:true},other={id:'player0000000002',isGM:false,active:true};
+class ActorParent extends foundry.abstract.DataModel {static TYPES=[];static documentName="Actor";static defineSchema(){return {};}}
 export function actor(name='Анна',type='fated',owner=player){
-  const model=new BreachActorModel();model.prepareDerivedData();
-  const doc={id:id(),documentName:'Actor',name,type,system:model,items:new Collection(),apps:{},isOwner:true,testUserPermission:u=>u.isGM||u.id===owner.id};
+  const parent=new ActorParent();parent.items=new Collection();
+  const model=new BreachActorModel({}, {parent});model.prepareDerivedData();
+  const doc={id:id(),documentName:'Actor',name,type,system:model,items:parent.items,apps:{},isOwner:true,testUserPermission:u=>u.isGM||u.id===owner.id};
   doc.update=async data=>{for(const [k,v] of Object.entries(data))foundry.utils.setProperty(doc,k,clone(v));return doc;};
   doc.uuid=`Actor.${doc.id}`;game.actors.set(doc.id,doc);return doc;
 }
