@@ -10,6 +10,17 @@ globalThis.game={system:{id:'through-the-breach',documentTypes:{Actor:['fated','
 const {BreachActorModel,BreachItemModel}=await import('../through-the-breach/scripts/models.mjs');
 CONFIG.Actor.dataModels={fated:BreachActorModel,npc:BreachActorModel};
 CONFIG.Item.dataModels={equipment:BreachItemModel,talent:BreachItemModel,magic:BreachItemModel};
+
+test('Chapter 11 catalogue validates with native v14 scene, actor and journal schemas',async()=>{
+  for(const name of ['Scene','JournalEntry','JournalEntryPage','Token','Wall','Level']){CONFIG[name]??={dataModels:{}};game.model[name]??={};game.system.documentTypes[name]??={};}
+  game.modules=new Map();
+  game.release.version='14.365';
+  game.system.documentTypes.JournalEntryPage=['text','image'];game.model.JournalEntryPage={text:{},image:{}};
+  const data=JSON.parse(await readFile('through-the-breach/data/starter-adventure.json','utf8'));
+  for(const entry of data.actors){const doc=new foundry.documents.BaseActor(entry.data,{strict:true});assert.equal(doc.invalid,false,entry.key);}
+  for(const entry of data.journals){const doc=new foundry.documents.BaseJournalEntry(entry.data,{strict:true});assert.equal(doc.invalid,false,entry.key);assert.ok(doc.pages.size);}
+  for(const entry of data.scenes){const doc=new foundry.documents.BaseScene(entry.data,{strict:true});assert.equal(doc.invalid,false,entry.key);assert.equal(doc.levels.size,1);}
+});
 test('Manifest validates against installed Foundry v14 BaseSystem schema',async()=>{const data=JSON.parse(await readFile('through-the-breach/system.json','utf8'));const m=new foundry.packages.BaseSystem(data);assert.equal(m.id,'through-the-breach');assert.equal(m.invalid,false);});
 
 test('Manifest permits world creation on the tested build and later v14 builds',async()=>{

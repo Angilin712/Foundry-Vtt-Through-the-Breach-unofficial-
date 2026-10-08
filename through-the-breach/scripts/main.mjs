@@ -1,5 +1,6 @@
 import {createCharacter,beginSession,endScene,endSession} from './creation-ui.mjs';
 import {importBestiary} from './bestiary.mjs';
+import {importStarterAdventure,prepareStarterEncounter,starterMacros} from './starter-adventure.mjs';
 import {repairCreatedPursuit} from './creation.mjs';
 import {defaultArtwork,needsArtwork,refreshDefaultArtwork} from './item-art.mjs';
 import {ID} from "./rules.mjs";
@@ -35,7 +36,7 @@ Hooks.once("init",()=>{
   game.settings.register(ID,"sessions",{scope:"world",config:false,type:Object,default:{}});
   game.settings.register(ID,'artworkVersion',{scope:'world',config:false,type:Number,default:0});
   game.settings.register(ID,'bestiaryVersion',{scope:'world',config:false,type:Number,default:0});
-  game.ttb={createCharacter,beginSession,endScene,endSession,importBestiary:()=>enqueue(()=>safely(importBestiary)),openTable:()=>new FateTable().render({force:true}),request};
+  game.ttb={createCharacter,beginSession,endScene,endSession,importBestiary:()=>enqueue(()=>safely(importBestiary)),importStarterAdventure:()=>enqueue(()=>safely(importStarterAdventure)),prepareStarterEncounter:count=>enqueue(()=>safely(()=>prepareStarterEncounter(count))),openTable:()=>new FateTable().render({force:true}),request};
 });
 Hooks.on("preCreateActor",(actor)=>{
   actor.updateSource({prototypeToken:{actorLink:actor.type==="fated",bar1:{attribute:"wounds"},displayName:20},...(actor.type==="npc"&&!actor._source.system?.characteristics?{"system.characteristics":"Живой"}:{})});
@@ -47,6 +48,7 @@ Hooks.once("ready",()=>{
     game.messages.forEach(processRequest);
     for(const actor of game.actors)enqueue(async()=>{await repairCreatedPursuit(actor);await syncHand(actor);});
     enqueue(()=>safely(refreshDefaultArtwork));
+    enqueue(()=>safely(starterMacros));
     if(game.settings.get(ID,'bestiaryVersion')<4||!game.macros.some(m=>m.getFlag(ID,'bestiaryImport')))enqueue(()=>safely(importBestiary));
   }
   ui.notifications.info("Сквозь Пролом: откройте «Стол Судьбы» из листа персонажа или настроек системы.");

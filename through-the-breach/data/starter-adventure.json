@@ -1,0 +1,2907 @@
+{
+  "id": "chapter11-iron-ram",
+  "version": 1,
+  "name": "11 — Фигня случается",
+  "source": {
+    "book": "Основная книга",
+    "printedPages": [
+      408,
+      413
+    ],
+    "pdfPages": [
+      410,
+      415
+    ]
+  },
+  "folders": {
+    "Actor": [
+      {
+        "key": "people",
+        "name": "01 — НПС"
+      },
+      {
+        "key": "opponents",
+        "name": "02 — Противники"
+      },
+      {
+        "key": "props",
+        "name": "03 — Реквизит"
+      }
+    ],
+    "Scene": [
+      {
+        "key": "prologue",
+        "name": "01 — Пролог"
+      },
+      {
+        "key": "train",
+        "name": "02 — Поезд между мирами"
+      }
+    ],
+    "JournalEntry": [
+      {
+        "key": "gm",
+        "name": "01 — Мастеру"
+      },
+      {
+        "key": "show",
+        "name": "02 — Для показа игрокам"
+      }
+    ],
+    "Macro": []
+  },
+  "actors": [
+    {
+      "key": "vito",
+      "folder": "people",
+      "data": {
+        "name": "Вито Сесса",
+        "type": "npc",
+        "img": "systems/through-the-breach/assets/adventure/chapter11/vito.png",
+        "ownership": {
+          "default": 0
+        },
+        "system": {
+          "rank": 0,
+          "rankDefense": false,
+          "characteristics": "Живой, Человек",
+          "notes": "Основная книга, стр. 408–409. Худой, сгорбленный кукловод около шестидесяти лет. Огромный чемодан с надписью «Удивительный Сесса». Исчезает вместе с пассажирами при входе в Пролом. Книга не задаёт ему боевого профиля: это портретный NPC, базовые числовые поля не являются характеристиками из книги."
+        },
+        "prototypeToken": {
+          "actorLink": false,
+          "texture": {
+            "src": "systems/through-the-breach/assets/adventure/chapter11/vito-token.svg"
+          },
+          "disposition": 0,
+          "displayName": 20,
+          "bar1": {
+            "attribute": null
+          }
+        }
+      }
+    },
+    {
+      "key": "cesar",
+      "folder": "people",
+      "data": {
+        "name": "Сезар Армати",
+        "type": "npc",
+        "img": "systems/through-the-breach/assets/adventure/chapter11/cesar.png",
+        "ownership": {
+          "default": 0
+        },
+        "flags": {},
+        "system": {
+          "aspects": {
+            "might": 0,
+            "grace": 1,
+            "speed": 2,
+            "resilience": 1,
+            "charm": -1,
+            "intellect": 2,
+            "cunning": 2,
+            "tenacity": -1
+          },
+          "skills": {
+            "bureaucracy": {
+              "rank": 1,
+              "aspect": "cunning",
+              "suits": "",
+              "trigger": ""
+            },
+            "engineering": {
+              "rank": 2,
+              "aspect": "intellect",
+              "suits": "",
+              "trigger": ""
+            },
+            "history": {
+              "rank": 0,
+              "aspect": "intellect",
+              "suits": "",
+              "trigger": ""
+            },
+            "literacy": {
+              "rank": 0,
+              "aspect": "intellect",
+              "suits": "",
+              "trigger": ""
+            },
+            "mathematics": {
+              "rank": 0,
+              "aspect": "intellect",
+              "suits": "",
+              "trigger": ""
+            },
+            "music": {
+              "rank": 0,
+              "aspect": "charm",
+              "suits": "",
+              "trigger": ""
+            },
+            "flexible": {
+              "rank": 0,
+              "aspect": "grace",
+              "suits": "",
+              "trigger": ""
+            },
+            "grappling": {
+              "rank": 0,
+              "aspect": "speed",
+              "suits": "",
+              "trigger": ""
+            },
+            "heavyMelee": {
+              "rank": 0,
+              "aspect": "might",
+              "suits": "",
+              "trigger": ""
+            },
+            "martialArts": {
+              "rank": 0,
+              "aspect": "speed",
+              "suits": "",
+              "trigger": ""
+            },
+            "melee": {
+              "rank": 0,
+              "aspect": "might",
+              "suits": "",
+              "trigger": ""
+            },
+            "pneumatic": {
+              "rank": 0,
+              "aspect": "might",
+              "suits": "",
+              "trigger": ""
+            },
+            "pugilism": {
+              "rank": 0,
+              "aspect": "might",
+              "suits": "",
+              "trigger": ""
+            },
+            "archery": {
+              "rank": 0,
+              "aspect": "grace",
+              "suits": "",
+              "trigger": ""
+            },
+            "heavyGuns": {
+              "rank": 0,
+              "aspect": "might",
+              "suits": "",
+              "trigger": ""
+            },
+            "longArms": {
+              "rank": 0,
+              "aspect": "intellect",
+              "suits": "",
+              "trigger": ""
+            },
+            "pistol": {
+              "rank": 0,
+              "aspect": "grace",
+              "suits": "",
+              "trigger": ""
+            },
+            "shotgun": {
+              "rank": 0,
+              "aspect": "grace",
+              "suits": "",
+              "trigger": ""
+            },
+            "thrown": {
+              "rank": 0,
+              "aspect": "grace",
+              "suits": "",
+              "trigger": ""
+            },
+            "alchemistry": {
+              "rank": 0,
+              "aspect": "intellect",
+              "suits": "",
+              "trigger": ""
+            },
+            "art": {
+              "rank": 0,
+              "aspect": "cunning",
+              "suits": "",
+              "trigger": ""
+            },
+            "artefacting": {
+              "rank": 3,
+              "aspect": "intellect",
+              "suits": "",
+              "trigger": ""
+            },
+            "blacksmithing": {
+              "rank": 0,
+              "aspect": "intellect",
+              "suits": "",
+              "trigger": ""
+            },
+            "culinary": {
+              "rank": 0,
+              "aspect": "charm",
+              "suits": "",
+              "trigger": ""
+            },
+            "explosives": {
+              "rank": 0,
+              "aspect": "intellect",
+              "suits": "",
+              "trigger": ""
+            },
+            "homesteading": {
+              "rank": 0,
+              "aspect": "tenacity",
+              "suits": "",
+              "trigger": ""
+            },
+            "printing": {
+              "rank": 0,
+              "aspect": "intellect",
+              "suits": "",
+              "trigger": ""
+            },
+            "stitching": {
+              "rank": 0,
+              "aspect": "tenacity",
+              "suits": "",
+              "trigger": ""
+            },
+            "doctor": {
+              "rank": 0,
+              "aspect": "intellect",
+              "suits": "",
+              "trigger": ""
+            },
+            "forgery": {
+              "rank": 0,
+              "aspect": "cunning",
+              "suits": "",
+              "trigger": ""
+            },
+            "gambling": {
+              "rank": 0,
+              "aspect": "cunning",
+              "suits": "",
+              "trigger": ""
+            },
+            "husbandry": {
+              "rank": 0,
+              "aspect": "charm",
+              "suits": "",
+              "trigger": ""
+            },
+            "lockpicking": {
+              "rank": 0,
+              "aspect": "grace",
+              "suits": "",
+              "trigger": ""
+            },
+            "notice": {
+              "rank": 1,
+              "aspect": "cunning",
+              "suits": "",
+              "trigger": ""
+            },
+            "track": {
+              "rank": 0,
+              "aspect": "cunning",
+              "suits": "",
+              "trigger": ""
+            },
+            "wilderness": {
+              "rank": 0,
+              "aspect": "cunning",
+              "suits": "",
+              "trigger": ""
+            },
+            "barter": {
+              "rank": 0,
+              "aspect": "tenacity",
+              "suits": "",
+              "trigger": ""
+            },
+            "bewitch": {
+              "rank": 0,
+              "aspect": "charm",
+              "suits": "",
+              "trigger": ""
+            },
+            "convince": {
+              "rank": 0,
+              "aspect": "intellect",
+              "suits": "",
+              "trigger": ""
+            },
+            "deceive": {
+              "rank": 0,
+              "aspect": "cunning",
+              "suits": "",
+              "trigger": ""
+            },
+            "intimidate": {
+              "rank": 2,
+              "aspect": "tenacity",
+              "suits": "",
+              "trigger": ""
+            },
+            "leadership": {
+              "rank": 0,
+              "aspect": "charm",
+              "suits": "",
+              "trigger": ""
+            },
+            "scrutiny": {
+              "rank": 1,
+              "aspect": "cunning",
+              "suits": "",
+              "trigger": ""
+            },
+            "acrobatics": {
+              "rank": 0,
+              "aspect": "grace",
+              "suits": "",
+              "trigger": ""
+            },
+            "athletics": {
+              "rank": 0,
+              "aspect": "might",
+              "suits": "",
+              "trigger": ""
+            },
+            "carouse": {
+              "rank": 0,
+              "aspect": "resilience",
+              "suits": "",
+              "trigger": ""
+            },
+            "centering": {
+              "rank": 2,
+              "aspect": "tenacity",
+              "suits": "",
+              "trigger": ""
+            },
+            "evade": {
+              "rank": 0,
+              "aspect": "speed",
+              "suits": "",
+              "trigger": ""
+            },
+            "pickpocket": {
+              "rank": 0,
+              "aspect": "speed",
+              "suits": "",
+              "trigger": ""
+            },
+            "stealth": {
+              "rank": 1,
+              "aspect": "cunning",
+              "suits": "",
+              "trigger": ""
+            },
+            "toughness": {
+              "rank": 1,
+              "aspect": "resilience",
+              "suits": "",
+              "trigger": ""
+            },
+            "counterspelling": {
+              "rank": 0,
+              "aspect": "tenacity",
+              "suits": "",
+              "trigger": ""
+            },
+            "enchanting": {
+              "rank": 3,
+              "aspect": "charm",
+              "suits": "R",
+              "trigger": ""
+            },
+            "necromancy": {
+              "rank": 0,
+              "aspect": "charm",
+              "suits": "",
+              "trigger": ""
+            },
+            "sorcery": {
+              "rank": 4,
+              "aspect": "intellect",
+              "suits": "T",
+              "trigger": ""
+            },
+            "prestidigitation": {
+              "rank": 0,
+              "aspect": "cunning",
+              "suits": "",
+              "trigger": ""
+            }
+          },
+          "temporaryAspects": {
+            "might": 0,
+            "grace": 0,
+            "speed": 0,
+            "resilience": 0,
+            "intellect": 0,
+            "charm": 0,
+            "cunning": 0,
+            "tenacity": 0
+          },
+          "bonuses": {
+            "defense": 0,
+            "willpower": 0,
+            "wounds": 0,
+            "initiative": 0,
+            "walk": 0,
+            "charge": 0
+          },
+          "armor": 0,
+          "walkRoundUp": true,
+          "autoArmor": false,
+          "allowShortCharge": true,
+          "canCharge": true,
+          "rank": 6,
+          "rankWounds": false,
+          "rankDefense": true,
+          "immuneWillpower": false,
+          "immunePulse": false,
+          "swarmAreaReduction": 0,
+          "height": 2,
+          "wounds": {
+            "value": 6
+          },
+          "scrip": 0,
+          "living": true,
+          "characteristics": "Живой, Человек",
+          "notes": "Основная книга, глава 11, стр. 411–413. Профиль Пароходчика (стр. 386), без «Взрывателя» и «Моё творение». Закован в кандалы; не нападает первым, кроме самообороны. Провал переговоров: последующие СЛ +1.\nМагические действия и их масти мастер разрешает по описанию. Рамка нейтральная: вступление в Арканисты — возможный будущий итог.",
+          "conditions": "Прикован к полу; освобождение требует ключей."
+        },
+        "items": [
+          {
+            "name": "Особенности и полный профиль",
+            "type": "talent",
+            "img": "systems/through-the-breach/assets/bestiary/portraits/book-13-388-1.webp",
+            "system": {
+              "category": "npc-profile",
+              "reference": "Основная книга, стр. 386; глава 11, стр. 412",
+              "description": "Пароходчик\nМиньон (6), Живой\n4 (10) 5 2 3 (9)\n4 (10) 6 6\nНавыки: Артефактинг 3, Бюрократия 1, Концентрация 2, \nЗачарование 3R, Инженерия 2, Запугивание 2, \nЗаметливость 1, Контроль 1, Колдовство 4t, \nСкрытность 1, Жесткость 1.\n(1) Морозное прикосновение (Колдовство/Интеллект)\nСН: 6t (12t) == СЛ: 12t === Дл: y1 === Соп: Защ\nЦель получает 2/3/4 урона и становится Замедленной.\n(1) Молниевый удар (Колдовство/Интеллект)\nСН: 6t (12t) == СЛ: 12t === Дл: z10 === Соп: Защ\nЦель получает 1/3/4 урона, игнорируя броню. При\nСтрельбе в бучу эта атака не рандомизируется.\n(1) Зачаровать оружие (Зачарование/Хитрость)\nСН: 5R (11r) == СЛ: 11r === Дл: 1 === Соп: Защ\nЦелевое оружие получает один из этих двух эффектов на\n1 минуту:\n• Электричество: Атаки этого оружия игнорируют броню\nи не рандомизируются при Стрельбе в бучу.\n• Лёд: Персонажи, поврежденные этим оружием,\nстановятся Замедленными.\n386 Глава 10: Бестиарий\nМощь Грация Скорость Стойкость \nОбаяние Интеллект Хитрость Упорство \nЗащита Ходьба Рост Инициатива\nСила воли Рывок Ранения"
+            }
+          },
+          {
+            "name": "Морозное прикосновение",
+            "type": "talent",
+            "img": "systems/through-the-breach/assets/bestiary/portraits/book-13-388-1.webp",
+            "system": {
+              "description": "(1) Морозное прикосновение (Колдовство/Интеллект)\nСН: 6t (12t) == СЛ: 12t === Дл: y1 === Соп: Защ\nЦель получает 2/3/4 урона и становится Замедленной.\n",
+              "reference": "Основная книга, стр. 386; глава 11, стр. 412",
+              "category": "npc-action"
+            }
+          },
+          {
+            "name": "Молниевый удар",
+            "type": "talent",
+            "img": "systems/through-the-breach/assets/bestiary/portraits/book-13-388-1.webp",
+            "system": {
+              "description": "(1) Молниевый удар (Колдовство/Интеллект)\nСН: 6t (12t) == СЛ: 12t === Дл: z10 === Соп: Защ\nЦель получает 1/3/4 урона, игнорируя броню. При\nСтрельбе в бучу эта атака не рандомизируется.\n",
+              "reference": "Основная книга, стр. 386; глава 11, стр. 412",
+              "category": "npc-action"
+            }
+          },
+          {
+            "name": "Зачаровать оружие",
+            "type": "talent",
+            "img": "systems/through-the-breach/assets/bestiary/portraits/book-13-388-1.webp",
+            "system": {
+              "description": "(1) Зачаровать оружие (Зачарование/Хитрость)\nСН: 5R (11r) == СЛ: 11r === Дл: 1 === Соп: Защ\nЦелевое оружие получает один из этих двух эффектов на\n1 минуту:\n• Электричество: Атаки этого оружия игнорируют броню\nи не рандомизируются при Стрельбе в бучу.\n• Лёд: Персонажи, поврежденные этим оружием,\nстановятся Замедленными.\n386 Глава 10: Бестиарий\nМощь Грация Скорость Стойкость \nОбаяние Интеллект Хитрость Упорство \nЗащита Ходьба Рост Инициатива\nСила воли Рывок Ранения",
+              "reference": "Основная книга, стр. 386; глава 11, стр. 412",
+              "category": "npc-action"
+            }
+          }
+        ],
+        "prototypeToken": {
+          "actorLink": false,
+          "texture": {
+            "src": "systems/through-the-breach/assets/adventure/chapter11/cesar-token.svg"
+          },
+          "width": 1,
+          "height": 1,
+          "bar1": {
+            "attribute": "wounds"
+          },
+          "displayName": 20,
+          "disposition": 0
+        }
+      }
+    },
+    {
+      "key": "marionette",
+      "folder": "opponents",
+      "data": {
+        "name": "Марионетка Сессы",
+        "type": "npc",
+        "img": "systems/through-the-breach/assets/bestiary/portraits/book-13-373-3.webp",
+        "ownership": {
+          "default": 0
+        },
+        "flags": {},
+        "system": {
+          "aspects": {
+            "might": -1,
+            "grace": 2,
+            "speed": 2,
+            "resilience": 0,
+            "charm": 1,
+            "intellect": -3,
+            "cunning": 2,
+            "tenacity": 3
+          },
+          "skills": {
+            "bureaucracy": {
+              "rank": 0,
+              "aspect": "cunning",
+              "suits": "",
+              "trigger": ""
+            },
+            "engineering": {
+              "rank": 0,
+              "aspect": "intellect",
+              "suits": "",
+              "trigger": ""
+            },
+            "history": {
+              "rank": 0,
+              "aspect": "intellect",
+              "suits": "",
+              "trigger": ""
+            },
+            "literacy": {
+              "rank": 0,
+              "aspect": "intellect",
+              "suits": "",
+              "trigger": ""
+            },
+            "mathematics": {
+              "rank": 0,
+              "aspect": "intellect",
+              "suits": "",
+              "trigger": ""
+            },
+            "music": {
+              "rank": 0,
+              "aspect": "charm",
+              "suits": "",
+              "trigger": ""
+            },
+            "flexible": {
+              "rank": 0,
+              "aspect": "grace",
+              "suits": "",
+              "trigger": ""
+            },
+            "grappling": {
+              "rank": 0,
+              "aspect": "speed",
+              "suits": "",
+              "trigger": ""
+            },
+            "heavyMelee": {
+              "rank": 0,
+              "aspect": "might",
+              "suits": "",
+              "trigger": ""
+            },
+            "martialArts": {
+              "rank": 0,
+              "aspect": "speed",
+              "suits": "",
+              "trigger": ""
+            },
+            "melee": {
+              "rank": 0,
+              "aspect": "might",
+              "suits": "",
+              "trigger": ""
+            },
+            "pneumatic": {
+              "rank": 0,
+              "aspect": "might",
+              "suits": "",
+              "trigger": ""
+            },
+            "pugilism": {
+              "rank": 2,
+              "aspect": "might",
+              "suits": "",
+              "trigger": ""
+            },
+            "archery": {
+              "rank": 0,
+              "aspect": "grace",
+              "suits": "",
+              "trigger": ""
+            },
+            "heavyGuns": {
+              "rank": 0,
+              "aspect": "might",
+              "suits": "",
+              "trigger": ""
+            },
+            "longArms": {
+              "rank": 0,
+              "aspect": "intellect",
+              "suits": "",
+              "trigger": ""
+            },
+            "pistol": {
+              "rank": 0,
+              "aspect": "grace",
+              "suits": "",
+              "trigger": ""
+            },
+            "shotgun": {
+              "rank": 0,
+              "aspect": "grace",
+              "suits": "",
+              "trigger": ""
+            },
+            "thrown": {
+              "rank": 0,
+              "aspect": "grace",
+              "suits": "",
+              "trigger": ""
+            },
+            "alchemistry": {
+              "rank": 0,
+              "aspect": "intellect",
+              "suits": "",
+              "trigger": ""
+            },
+            "art": {
+              "rank": 0,
+              "aspect": "cunning",
+              "suits": "",
+              "trigger": ""
+            },
+            "artefacting": {
+              "rank": 0,
+              "aspect": "intellect",
+              "suits": "",
+              "trigger": ""
+            },
+            "blacksmithing": {
+              "rank": 0,
+              "aspect": "intellect",
+              "suits": "",
+              "trigger": ""
+            },
+            "culinary": {
+              "rank": 0,
+              "aspect": "charm",
+              "suits": "",
+              "trigger": ""
+            },
+            "explosives": {
+              "rank": 0,
+              "aspect": "intellect",
+              "suits": "",
+              "trigger": ""
+            },
+            "homesteading": {
+              "rank": 0,
+              "aspect": "tenacity",
+              "suits": "",
+              "trigger": ""
+            },
+            "printing": {
+              "rank": 0,
+              "aspect": "intellect",
+              "suits": "",
+              "trigger": ""
+            },
+            "stitching": {
+              "rank": 0,
+              "aspect": "tenacity",
+              "suits": "",
+              "trigger": ""
+            },
+            "doctor": {
+              "rank": 0,
+              "aspect": "intellect",
+              "suits": "",
+              "trigger": ""
+            },
+            "forgery": {
+              "rank": 0,
+              "aspect": "cunning",
+              "suits": "",
+              "trigger": ""
+            },
+            "gambling": {
+              "rank": 0,
+              "aspect": "cunning",
+              "suits": "",
+              "trigger": ""
+            },
+            "husbandry": {
+              "rank": 0,
+              "aspect": "charm",
+              "suits": "",
+              "trigger": ""
+            },
+            "lockpicking": {
+              "rank": 0,
+              "aspect": "grace",
+              "suits": "",
+              "trigger": ""
+            },
+            "notice": {
+              "rank": 0,
+              "aspect": "cunning",
+              "suits": "",
+              "trigger": ""
+            },
+            "track": {
+              "rank": 0,
+              "aspect": "cunning",
+              "suits": "",
+              "trigger": ""
+            },
+            "wilderness": {
+              "rank": 0,
+              "aspect": "cunning",
+              "suits": "",
+              "trigger": ""
+            },
+            "barter": {
+              "rank": 0,
+              "aspect": "tenacity",
+              "suits": "",
+              "trigger": ""
+            },
+            "bewitch": {
+              "rank": 0,
+              "aspect": "charm",
+              "suits": "",
+              "trigger": ""
+            },
+            "convince": {
+              "rank": 0,
+              "aspect": "intellect",
+              "suits": "",
+              "trigger": ""
+            },
+            "deceive": {
+              "rank": 0,
+              "aspect": "cunning",
+              "suits": "",
+              "trigger": ""
+            },
+            "intimidate": {
+              "rank": 0,
+              "aspect": "tenacity",
+              "suits": "",
+              "trigger": ""
+            },
+            "leadership": {
+              "rank": 0,
+              "aspect": "charm",
+              "suits": "",
+              "trigger": ""
+            },
+            "scrutiny": {
+              "rank": 0,
+              "aspect": "cunning",
+              "suits": "",
+              "trigger": ""
+            },
+            "acrobatics": {
+              "rank": 0,
+              "aspect": "grace",
+              "suits": "",
+              "trigger": ""
+            },
+            "athletics": {
+              "rank": 0,
+              "aspect": "might",
+              "suits": "",
+              "trigger": ""
+            },
+            "carouse": {
+              "rank": 0,
+              "aspect": "resilience",
+              "suits": "",
+              "trigger": ""
+            },
+            "centering": {
+              "rank": 0,
+              "aspect": "tenacity",
+              "suits": "",
+              "trigger": ""
+            },
+            "evade": {
+              "rank": 3,
+              "aspect": "speed",
+              "suits": "",
+              "trigger": ""
+            },
+            "pickpocket": {
+              "rank": 0,
+              "aspect": "speed",
+              "suits": "",
+              "trigger": ""
+            },
+            "stealth": {
+              "rank": 0,
+              "aspect": "cunning",
+              "suits": "",
+              "trigger": ""
+            },
+            "toughness": {
+              "rank": 0,
+              "aspect": "resilience",
+              "suits": "",
+              "trigger": ""
+            },
+            "counterspelling": {
+              "rank": 0,
+              "aspect": "tenacity",
+              "suits": "",
+              "trigger": ""
+            },
+            "enchanting": {
+              "rank": 0,
+              "aspect": "charm",
+              "suits": "",
+              "trigger": ""
+            },
+            "necromancy": {
+              "rank": 0,
+              "aspect": "charm",
+              "suits": "",
+              "trigger": ""
+            },
+            "sorcery": {
+              "rank": 0,
+              "aspect": "intellect",
+              "suits": "",
+              "trigger": ""
+            },
+            "prestidigitation": {
+              "rank": 0,
+              "aspect": "cunning",
+              "suits": "",
+              "trigger": ""
+            }
+          },
+          "temporaryAspects": {
+            "might": 0,
+            "grace": 0,
+            "speed": 0,
+            "resilience": 0,
+            "intellect": 0,
+            "charm": 0,
+            "cunning": 0,
+            "tenacity": 0
+          },
+          "bonuses": {
+            "defense": 0,
+            "willpower": 0,
+            "wounds": 0,
+            "initiative": 0,
+            "walk": 0,
+            "charge": 0
+          },
+          "armor": 0,
+          "walkRoundUp": true,
+          "autoArmor": false,
+          "allowShortCharge": true,
+          "canCharge": true,
+          "rank": 5,
+          "rankWounds": false,
+          "rankDefense": true,
+          "immuneWillpower": false,
+          "immunePulse": false,
+          "swarmAreaReduction": 0,
+          "height": 1,
+          "wounds": {
+            "value": 4
+          },
+          "scrip": 0,
+          "living": false,
+          "characteristics": "Конструкт, Кукла",
+          "notes": "Основная книга, стр. 371 (PDF 373)\n\nФракция рамки: Нерождённые.\n\nИллюстрация страницы 373 PDF: Основная книга\n\nТриггеры, ауры, сопротивления, слабости, призыв и другие особые способности мастер разрешает по описанию. Автоматические атаки охватывают только обычный числовой урон.\n\nГлава 11, стр. 409–410: одна марионетка на Сужденного. Одно Очко Судьбы ведётся мастером вручную. При 0 ранениях или ниже: критический эффект, затем неподвижна. Тянущиеся струны и укрытия разрешаются по описанию."
+        },
+        "items": [
+          {
+            "name": "Особенности и полный профиль",
+            "type": "talent",
+            "img": "systems/through-the-breach/assets/bestiary/portraits/book-13-373-3.webp",
+            "system": {
+              "category": "npc-profile",
+              "reference": "Основная книга, стр. 371 (PDF 373)",
+              "description": "Марионетка\nМиньон (5), Конструкт, Кукла\n5 (10) 5 1 2 (7)\n5 (10) 6 4\nНавык: Уклонение 3, Атака кулаками 2.\nОчаровательная кукла: В неподвижном состоянии этот\nперсонаж неотличим от обычной куклы.\nЩелчок пальцами: : Этот персонаж может использовать\nГрацию вместо Мощи при Рукопашной атаке или Атаке\nкулаками\nТянущиеся струны: Если нет персонажа, удерживающего\nструны этого персонажа, то Силовик, Приспешник, Мастер\nили Сужденный в радиусе 2 ярдов от этого персонажа\nможет захватить их в качестве Действия (0). Персонаж\nможет отпустить струны в любой момент, но, удерживая\nих, он не может использовать двуручное оружие или\nпроизносить заклинания. Одновременно персонаж может\nудерживать струны только одной марионетки.\nЗапутанное дело: Пока вражеский персонаж держит струны\nэтого персонажа, этот персонаж Замедлен.\nКукольное представление: Пока дружественный персонаж\nдержит струны этого персонажа, этот персонаж получает +\nк своим атакам и может использовать ранги умений персонажа вместо своих собственных. Персонаж, держащий\nструны этого персонажа, может потратить 1 ОД, чтобы\nзаставить этого персонажа выполнить Действие (1) по\nсвоему выбору.\n(1) Деревянные кулаки (Атака кулаками)\nСН: 4 (9) ========= Дл: y1 ====== Соп: Защ\nЦель получает 1/2/3 урона. Этот персонаж может добавить\nАспект Грации дружественного персонажа, держащего его\nструны, к своему итоговому результату дуэли.\nt Создан, чтобы следовать: После разрешения, если сейчас\nне ход этого персонажа, выполните это действие снова.\n(0) Подтянуть обратно\nЭтот персонаж может переместиться на 2 ярда в любом\nнаправлении. Затем, если есть персонаж, держащий\nструны этого персонажа, она оттягивается на 2 ярда\nпрямо к этому персонажу.\nГлава 10: Бестиарий 371\nМощь Грация Скорость Стойкость \nОбаяние Интеллект Хитрость Упорство \nЗащита Ходьба Рост Инициатива\nСила воли Рывок Ранения"
+            }
+          },
+          {
+            "name": "Деревянные кулаки",
+            "type": "equipment",
+            "img": "systems/through-the-breach/assets/bestiary/portraits/book-13-373-3.webp",
+            "system": {
+              "description": "(1) Деревянные кулаки (Атака кулаками)\nСН: 4 (9) ========= Дл: y1 ====== Соп: Защ\nЦель получает 1/2/3 урона. Этот персонаж может добавить\nАспект Грации дружественного персонажа, держащего его\nструны, к своему итоговому результату дуэли.\nt Создан, чтобы следовать: После разрешения, если сейчас\nне ход этого персонажа, выполните это действие снова.\n",
+              "reference": "Основная книга, стр. 371 (PDF 373)",
+              "category": "npc-attack",
+              "isWeapon": true,
+              "skill": "pugilism",
+              "attackAspect": "might",
+              "attackBonus": 3,
+              "damage": "1/2/3",
+              "range": "y1",
+              "defense": "defense",
+              "apCost": 1,
+              "capacity": 0,
+              "reloadCost": 1,
+              "ignoreArmor": false,
+              "loaded": 0
+            }
+          },
+          {
+            "name": "Подтянуть обратно",
+            "type": "talent",
+            "img": "systems/through-the-breach/assets/bestiary/portraits/book-13-373-3.webp",
+            "system": {
+              "description": "(0) Подтянуть обратно\nЭтот персонаж может переместиться на 2 ярда в любом\nнаправлении. Затем, если есть персонаж, держащий\nструны этого персонажа, она оттягивается на 2 ярда\nпрямо к этому персонажу.\nГлава 10: Бестиарий 371\nМощь Грация Скорость Стойкость \nОбаяние Интеллект Хитрость Упорство \nЗащита Ходьба Рост Инициатива\nСила воли Рывок Ранения",
+              "reference": "Основная книга, стр. 371 (PDF 373)",
+              "category": "npc-action"
+            }
+          }
+        ],
+        "prototypeToken": {
+          "actorLink": false,
+          "texture": {
+            "src": "systems/through-the-breach/assets/bestiary/tokens/135b5f94f644a08f.svg"
+          },
+          "width": 1,
+          "height": 1,
+          "bar1": {
+            "attribute": "wounds"
+          },
+          "displayName": 20
+        }
+      }
+    },
+    {
+      "key": "guard",
+      "folder": "props",
+      "data": {
+        "name": "Тело гвардейца Гильдии",
+        "type": "npc",
+        "img": "systems/through-the-breach/assets/bestiary/portraits/book-13-324-1.webp",
+        "ownership": {
+          "default": 0
+        },
+        "flags": {},
+        "system": {
+          "aspects": {
+            "might": 1,
+            "grace": 2,
+            "speed": 0,
+            "resilience": 0,
+            "charm": -1,
+            "intellect": -1,
+            "cunning": -1,
+            "tenacity": 3
+          },
+          "skills": {
+            "bureaucracy": {
+              "rank": 1,
+              "aspect": "cunning",
+              "suits": "",
+              "trigger": ""
+            },
+            "engineering": {
+              "rank": 0,
+              "aspect": "intellect",
+              "suits": "",
+              "trigger": ""
+            },
+            "history": {
+              "rank": 0,
+              "aspect": "intellect",
+              "suits": "",
+              "trigger": ""
+            },
+            "literacy": {
+              "rank": 0,
+              "aspect": "intellect",
+              "suits": "",
+              "trigger": ""
+            },
+            "mathematics": {
+              "rank": 0,
+              "aspect": "intellect",
+              "suits": "",
+              "trigger": ""
+            },
+            "music": {
+              "rank": 0,
+              "aspect": "charm",
+              "suits": "",
+              "trigger": ""
+            },
+            "flexible": {
+              "rank": 0,
+              "aspect": "grace",
+              "suits": "",
+              "trigger": ""
+            },
+            "grappling": {
+              "rank": 0,
+              "aspect": "speed",
+              "suits": "",
+              "trigger": ""
+            },
+            "heavyMelee": {
+              "rank": 0,
+              "aspect": "might",
+              "suits": "",
+              "trigger": ""
+            },
+            "martialArts": {
+              "rank": 0,
+              "aspect": "speed",
+              "suits": "",
+              "trigger": ""
+            },
+            "melee": {
+              "rank": 3,
+              "aspect": "might",
+              "suits": "",
+              "trigger": ""
+            },
+            "pneumatic": {
+              "rank": 0,
+              "aspect": "might",
+              "suits": "",
+              "trigger": ""
+            },
+            "pugilism": {
+              "rank": 0,
+              "aspect": "might",
+              "suits": "",
+              "trigger": ""
+            },
+            "archery": {
+              "rank": 0,
+              "aspect": "grace",
+              "suits": "",
+              "trigger": ""
+            },
+            "heavyGuns": {
+              "rank": 0,
+              "aspect": "might",
+              "suits": "",
+              "trigger": ""
+            },
+            "longArms": {
+              "rank": 0,
+              "aspect": "intellect",
+              "suits": "",
+              "trigger": ""
+            },
+            "pistol": {
+              "rank": 2,
+              "aspect": "grace",
+              "suits": "M",
+              "trigger": ""
+            },
+            "shotgun": {
+              "rank": 0,
+              "aspect": "grace",
+              "suits": "",
+              "trigger": ""
+            },
+            "thrown": {
+              "rank": 0,
+              "aspect": "grace",
+              "suits": "",
+              "trigger": ""
+            },
+            "alchemistry": {
+              "rank": 0,
+              "aspect": "intellect",
+              "suits": "",
+              "trigger": ""
+            },
+            "art": {
+              "rank": 0,
+              "aspect": "cunning",
+              "suits": "",
+              "trigger": ""
+            },
+            "artefacting": {
+              "rank": 0,
+              "aspect": "intellect",
+              "suits": "",
+              "trigger": ""
+            },
+            "blacksmithing": {
+              "rank": 0,
+              "aspect": "intellect",
+              "suits": "",
+              "trigger": ""
+            },
+            "culinary": {
+              "rank": 0,
+              "aspect": "charm",
+              "suits": "",
+              "trigger": ""
+            },
+            "explosives": {
+              "rank": 0,
+              "aspect": "intellect",
+              "suits": "",
+              "trigger": ""
+            },
+            "homesteading": {
+              "rank": 0,
+              "aspect": "tenacity",
+              "suits": "",
+              "trigger": ""
+            },
+            "printing": {
+              "rank": 0,
+              "aspect": "intellect",
+              "suits": "",
+              "trigger": ""
+            },
+            "stitching": {
+              "rank": 0,
+              "aspect": "tenacity",
+              "suits": "",
+              "trigger": ""
+            },
+            "doctor": {
+              "rank": 0,
+              "aspect": "intellect",
+              "suits": "",
+              "trigger": ""
+            },
+            "forgery": {
+              "rank": 0,
+              "aspect": "cunning",
+              "suits": "",
+              "trigger": ""
+            },
+            "gambling": {
+              "rank": 0,
+              "aspect": "cunning",
+              "suits": "",
+              "trigger": ""
+            },
+            "husbandry": {
+              "rank": 0,
+              "aspect": "charm",
+              "suits": "",
+              "trigger": ""
+            },
+            "lockpicking": {
+              "rank": 0,
+              "aspect": "grace",
+              "suits": "",
+              "trigger": ""
+            },
+            "notice": {
+              "rank": 2,
+              "aspect": "cunning",
+              "suits": "",
+              "trigger": ""
+            },
+            "track": {
+              "rank": 0,
+              "aspect": "cunning",
+              "suits": "",
+              "trigger": ""
+            },
+            "wilderness": {
+              "rank": 0,
+              "aspect": "cunning",
+              "suits": "",
+              "trigger": ""
+            },
+            "barter": {
+              "rank": 0,
+              "aspect": "tenacity",
+              "suits": "",
+              "trigger": ""
+            },
+            "bewitch": {
+              "rank": 0,
+              "aspect": "charm",
+              "suits": "",
+              "trigger": ""
+            },
+            "convince": {
+              "rank": 0,
+              "aspect": "intellect",
+              "suits": "",
+              "trigger": ""
+            },
+            "deceive": {
+              "rank": 0,
+              "aspect": "cunning",
+              "suits": "",
+              "trigger": ""
+            },
+            "intimidate": {
+              "rank": 0,
+              "aspect": "tenacity",
+              "suits": "",
+              "trigger": ""
+            },
+            "leadership": {
+              "rank": 0,
+              "aspect": "charm",
+              "suits": "",
+              "trigger": ""
+            },
+            "scrutiny": {
+              "rank": 0,
+              "aspect": "cunning",
+              "suits": "",
+              "trigger": ""
+            },
+            "acrobatics": {
+              "rank": 0,
+              "aspect": "grace",
+              "suits": "",
+              "trigger": ""
+            },
+            "athletics": {
+              "rank": 1,
+              "aspect": "might",
+              "suits": "",
+              "trigger": ""
+            },
+            "carouse": {
+              "rank": 0,
+              "aspect": "resilience",
+              "suits": "",
+              "trigger": ""
+            },
+            "centering": {
+              "rank": 0,
+              "aspect": "tenacity",
+              "suits": "",
+              "trigger": ""
+            },
+            "evade": {
+              "rank": 3,
+              "aspect": "speed",
+              "suits": "",
+              "trigger": ""
+            },
+            "pickpocket": {
+              "rank": 0,
+              "aspect": "speed",
+              "suits": "",
+              "trigger": ""
+            },
+            "stealth": {
+              "rank": 1,
+              "aspect": "cunning",
+              "suits": "",
+              "trigger": ""
+            },
+            "toughness": {
+              "rank": 1,
+              "aspect": "resilience",
+              "suits": "",
+              "trigger": ""
+            },
+            "counterspelling": {
+              "rank": 0,
+              "aspect": "tenacity",
+              "suits": "",
+              "trigger": ""
+            },
+            "enchanting": {
+              "rank": 0,
+              "aspect": "charm",
+              "suits": "",
+              "trigger": ""
+            },
+            "necromancy": {
+              "rank": 0,
+              "aspect": "charm",
+              "suits": "",
+              "trigger": ""
+            },
+            "sorcery": {
+              "rank": 0,
+              "aspect": "intellect",
+              "suits": "",
+              "trigger": ""
+            },
+            "prestidigitation": {
+              "rank": 0,
+              "aspect": "cunning",
+              "suits": "",
+              "trigger": ""
+            }
+          },
+          "temporaryAspects": {
+            "might": 0,
+            "grace": 0,
+            "speed": 0,
+            "resilience": 0,
+            "intellect": 0,
+            "charm": 0,
+            "cunning": 0,
+            "tenacity": 0
+          },
+          "bonuses": {
+            "defense": 0,
+            "willpower": 0,
+            "wounds": 0,
+            "initiative": 0,
+            "walk": 0,
+            "charge": 0
+          },
+          "armor": 1,
+          "walkRoundUp": true,
+          "autoArmor": false,
+          "allowShortCharge": true,
+          "canCharge": true,
+          "rank": 5,
+          "rankWounds": false,
+          "rankDefense": true,
+          "immuneWillpower": false,
+          "immunePulse": false,
+          "swarmAreaReduction": 0,
+          "height": 2,
+          "wounds": {
+            "value": 0
+          },
+          "scrip": 0,
+          "living": true,
+          "characteristics": "Живой, Гвардеец",
+          "notes": "Реквизит сцены 2. Основная книга, стр. 412: убит электрической магией Сезара, обгоревший мундир и частично оплавленная винтовка. Это не живой участник боя.",
+          "dead": true,
+          "unconscious": true
+        },
+        "items": [
+          {
+            "name": "Особенности и полный профиль",
+            "type": "talent",
+            "img": "systems/through-the-breach/assets/bestiary/portraits/book-13-324-1.webp",
+            "system": {
+              "category": "npc-profile",
+              "reference": "Основная книга, стр. 322 (PDF 324)",
+              "description": "Гвардеец гильдии\nМиньон (5), Живой, Гвардеец\n4 (9) 4 2 2 (7)\n5 (10) 4 5\nНавыки: Атлетика 1, Бюрократия 1, Уклонение 3,\nРукопашное 3, Заметливость 2, Пистолет 2M, Скрытность\n1, Жесткость 1.\nБроня +1: Уменьшает все повреждения, получаемые этим\n персонажем, на +1, до минимума 1.\n(1) Стандартный меч (Рукопашное)\nСН: 4 (9) ========= Дл: y2 ====== Соп: Защ\nЦель получает 2/3/4 урона.\nR Критический удар: При нанесении урона цели эта атака\nнаносит +1 урон за каждую R в итоговом результате\nдуэли.\n(1) ВМФ Колиера (Пистолет)\nСН: 4M (9M) ====== Дл: z12 ====== Соп: Защ\nЦель получает 2/3/4 урона. Ёмкость 6, перезарядка 2.\nM Арест: После успеха цель получает следующее Состоя-ние до конца своего следующего хода: \"Арест: Этот\nперсонаж должен сбросить карту, чтобы выполнить\nдействие движения\".\n322 Глава 10: Бестиарий\nМощь Грация Скорость Стойкость \nОбаяние Интеллект Хитрость Упорство \nЗащита Ходьба Рост Инициатива\nСила воли Рывок Ранения"
+            }
+          },
+          {
+            "name": "Стандартный меч",
+            "type": "equipment",
+            "img": "systems/through-the-breach/assets/bestiary/portraits/book-13-324-1.webp",
+            "system": {
+              "description": "(1) Стандартный меч (Рукопашное)\nСН: 4 (9) ========= Дл: y2 ====== Соп: Защ\nЦель получает 2/3/4 урона.\nR Критический удар: При нанесении урона цели эта атака\nнаносит +1 урон за каждую R в итоговом результате\nдуэли.\n",
+              "reference": "Основная книга, стр. 322 (PDF 324)",
+              "category": "npc-attack",
+              "isWeapon": true,
+              "skill": "melee",
+              "attackAspect": "might",
+              "attackBonus": 0,
+              "damage": "2/3/4",
+              "range": "y2",
+              "defense": "defense",
+              "apCost": 1,
+              "capacity": 0,
+              "reloadCost": 1,
+              "ignoreArmor": false,
+              "loaded": 0
+            }
+          },
+          {
+            "name": "ВМФ Колиера",
+            "type": "equipment",
+            "img": "systems/through-the-breach/assets/bestiary/portraits/book-13-324-1.webp",
+            "system": {
+              "description": "(1) ВМФ Колиера (Пистолет)\nСН: 4M (9M) ====== Дл: z12 ====== Соп: Защ\nЦель получает 2/3/4 урона. Ёмкость 6, перезарядка 2.\nM Арест: После успеха цель получает следующее Состоя-ние до конца своего следующего хода: \"Арест: Этот\nперсонаж должен сбросить карту, чтобы выполнить\nдействие движения\".\n322 Глава 10: Бестиарий\nМощь Грация Скорость Стойкость \nОбаяние Интеллект Хитрость Упорство \nЗащита Ходьба Рост Инициатива\nСила воли Рывок Ранения",
+              "reference": "Основная книга, стр. 322 (PDF 324)",
+              "category": "npc-attack",
+              "isWeapon": true,
+              "skill": "pistol",
+              "attackAspect": "grace",
+              "attackBonus": 0,
+              "damage": "2/3/4",
+              "range": "z12",
+              "defense": "defense",
+              "apCost": 1,
+              "capacity": 6,
+              "reloadCost": 2,
+              "ignoreArmor": false,
+              "loaded": 6
+            }
+          }
+        ],
+        "prototypeToken": {
+          "actorLink": false,
+          "texture": {
+            "src": "systems/through-the-breach/assets/bestiary/tokens/123f01033d9bc2b9.svg"
+          },
+          "width": 1,
+          "height": 1,
+          "bar1": {
+            "attribute": "wounds"
+          },
+          "displayName": 20
+        }
+      }
+    }
+  ],
+  "journals": [
+    {
+      "key": "guide",
+      "folder": "gm",
+      "data": {
+        "name": "00 — Начать здесь · журнал мастера",
+        "ownership": {
+          "default": 0
+        },
+        "pages": [
+          {
+            "name": "00 — Начать здесь · журнал мастера",
+            "type": "text",
+            "sort": 0,
+            "title": {
+              "show": true,
+              "level": 1
+            },
+            "text": {
+              "content": "<p><em>Основная книга, глава 11, печатная стр. 408–413; PDF на 2 страницы дальше. Текст ниже — адаптация для ведения, а не дословная копия.</em></p><h2>Подготовка за пять минут</h2><ul><li>Приключение рассчитано примерно на час после создания персонажей. Дайте игрокам время обсудить решения; объясняйте последствия, а не подменяйте правила ради победы.</li><li>Откройте сцену {ttb:scene:prologue}. Сужденные знакомятся в третьем пассажирском вагоне «Железного барана». В Прологе не флипают карты.</li><li>После знакомства проведите обычный «Конец пролога»: каждому участвующему Сужденному три карты из личной Смешанной колоды. Выберите именно участников, а не тестовых актёров.</li><li>Макрос «Приключение 11 — расставить марионеток» создаёт по одному скрытому противнику на Сужденного в боевой сцене. Укажите число игроков; их жетоны перетащите в пассажирский вагон самостоятельно.</li><li>Инициативу начните при выходе кукол. Стремления и выдачу карт за их способности напоминайте игрокам.</li><li>В сцене 2 можно сразу идти к двигателю: обязательного разговора с Сезаром нет.</li><li>При успехе финала проведите обычный эпилог. В учебном приключении книга разрешает желающим пересмотреть Навыки после знакомства с игрой.</li></ul><h2>Навигация</h2><ul><li>{ttb:journal:prologue}</li><li>{ttb:journal:passengers}</li><li>{ttb:journal:prison}</li><li>{ttb:journal:engine}</li><li>{ttb:journal:endings}</li><li>{ttb:journal:reference}</li></ul><h2>Карта и видимость</h2><p>Карта — новая иллюстрированная схема трёх игровых участков, а не точный план или полная длина поезда. Слева двигатель, посередине пассажирский вагон, справа каторжный. Между третьим вагоном и локомотивом в рассказе остаются другие вагоны; схема сокращает этот переход. Одна клетка = 1 ярд. Сцены не активируются автоматически. NPC и заметки доступны только мастеру. Иллюстрации из папки «Для показа» можно открыть и явно показать игрокам, не раскрывая журнал мастера.</p><h2>Повторная установка</h2><p>Импорт добавляет отсутствующие документы; изменения мастера и существующие жетоны сохраняются. Макрос расстановки не создаёт ещё один набор, если марионетки уже есть. Три кнопки приключения лежат в папке Макросов.</p>",
+              "format": 1
+            },
+            "ownership": {
+              "default": -1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "key": "prologue",
+      "folder": "gm",
+      "data": {
+        "name": "01 — Пролог · Все на борт!",
+        "ownership": {
+          "default": 0
+        },
+        "pages": [
+          {
+            "name": "01 — Пролог · Все на борт!",
+            "type": "text",
+            "sort": 0,
+            "title": {
+              "show": true,
+              "level": 1
+            },
+            "text": {
+              "content": "<p><em>Основная книга, глава 11, печатная стр. 408–409; PDF на 2 страницы дальше. Текст ниже — адаптация для ведения, а не дословная копия.</em></p><h2>Для чтения или пересказа</h2><blockquote><p>После многочасовой очереди на жаркой гильдейской станции Проломтауна вас пропускают в «Железного барана». Внутри неожиданно холодно. Вы занимаете места на обращённых друг к другу скамьях в передней части третьего вагона. Над сиденьями сталь испещрена глубокими царапинами, напоминающими следы когтей.</p></blockquote><h2>Что дать игрокам</h2><ul><li>Попросите каждого назвать персонажа и описать внешность. Дайте им поговорить и познакомиться.</li><li>Напомните о выбранном Стремлении на эту сессию. Карточных проверок здесь нет.</li><li>В конце Пролога — три карты Руки контроля каждому участнику.</li></ul><p>{ttb:scene:prologue} · {ttb:actor:vito}</p>",
+              "format": 1
+            },
+            "ownership": {
+              "default": -1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "key": "passengers",
+      "folder": "gm",
+      "data": {
+        "name": "02 — Недисциплинированные пассажиры",
+        "ownership": {
+          "default": 0
+        },
+        "pages": [
+          {
+            "name": "02 — Недисциплинированные пассажиры",
+            "type": "text",
+            "sort": 0,
+            "title": {
+              "show": true,
+              "level": 1
+            },
+            "text": {
+              "content": "<p><em>Основная книга, глава 11, печатная стр. 408–410; PDF на 2 страницы дальше. Текст ниже — адаптация для ведения, а не дословная копия.</em></p><h2>Чемодан Сессы</h2><blockquote><p>Когда проводник закрывает двери и помогает с багажом, худой пожилой пассажир напротив пытается поднять непомерно большой чемодан. От усилия и неловкости на его лице проступает отчаяние.</p></blockquote><ul><li>Помощь: Атлетика СЛ 8. Успех — чемодан убран наверх. Все, кто пытался помочь, независимо от успеха замечают надпись «Удивительный Сесса».</li><li>Если никто не помогает, проводник требует второй билет для чемодана; тот занимает соседнее сиденье.</li><li>Задержку поезда Сесса объясняет погрузкой каторжников для шахт. Затем свисток, движение к серебристо-голубому Пролому.</li></ul><h2>Между мирами</h2><blockquote><p>Боль и головокружение накрывают вас при входе в сияние. Через мгновение остальные пассажиры исчезли. Поезд застыл; нет ни гула двигателя, ни стука колёс. В окна льётся серебристо-голубой свет. Тишину нарушает только скрежет из оставленного чемодана.</p></blockquote><ul><li>Марионетки ожили от сырой магии Пролома. Одна на каждого Сужденного. Струны тянутся за ними; их облик может быть комическим или страшным.</li><li>Чемодан на сиденье: крышка открывается сразу. Убран наверх: книга позволяет несколько выстрелов, пока он стучит, падает и куклы вырываются. Точное число выстрелов не задано — не назначайте фиксированный бесплатный раунд автоматически.</li><li>Начните Драматическое время и инициативу. Марионетки — Миньоны ранга 5, без флипа карты на обычные проверки; ранг уже включён в суммы в скобках книги.</li><li>Сиденья дают жёсткое укрытие: − к флипу z-атаки и её урона. Перелезание через них — Трудная местность, двойной расход движения. Эти условные штрафы и движение задаёт мастер.</li><li>Захват нитей разрешайте по способности «Тянущиеся струны» из профиля Марионетки. У каждой одно Очко Судьбы — ручной учёт мастером.</li><li>При 0 ранениях или ниже — критический эффект, затем кукла неподвижна. После последней победы завершите Драматическое время: игроки могут сбросить любое число карт и добрать до трёх.</li></ul><p>{ttb:actor:marionette} · {ttb:scene:train}</p>",
+              "format": 1
+            },
+            "ownership": {
+              "default": -1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "key": "prison",
+      "folder": "gm",
+      "data": {
+        "name": "03 — Блюз каторжников",
+        "ownership": {
+          "default": 0
+        },
+        "pages": [
+          {
+            "name": "03 — Блюз каторжников",
+            "type": "text",
+            "sort": 0,
+            "title": {
+              "show": true,
+              "level": 1
+            },
+            "text": {
+              "content": "<p><em>Основная книга, глава 11, печатная стр. 410–412; PDF на 2 страницы дальше. Текст ниже — адаптация для ведения, а не дословная копия.</em></p><h2>Крик из заднего вагона</h2><blockquote><p>После боя в тишине слышится человеческий крик из вагона позади вас. У задней двери можно различить странный приглушённый треск.</p></blockquote><ul><li>Слух СЛ 9 у задней двери: удаётся услышать электрический треск. Сезар убивает не исчезнувшего охранника.</li><li>Остаться — ничего не происходит, окна закрыты на болты. Идти вперёд — сразу сцена двигателя. Исследовать крик — каторжный вагон.</li></ul><h2>Вход</h2><blockquote><p>Переход между вагонами залит ярким светом; в пустоте движется нечто чужое. В вагоне-тюрьме вдоль стен деревянные скамьи, а из пола поднимаются цепи. У двери дымится тело гвардейца с оплавленной винтовкой. Мужчина с тяжёлой квадратной челюстью и светящимися глазами поднимает скованные руки и просит помочь.</p></blockquote><h2>Секрет и характер Сезара</h2><p>Ирландский убийца и вор, переданный Гильдии на каторгу. При проходе через Пролом обрёл магию; его желание остановить поезд удерживает всех между мирами. Убил охранника током, но не способен освободить себя; тело вне досягаемости. Дружелюбие натянутое, характер вспыльчивый. Первым не нападает, кроме самообороны.</p><h2>Социальные проверки</h2><table><thead><tr><th>Навык</th><th>Базовая СЛ</th><th>Результат</th></tr></thead><tbody><tr><td>Контроль</td><td>8</td><td>Сезар ненадёжен; отдельное чтение мотивов после обещания помощи показывает, что он не разбирается в поездах.</td></tr><tr><td>Бартер</td><td>8</td><td>Перемирие в обмен на ключи от оков.</td></tr><tr><td>Очарование</td><td>8</td><td>Рассмешить и расположить его к группе.</td></tr><tr><td>Запугивание</td><td>13</td><td>Убедить не связываться с группой.</td></tr><tr><td>Обман</td><td>8</td><td>Убедить в выбранной неправде.</td></tr></tbody></table><p><strong>После каждого проваленного Соревнования с Сезаром все последующие СЛ с ним растут на +1.</strong> Счётчик: ____ провалов. Неудачная проверка Слуха до разговора не является Соревнованием с ним.</p><p>Успех любого из этих Соревнований позволяет узнать о приливе сил и желании остановить двигатель. Освобождение или обещание освободить вызывает предложение помочь запустить поезд; он не знает, как тот устроен. Статы — Пароходчик, без «Моё творение» и «Взрыватель»; заклинательные действия разрешайте вручную по карточке.</p><p>{ttb:actor:cesar} · {ttb:actor:guard} · {ttb:scene:prison}</p>",
+              "format": 1
+            },
+            "ownership": {
+              "default": -1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "key": "engine",
+      "folder": "gm",
+      "data": {
+        "name": "04 — Паровой двигатель",
+        "ownership": {
+          "default": 0
+        },
+        "pages": [
+          {
+            "name": "04 — Паровой двигатель",
+            "type": "text",
+            "sort": 0,
+            "title": {
+              "show": true,
+              "level": 1
+            },
+            "text": {
+              "content": "<p><em>Основная книга, глава 11, печатная стр. 413; PDF на 2 страницы дальше. Текст ниже — адаптация для ведения, а не дословная копия.</em></p><h2>Пустой двигатель</h2><blockquote><p>В машинном отделении никто не отвечает. Механизмы молчат, в широкие окна льётся холодное сияние, а за ним угадываются огромные щупальца. Двигатель выглядит достаточно просто: если разжечь котёл и правильно запустить механизмы, поезд сможет двинуться.</p></blockquote><h2>Перезапустить поезд!</h2><ul><li>СЛ каждого Соревнования: 8.</li><li>Разрешённые навыки в списке книги: Атлетика, Инженерия, Колдовство; указан Интеллект. Для этого задания выбирайте Интеллект в диалоге проверки.</li><li>Длительность одного интервала: 5 минут, а не ограничение всего испытания. Каждый участник обычно делает одну проверку за интервал; при незавершённой задаче начинается следующий.</li><li>Требование успеха: 2 × число Сужденных. Требование катастрофического провала: 1 × число Сужденных.</li><li>Успешное Соревнование даёт 1 успех, плюс по одному за каждый Предел Успеха (полные 5 превышения). Обычная неудача без Пределов Провала прогресс не меняет; каждый Предел Провала приближает катастрофу. См. стр. 290.</li><li>Не нужно использовать каждый разрешённый навык. Уголь и температура — физическая работа; управление — Инженерия; магическое пламя — Колдовство.</li></ul><h2>Лист учёта мастера</h2><p>Сужденных: ____ · цель успехов: ____ · предел провалов: ____<br>Интервал (5 минут): ____ · успехи: ____ · Пределы Провала: ____<br>Кто / навык / итог / вклад: ____________________________________</p><h2>Неоднозначность русского текста</h2><p>Пояснение упоминает Кузнеца, но список разрешённых навыков его не содержит. Это не четвёртый автоматически разрешённый навык. Если хотите разрешить Кузнечное дело, примите явное решение мастера и объявите группе.</p><h2>Последний шанс</h2><p>При первой катастрофе двигатель серьёзно повреждён. Одна проверка Артефактинга СЛ 14 позволяет отремонтировать его и повторить Текущее Соревнование. Неудачный ремонт или катастрофа второй попытки ведут к ужасному финалу. Книга не задаёт альтернативных обходов; творческие решения обсуждайте как решения мастера.</p><p>{ttb:scene:engine} · {ttb:journal:endings}</p>",
+              "format": 1
+            },
+            "ownership": {
+              "default": -1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "key": "endings",
+      "folder": "gm",
+      "data": {
+        "name": "05 — Финалы и эпилог",
+        "ownership": {
+          "default": 0
+        },
+        "pages": [
+          {
+            "name": "05 — Финалы и эпилог",
+            "type": "text",
+            "sort": 0,
+            "title": {
+              "show": true,
+              "level": 1
+            },
+            "text": {
+              "content": "<p><em>Основная книга, глава 11, печатная стр. 413; PDF на 2 страницы дальше. Текст ниже — адаптация для ведения, а не дословная копия.</em></p><h2>Успешный запуск</h2><blockquote><p>Котёл оживает, колёса начинают двигаться. Поезд разгоняется и выходит из сияния в Малифо. Гильдейский инженер успевает вскочить на локомотив и остановить его.</p></blockquote><ul><li>Сезар освобождён и группа не выдаёт его: изображает попутчика, возможно Вито Сессу, если слышал имя. Позднее может стать союзником, присоединившись к Арканистам.</li><li>Сезар выдан либо остался в оковах: Гильдия берёт его под стражу и, обнаружив способности, превращает в Колдуна-преследователя.</li><li>В обоих случаях успешного запуска Сужденные добрались до Малифо.</li></ul><h2>Ужасный конец</h2><blockquote><p>Двигатель разрывается от неудачного ремонта. Пар кричит в пустоту между мирами. Громадное щупальцеобразное существо поворачивается на этот звук и приближается к неподвижному поезду. Путешествие окончено: никто не узнает, что произошло с пассажирами.</p></blockquote><h2>Эпилог и продолжение</h2><p>Проведите обычный эпилог системы: выбранные мастером навыки для развития, опыт и шаг Стремления — по правилам эпилога. Не добавляйте произвольную денежную награду: в главе она не задана. В учебной сессии разрешено пересмотреть Навыки после знакомства с системой. Запишите судьбу Сезара и отношение героев к Гильдии — это зацепки продолжения.</p>",
+              "format": 1
+            },
+            "ownership": {
+              "default": -1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "key": "reference",
+      "folder": "gm",
+      "data": {
+        "name": "06 — Проверки и подсказки",
+        "ownership": {
+          "default": 0
+        },
+        "pages": [
+          {
+            "name": "06 — Проверки и подсказки",
+            "type": "text",
+            "sort": 0,
+            "title": {
+              "show": true,
+              "level": 1
+            },
+            "text": {
+              "content": "<p><em>Основная книга, глава 11, печатная стр. 408–413; PDF на 2 страницы дальше. Текст ниже — адаптация для ведения, а не дословная копия.</em></p><h2>Быстрые проверки</h2><table><tr><th>Ситуация</th><th>Навык</th><th>СЛ</th></tr><tr><td>Убрать чемодан</td><td>Атлетика</td><td>8</td></tr><tr><td>Треск за дверью</td><td>Слух</td><td>9</td></tr><tr><td>Сезар</td><td>Контроль / Бартер / Очарование / Обман</td><td>8 + провалы</td></tr><tr><td>Сезар</td><td>Запугивание</td><td>13 + провалы</td></tr><tr><td>Запуск двигателя</td><td>Атлетика / Инженерия / Колдовство + Интеллект</td><td>8</td></tr><tr><td>Аварийный ремонт</td><td>Артефактинг</td><td>14</td></tr></table><h2>Границы автоматизации</h2><ul><li>Инициатива, обычные проверки, оружейная атака, урон и сознание — штатными кнопками системы.</li><li>Сиденья: жёсткое укрытие и Трудная местность применяются вручную. Геометрические стены блокируют движение, но не назначают укрытие.</li><li>Очко Судьбы марионетки, её струны, магические действия Сезара, накопление успехов/Пределов Провала и +1 СЛ переговоров — учёт мастером.</li><li>Масти NPC при противостоянии Сужденному пока контролируются мастером. Не заменяйте обязательную масть простой числовой СЛ.</li><li>Сцены и иллюстрации — оригинальная визуальная адаптация. Нельзя считать их каноническими чертежами или внешностью из книги.</li></ul>",
+              "format": 1
+            },
+            "ownership": {
+              "default": -1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "key": "show-train",
+      "folder": "show",
+      "data": {
+        "name": "Для показа — Железный баран",
+        "ownership": {
+          "default": 0
+        },
+        "pages": [
+          {
+            "name": "Для показа — Железный баран",
+            "type": "text",
+            "sort": 0,
+            "title": {
+              "show": true,
+              "level": 1
+            },
+            "text": {
+              "content": "<p>«Железный баран» доставит вас через Пролом в Малифо. На время пути вы оказались попутчиками.</p>",
+              "format": 1
+            },
+            "ownership": {
+              "default": -1
+            }
+          },
+          {
+            "name": "Проломтаун и Пролом",
+            "type": "image",
+            "src": "systems/through-the-breach/assets/adventure/chapter11/breach.png",
+            "sort": 100000,
+            "ownership": {
+              "default": -1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "key": "show-vito",
+      "folder": "show",
+      "data": {
+        "name": "Для показа — Вито Сесса",
+        "ownership": {
+          "default": 0
+        },
+        "pages": [
+          {
+            "name": "Для показа — Вито Сесса",
+            "type": "text",
+            "sort": 0,
+            "title": {
+              "show": true,
+              "level": 1
+            },
+            "text": {
+              "content": "<p>Пожилой пассажир с огромным чемоданом. Надпись на чемодане можно показывать только после того, как персонажи её заметили.</p>",
+              "format": 1
+            },
+            "ownership": {
+              "default": -1
+            }
+          },
+          {
+            "name": "Вито Сесса",
+            "type": "image",
+            "src": "systems/through-the-breach/assets/adventure/chapter11/vito.png",
+            "sort": 100000,
+            "ownership": {
+              "default": -1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "key": "show-cesar",
+      "folder": "show",
+      "data": {
+        "name": "Для показа — Мужчина в оковах",
+        "ownership": {
+          "default": 0
+        },
+        "pages": [
+          {
+            "name": "Для показа — Мужчина в оковах",
+            "type": "text",
+            "sort": 0,
+            "title": {
+              "show": true,
+              "level": 1
+            },
+            "text": {
+              "content": "<p>Скованный человек в полосатой каторжной форме. Показать при входе в вагон-тюрьму.</p>",
+              "format": 1
+            },
+            "ownership": {
+              "default": -1
+            }
+          },
+          {
+            "name": "Мужчина в оковах",
+            "type": "image",
+            "src": "systems/through-the-breach/assets/adventure/chapter11/cesar.png",
+            "sort": 100000,
+            "ownership": {
+              "default": -1
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "scenes": [
+    {
+      "key": "prologue",
+      "folder": "prologue",
+      "journal": "prologue",
+      "data": {
+        "name": "00 — Проломтаун · посадка",
+        "width": 1774,
+        "height": 887,
+        "padding": 0,
+        "active": false,
+        "navigation": false,
+        "tokenVision": false,
+        "fog": {
+          "mode": 0
+        },
+        "ownership": {
+          "default": 0
+        },
+        "grid": {
+          "type": 0,
+          "size": 100,
+          "distance": 1,
+          "units": "ярд",
+          "alpha": 0.16,
+          "color": "#e6d4aa"
+        },
+        "levels": [
+          {
+            "_id": "defaultLevel0000",
+            "name": "Основной уровень",
+            "background": {
+              "src": "systems/through-the-breach/assets/adventure/chapter11/breach.png",
+              "color": "#1b343c"
+            }
+          }
+        ],
+        "initial": {
+          "x": 887,
+          "y": 443,
+          "scale": 0.65
+        },
+        "environment": {
+          "globalLight": {
+            "enabled": true
+          }
+        },
+        "walls": []
+      },
+      "tokens": []
+    },
+    {
+      "key": "train",
+      "folder": "train",
+      "journal": "passengers",
+      "data": {
+        "name": "01 — Пассажирский вагон · бой",
+        "width": 4344,
+        "height": 1448,
+        "padding": 0,
+        "active": false,
+        "navigation": false,
+        "tokenVision": false,
+        "fog": {
+          "mode": 0
+        },
+        "ownership": {
+          "default": 0
+        },
+        "grid": {
+          "type": 1,
+          "size": 100,
+          "distance": 1,
+          "units": "ярд",
+          "alpha": 0.16,
+          "color": "#e6d4aa"
+        },
+        "levels": [
+          {
+            "_id": "defaultLevel0000",
+            "name": "Основной уровень",
+            "background": {
+              "src": "systems/through-the-breach/assets/adventure/chapter11/train-map.png",
+              "color": "#1b343c"
+            }
+          }
+        ],
+        "initial": {
+          "x": 2190,
+          "y": 675,
+          "scale": 0.65
+        },
+        "environment": {
+          "globalLight": {
+            "enabled": true
+          }
+        },
+        "walls": [
+          {
+            "c": [
+              184,
+              328,
+              1330,
+              328
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              184,
+              1020,
+              1330,
+              1020
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              184,
+              328,
+              184,
+              594
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              184,
+              754,
+              184,
+              1020
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              1330,
+              328,
+              1330,
+              594
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              1330,
+              754,
+              1330,
+              1020
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              184,
+              594,
+              184,
+              754
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0,
+            "door": 1,
+            "ds": 0
+          },
+          {
+            "c": [
+              1330,
+              594,
+              1330,
+              754
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0,
+            "door": 1,
+            "ds": 0
+          },
+          {
+            "c": [
+              1496,
+              328,
+              2876,
+              328
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              1496,
+              1020,
+              2876,
+              1020
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              1496,
+              328,
+              1496,
+              594
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              1496,
+              754,
+              1496,
+              1020
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              2876,
+              328,
+              2876,
+              594
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              2876,
+              754,
+              2876,
+              1020
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              1496,
+              594,
+              1496,
+              754
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0,
+            "door": 1,
+            "ds": 0
+          },
+          {
+            "c": [
+              2876,
+              594,
+              2876,
+              754
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0,
+            "door": 1,
+            "ds": 0
+          },
+          {
+            "c": [
+              3020,
+              328,
+              4216,
+              328
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              3020,
+              1020,
+              4216,
+              1020
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              3020,
+              328,
+              3020,
+              594
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              3020,
+              754,
+              3020,
+              1020
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              4216,
+              328,
+              4216,
+              594
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              4216,
+              754,
+              4216,
+              1020
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              3020,
+              594,
+              3020,
+              754
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0,
+            "door": 1,
+            "ds": 0
+          },
+          {
+            "c": [
+              4216,
+              594,
+              4216,
+              754
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0,
+            "door": 1,
+            "ds": 0
+          }
+        ],
+        "flags": {
+          "through-the-breach": {
+            "starterPositions": {
+              "x": 1700,
+              "y": 630
+            }
+          }
+        }
+      },
+      "tokens": []
+    },
+    {
+      "key": "prison",
+      "folder": "train",
+      "journal": "prison",
+      "data": {
+        "name": "02 — Каторжный вагон",
+        "width": 4344,
+        "height": 1448,
+        "padding": 0,
+        "active": false,
+        "navigation": false,
+        "tokenVision": false,
+        "fog": {
+          "mode": 0
+        },
+        "ownership": {
+          "default": 0
+        },
+        "grid": {
+          "type": 1,
+          "size": 100,
+          "distance": 1,
+          "units": "ярд",
+          "alpha": 0.16,
+          "color": "#e6d4aa"
+        },
+        "levels": [
+          {
+            "_id": "defaultLevel0000",
+            "name": "Основной уровень",
+            "background": {
+              "src": "systems/through-the-breach/assets/adventure/chapter11/train-map.png",
+              "color": "#1b343c"
+            }
+          }
+        ],
+        "initial": {
+          "x": 3620,
+          "y": 675,
+          "scale": 0.65
+        },
+        "environment": {
+          "globalLight": {
+            "enabled": true
+          }
+        },
+        "walls": [
+          {
+            "c": [
+              184,
+              328,
+              1330,
+              328
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              184,
+              1020,
+              1330,
+              1020
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              184,
+              328,
+              184,
+              594
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              184,
+              754,
+              184,
+              1020
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              1330,
+              328,
+              1330,
+              594
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              1330,
+              754,
+              1330,
+              1020
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              184,
+              594,
+              184,
+              754
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0,
+            "door": 1,
+            "ds": 0
+          },
+          {
+            "c": [
+              1330,
+              594,
+              1330,
+              754
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0,
+            "door": 1,
+            "ds": 0
+          },
+          {
+            "c": [
+              1496,
+              328,
+              2876,
+              328
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              1496,
+              1020,
+              2876,
+              1020
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              1496,
+              328,
+              1496,
+              594
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              1496,
+              754,
+              1496,
+              1020
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              2876,
+              328,
+              2876,
+              594
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              2876,
+              754,
+              2876,
+              1020
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              1496,
+              594,
+              1496,
+              754
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0,
+            "door": 1,
+            "ds": 0
+          },
+          {
+            "c": [
+              2876,
+              594,
+              2876,
+              754
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0,
+            "door": 1,
+            "ds": 0
+          },
+          {
+            "c": [
+              3020,
+              328,
+              4216,
+              328
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              3020,
+              1020,
+              4216,
+              1020
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              3020,
+              328,
+              3020,
+              594
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              3020,
+              754,
+              3020,
+              1020
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              4216,
+              328,
+              4216,
+              594
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              4216,
+              754,
+              4216,
+              1020
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              3020,
+              594,
+              3020,
+              754
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0,
+            "door": 1,
+            "ds": 0
+          },
+          {
+            "c": [
+              4216,
+              594,
+              4216,
+              754
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0,
+            "door": 1,
+            "ds": 0
+          }
+        ]
+      },
+      "tokens": [
+        {
+          "actor": "cesar",
+          "data": {
+            "x": 3500,
+            "y": 630,
+            "hidden": true,
+            "disposition": 0
+          }
+        },
+        {
+          "actor": "guard",
+          "data": {
+            "x": 3100,
+            "y": 700,
+            "hidden": true,
+            "disposition": 0
+          }
+        }
+      ]
+    },
+    {
+      "key": "engine",
+      "folder": "train",
+      "journal": "engine",
+      "data": {
+        "name": "03 — Паровой двигатель",
+        "width": 4344,
+        "height": 1448,
+        "padding": 0,
+        "active": false,
+        "navigation": false,
+        "tokenVision": false,
+        "fog": {
+          "mode": 0
+        },
+        "ownership": {
+          "default": 0
+        },
+        "grid": {
+          "type": 1,
+          "size": 100,
+          "distance": 1,
+          "units": "ярд",
+          "alpha": 0.16,
+          "color": "#e6d4aa"
+        },
+        "levels": [
+          {
+            "_id": "defaultLevel0000",
+            "name": "Основной уровень",
+            "background": {
+              "src": "systems/through-the-breach/assets/adventure/chapter11/train-map.png",
+              "color": "#1b343c"
+            }
+          }
+        ],
+        "initial": {
+          "x": 800,
+          "y": 675,
+          "scale": 0.65
+        },
+        "environment": {
+          "globalLight": {
+            "enabled": true
+          }
+        },
+        "walls": [
+          {
+            "c": [
+              184,
+              328,
+              1330,
+              328
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              184,
+              1020,
+              1330,
+              1020
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              184,
+              328,
+              184,
+              594
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              184,
+              754,
+              184,
+              1020
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              1330,
+              328,
+              1330,
+              594
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              1330,
+              754,
+              1330,
+              1020
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              184,
+              594,
+              184,
+              754
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0,
+            "door": 1,
+            "ds": 0
+          },
+          {
+            "c": [
+              1330,
+              594,
+              1330,
+              754
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0,
+            "door": 1,
+            "ds": 0
+          },
+          {
+            "c": [
+              1496,
+              328,
+              2876,
+              328
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              1496,
+              1020,
+              2876,
+              1020
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              1496,
+              328,
+              1496,
+              594
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              1496,
+              754,
+              1496,
+              1020
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              2876,
+              328,
+              2876,
+              594
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              2876,
+              754,
+              2876,
+              1020
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              1496,
+              594,
+              1496,
+              754
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0,
+            "door": 1,
+            "ds": 0
+          },
+          {
+            "c": [
+              2876,
+              594,
+              2876,
+              754
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0,
+            "door": 1,
+            "ds": 0
+          },
+          {
+            "c": [
+              3020,
+              328,
+              4216,
+              328
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              3020,
+              1020,
+              4216,
+              1020
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              3020,
+              328,
+              3020,
+              594
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              3020,
+              754,
+              3020,
+              1020
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              4216,
+              328,
+              4216,
+              594
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              4216,
+              754,
+              4216,
+              1020
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0
+          },
+          {
+            "c": [
+              3020,
+              594,
+              3020,
+              754
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0,
+            "door": 1,
+            "ds": 0
+          },
+          {
+            "c": [
+              4216,
+              594,
+              4216,
+              754
+            ],
+            "move": 20,
+            "sight": 0,
+            "light": 0,
+            "sound": 0,
+            "door": 1,
+            "ds": 0
+          }
+        ]
+      },
+      "tokens": []
+    }
+  ]
+}
