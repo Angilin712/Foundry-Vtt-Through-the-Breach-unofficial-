@@ -2,9 +2,43 @@ import test,{beforeEach} from 'node:test';
 import assert from 'node:assert/strict';
 import {reset,actor,gm,player,other,setTop,ID} from './harness.mjs';
 import {weaponData,reducedDamage,compareCombatants,criticalEffect} from '../through-the-breach/scripts/battle.mjs';
+import {swarmDamage} from '../through-the-breach/scripts/swarm.mjs';
 const {execute,stack}=await import('../through-the-breach/scripts/cards.mjs');
 const {battleButtons}=await import('../through-the-breach/scripts/actions.mjs');
 beforeEach(reset);
+test('swarm damage distinguishes ordinary, blast, pulse and swarm armour',()=>{
+ assert.equal(swarmDamage({},5),1);assert.equal(swarmDamage({},0),0);
+ assert.equal(swarmDamage({},5,'blast'),5);assert.equal(swarmDamage({},5,'pulse'),5);
+ assert.equal(swarmDamage({swarmAreaReduction:1},5,'blast'),4);
+ assert.equal(swarmDamage({swarmAreaReduction:1},1,'blast'),1);
+ assert.equal(swarmDamage({immunePulse:true},5,'pulse'),0);
+ assert.throws(()=>swarmDamage({},5,'unknown'));
+});
+test('swarm loses rank, disbands at zero, and undo restores rank and AP without wound edits',async()=>{
+ const b=actor('Рой','npc',gm);b.system.rankWounds=true;b.system.rank=2;
+ b.system.ap.value=2;const originalWounds=b.system.wounds.value;
+ const m=await damage(b,11);await execute(gm,{op:'applyDamage',messageId:m.id,areaDamage:'blast'});
+ assert.equal(b.system.rank,0);assert.equal(b.system.dead,true);assert.equal(b.system.ap.value,0);
+ assert.equal(b.system.wounds.value,originalWounds);
+ assert.equal(m.getFlag(ID,'duel').application.resource,'rank');
+ assert.equal(m.getFlag(ID,'duel').application.criticalLevel,null);
+ assert.doesNotMatch(battleButtons(m.getFlag(ID,'duel')),/consciousness/);
+ await execute(gm,{op:'undoDamage',messageId:m.id});
+ assert.equal(b.system.rank,2);assert.equal(b.system.dead,false);assert.equal(b.system.ap.value,2);
+ const n=await damage(b,11);await execute(gm,{op:'applyDamage',messageId:n.id});
+ assert.equal(b.system.rank,1);b.system.rank=3;
+ await assert.rejects(()=>execute(gm,{op:'undoDamage',messageId:n.id}),/Цель изменилась/);
+});
+test('swarm defense excludes rank and immunity blocks a willpower attack before ammunition or AP',async()=>{
+ const a=actor(),b=actor('Рой','npc',gm);const w=weapon(a);
+ b.system.rankDefense=false;b.system.rank=8;b.system.immuneWillpower=true;
+ await execute(gm,{op:'setup'});setTop(stack('fate'),[7]);
+ await execute(player,{op:'attack',actorUuid:a.uuid,itemId:w.id,targetUuid:b.uuid});
+ assert.equal(last().getFlag(ID,'duel').tn,2);await finish(last());
+ w.system.defense='willpower';const before=game.messages.size;
+ await assert.rejects(()=>execute(player,{op:'attack',actorUuid:a.uuid,itemId:w.id,targetUuid:b.uuid}),/невосприимчива/);
+ assert.equal(game.messages.size,before);
+});
 function weapon(a){const w={id:'weapon1',name:'Пистолет',system:{isWeapon:true,skill:'pistol',range:'10 ярдов',damage:'2/3/5',defense:'defense',ignoreArmor:false}};a.items.set(w.id,w);a.system.skills.pistol.rank=2;a.system.aspects.grace=2;return w;}
 const last=()=>game.messages.filter(m=>m.getFlag(ID,'duel')).at(-1);
 const finish=async m=>execute(gm,{op:'finish',messageId:m.id});
@@ -17,7 +51,7 @@ test('Undo refuses to overwrite later wound edits; failed save keeps intent and 
 test('Black damage applies zero and generates no critical; red grants severe at positive wounds',async()=>{const b=actor('Страж','npc',gm),m=await damage(b,0);await execute(gm,{op:'applyDamage',messageId:m.id});assert.equal(b.system.wounds.value,4);assert.equal(m.getFlag(ID,'duel').application.criticalLevel,null);b.system.wounds.value=20;const n=await damage(b,14);await execute(gm,{op:'applyDamage',messageId:n.id});assert.equal(n.getFlag(ID,'duel').application.criticalLevel,'severe');});
 test('Critical tables transition, add negative wounds, persist effect, and undo restores wounds and notes',async()=>{assert.deepEqual(criticalEffect('weak',15),{reroll:'moderate',min:3});assert.deepEqual(criticalEffect('moderate',2),{reroll:'weak',max:14});assert.deepEqual(criticalEffect('severe',2),{reroll:'moderate',max:14});assert.equal(criticalEffect('weak',11).extra,1);const b=actor('Страж','npc',gm);b.system.wounds.value=1;b.system.conditions='Старая заметка';const m=await damage(b,8);await execute(gm,{op:'applyDamage',messageId:m.id});setTop(stack('fate'),[9]);await execute(gm,{op:'critical',messageId:m.id});assert.match(b.system.conditions,/Старая заметка/);assert.match(b.system.conditions,/Глубокая рана/);assert.equal(stack('active').cards.size,0);await assert.rejects(()=>execute(gm,{op:'critical',messageId:m.id}));await execute(gm,{op:'undoDamage',messageId:m.id});assert.equal(b.system.wounds.value,1);assert.equal(b.system.conditions,'Старая заметка');});
 test('Damage and checks resolve synthetic token UUID without changing its prototype actor',async()=>{const prototype=actor('Страж','npc',gm),b=actor('Копия','npc',gm);b.uuid='Scene.test.Token.test.Actor.synthetic';const m=await damage(b);await execute(gm,{op:'applyDamage',messageId:m.id});assert.equal(b.system.wounds.value,1);assert.equal(prototype.system.wounds.value,4);await execute(gm,{op:'undoDamage',messageId:m.id});assert.equal(b.system.wounds.value,4);});
-test('Consciousness: minion automatically fails, enforcer succeeds, Fated toughness TN10',async()=>{const b=actor('Страж','npc',gm);b.system.wounds.value=1;const m=await damage(b);await execute(gm,{op:'applyDamage',messageId:m.id});await execute(gm,{op:'consciousness',messageId:m.id});assert.equal(b.system.unconscious,true);const c=actor('Силовик','npc',gm);c.system.rank=6;c.system.wounds.value=1;const n=await damage(c);await execute(gm,{op:'applyDamage',messageId:n.id});await execute(gm,{op:'consciousness',messageId:n.id});assert.equal(c.system.unconscious,false);const f=actor();f.system.wounds.value=1;const k=await damage(f);await execute(gm,{op:'applyDamage',messageId:k.id});setTop(stack('fate'),[2]);await execute(gm,{op:'consciousness',messageId:k.id});const check=last();assert.equal(check.getFlag(ID,'duel').tn,10);await finish(check);assert.equal(f.system.unconscious,true);assert.equal(f.system.prone,true);assert.equal(f.system.ap.value,0);});
+test('Consciousness: minion automatically fails, enforcer succeeds, Fated toughness TN10',async()=>{const b=actor('Страж','npc',gm);b.system.wounds.value=1;const m=await damage(b);await execute(gm,{op:'applyDamage',messageId:m.id});await execute(gm,{op:'consciousness',messageId:m.id});assert.equal(b.system.unconscious,true);const c=actor('Силовик','npc',gm);c.system.rank=7;c.system.wounds.value=1;const n=await damage(c);await execute(gm,{op:'applyDamage',messageId:n.id});await execute(gm,{op:'consciousness',messageId:n.id});assert.equal(c.system.unconscious,false);const f=actor();f.system.wounds.value=1;const k=await damage(f);await execute(gm,{op:'applyDamage',messageId:k.id});setTop(stack('fate'),[2]);await execute(gm,{op:'consciousness',messageId:k.id});const check=last();assert.equal(check.getFlag(ID,'duel').tn,10);await finish(check);assert.equal(f.system.unconscious,true);assert.equal(f.system.prone,true);assert.equal(f.system.ap.value,0);});
 test('Fated opposed attacks flip both sides first, enforce cheat order, and aggressor wins ties',async()=>{const a=actor('Агрессор'),b=actor('Защитник','fated',other);weapon(a);await execute(gm,{op:'setup'});setTop(stack('fate'),[8,6]);await execute(gm,{op:'attack',actorUuid:a.uuid,itemId:'weapon1',targetUuid:b.uuid});const offense=last(),defense=game.messages.get(offense.getFlag(ID,'duel').opposed.otherId);assert.equal(stack('active').cards.size,2);await assert.rejects(()=>execute(player,{op:'finish',messageId:offense.id}));await execute(other,{op:'finish',messageId:defense.id});await execute(player,{op:'finish',messageId:offense.id});assert.match(offense.content,/Победа/);assert.equal(offense.getFlag(ID,'duel').tn,0);setTop(stack('fate'),[3,4,5]);await execute(player,{op:'attackDamage',messageId:offense.id});assert.equal(last().getFlag(ID,'duel').mod,-2);});
 test('Critical exhaustion recycles only shared discard and grants each personal hand a credit',async()=>{const b=actor('Страж','npc',gm);b.system.wounds.value=1;const f=actor();await execute(gm,{op:'setupActor',actorId:f.id});const m=await damage(b,8);await execute(gm,{op:'applyDamage',messageId:m.id});const deck=stack('fate');await deck.pass(stack('discard'),deck.availableCards.map(c=>c.id));await execute(gm,{op:'critical',messageId:m.id});assert.equal(stack('hand',f.id).getFlag(ID,'credits'),1);assert.equal(stack('active').cards.size,0);assert.equal(deck.availableCards.length+stack('discard').cards.size,54);});
 test('A pending shuffle credit blocks damage without consuming its one-use action',async()=>{const a=actor(),b=actor('Страж','npc',gm);weapon(a);await execute(gm,{op:'setupActor',actorId:a.id});setTop(stack('fate'),[12]);await execute(player,{op:'attack',actorUuid:a.uuid,itemId:'weapon1',targetUuid:b.uuid});const m=last();await finish(m);await execute(gm,{op:'shuffle'});await assert.rejects(()=>execute(player,{op:'attackDamage',messageId:m.id}));assert.equal(m.getFlag(ID,'duel').damageMessageId,undefined);await execute(player,{op:'declineCredit',actorId:a.id});await execute(player,{op:'attackDamage',messageId:m.id});assert.notEqual(m.getFlag(ID,'duel').damageMessageId,'pending');});
@@ -36,7 +70,7 @@ async function criticalWound(target,damageCard,criticalCard){
   setTop(stack('fate'),[criticalCard]);await execute(gm,{op:'critical',messageId:m.id});return m;
 }
 test('Rank 6 NPC must resolve critical consciousness normally, not auto-pass; GM only, no card drawn',async()=>{
-  const b=actor('Силовик','npc',gm);b.system.rank=6;b.system.wounds.value=2;
+  const b=actor('Миньон','npc',gm);b.system.rank=6;b.system.wounds.value=2;
   const m=await criticalWound(b,8,8);assert.equal(m.getFlag(ID,'duel').application.after,-1);
   await assert.rejects(()=>execute(player,{op:'criticalConsciousness',messageId:m.id}));
   const count=stack('fate').availableCards.length;await execute(gm,{op:'criticalConsciousness',messageId:m.id});
@@ -62,4 +96,14 @@ test('Nerve injury repeats only after prior check closes; immediate living-only 
   await assert.rejects(()=>execute(gm,{op:'criticalConsciousness',messageId:n.id}));
   assert.equal(n.getFlag(ID,'duel').criticalConsciousnessMessageId,undefined);
   await execute(gm,{op:'criticalConsciousness',messageId:n.id,living:true});assert.equal(last().getFlag(ID,'duel').tn,17);
+});
+
+test('NPC printed attacks use their aspect and item adjustment against a Fated defender',async()=>{
+ const a=actor('Марионетка','npc',gm),b=actor();const w=weapon(a);
+ a.system.aspects.intellect=3;a.system.aspects.grace=-2;
+ w.system.attackAspect='intellect';w.system.attackBonus=1;
+ await execute(gm,{op:'setup'});setTop(stack('fate'),[7]);
+ await execute(gm,{op:'attack',actorUuid:a.uuid,itemId:w.id,targetUuid:b.uuid});
+ assert.equal(last().getFlag(ID,'duel').tn,11);
+ assert.equal(last().getFlag(ID,'duel').attack.weapon.aspect,'intellect');
 });

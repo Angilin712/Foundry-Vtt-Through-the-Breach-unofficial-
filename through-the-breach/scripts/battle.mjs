@@ -1,4 +1,4 @@
-import {assert,integer,SKILLS} from './rules.mjs';
+import {assert,integer,SKILLS,ASPECTS} from './rules.mjs';
 
 export function weaponData(item){
   assert(item?.system.isWeapon,'Выберите предмет, отмеченный как оружие.');
@@ -6,7 +6,8 @@ export function weaponData(item){
   const track=String(s.damage).split('/').map(n=>integer(n,0,999));
   assert(track.length===3 && track.every((n,i)=>i===0||n>=track[i-1]),'Урон оружия: три возрастающих значения, например 2/3/4.');
   assert(['defense','willpower'].includes(s.defense),'Выберите Защиту или Силу воли.');
-  return {id:item.id,name:item.name,skill:s.skill,range:s.range,track,defense:s.defense,ignoreArmor:s.ignoreArmor,apCost:integer(s.apCost??1,0,99)};
+  assert(!s.attackAspect||s.attackAspect in ASPECTS,'У атаки выбран неизвестный аспект.');
+  return {id:item.id,name:item.name,skill:s.skill,range:s.range,track,defense:s.defense,ignoreArmor:s.ignoreArmor,apCost:integer(s.apCost??1,0,99),aspect:s.attackAspect||'',bonus:integer(s.attackBonus??0)};
 }
 export function reducedDamage(raw,armor,ignore=false){
   raw=integer(raw,0,999);armor=integer(armor,0,3);

@@ -1,8 +1,9 @@
+import {swarmDamage} from './swarm.mjs';
 import {consumeWeapon} from './automation.mjs';
-import {ID,SKILLS,assert,integer,derived,armorValue,skillValue,outcome,accuracy,escapeHTML as e} from './rules.mjs';
+import {statRank,ID,SKILLS,assert,integer,derived,armorValue,outcome,accuracy,escapeHTML as e} from './rules.mjs';
 import {weaponData,reducedDamage,criticalEffect} from './battle.mjs';
-import {stack,startDuel,saveDuel,actorFor,drawFrom,requireReady,duelPlan} from './cards.mjs';
-import {spendAP,canAct,hasEffect,actionPenalty} from './turns.mjs';
+import {stack,startDuel,saveDuel,actorFor,drawFrom,requireReady,duelPlan,duelFateModifiers} from './cards.mjs';
+import {canAct,hasEffect,actionPenalty} from './turns.mjs';
 
 export function attackMargin(d){
   const r=outcome(d);if(!r||!d.attack)return null;
@@ -18,7 +19,7 @@ export function battleButtons(d){
   if(d.application&&!d.application.undone&&!d.application.pending&&!d.application.criticalPending){
     if(!d.consciousnessMessageId&&!d.criticalConsciousnessMessageId)html+='<button type="button" data-ttb="undoDamage">Отменить применение урона</button>';
     if(d.application.criticalLevel&&!d.criticalResult)html+='<button type="button" data-ttb="critical">Критический эффект</button>';
-    if(d.application.after<=0&&!d.consciousnessMessageId)html+='<button type="button" data-ttb="consciousness">Проверка сознания</button>';
+    if(d.application.resource!=='rank'&&d.application.amount>0&&d.application.after<=0&&!d.consciousnessMessageId)html+='<button type="button" data-ttb="consciousness">Проверка сознания</button>';
     if(d.criticalConsciousness&&(!d.criticalConsciousnessMessageId||d.criticalConsciousness.repeat&&game.messages.get(d.criticalConsciousnessMessageId)?.getFlag(ID,'duel')?.closed))html+=`<button type="button" data-ttb="criticalConsciousness">${d.criticalConsciousness.repeat?'Сознание при действии (травма нервов)':'Сознание от критической раны'}</button>`;
   }
   return html;
@@ -31,36 +32,41 @@ export async function executeBattle(user,p){
     assert(source.uuid!==target.uuid,'Нельзя выбрать себя целью атаки.');
     canAct(source);
     const weapon=weaponData(source.items.get(p.itemId)),k=source.system.skills[weapon.skill];
+    const aspect=weapon.aspect||k.aspect,bonus=integer(p.bonus??0)+weapon.bonus;
+    assert(weapon.defense!=='willpower'||!target.system.immuneWillpower,'Цель невосприимчива к дуэлям Силы воли.');
     const targetStat=derived(target.system)[weapon.defense];
     if(source.type==='fated'&&target.type==='fated'&&!target.system.unconscious)assert(user.isGM,'Дуэль двух Сужденных начинает мастер, задавая модификаторы обеих сторон.');
     requireReady(source);if(target.type==='fated'&&!target.system.unconscious)requireReady(target);
     integer(p.positive??0,0,99);integer(p.negative??0,0,99);integer(p.bonus??0);integer(p.defPositive??0,0,99);integer(p.defNegative??0,0,99);
-    duelPlan(source,{kind:'duel',skill:weapon.skill,aspect:k.aspect,tn:0,positive:p.positive,negative:p.negative,bonus:p.bonus,action:true,useFocus:p.useFocus});
+    const sourceSpec={kind:'duel',skill:weapon.skill,aspect,tn:0,positive:p.positive,negative:p.negative,bonus,action:true,useFocus:p.useFocus,sight:p.sight!==false};
+    const sourcePlan=duelPlan(source,sourceSpec),sourceFate=duelFateModifiers(source.system,sourceSpec);
+    const targetFate=duelFateModifiers(target.system,{kind:'duel',skill:weapon.defense,positive:p.defPositive,negative:p.defNegative});
     if(target.type==='fated'&&!target.system.unconscious)duelPlan(target,{kind:'duel',skill:weapon.defense,tn:0,positive:p.defPositive??0,negative:p.defNegative??0});
     assert(source.items.get(p.itemId).system.equipped!==false&&source.items.get(p.itemId).system.quantity!==0,'Оружие недоступно или не подготовлено.');
-    integer(targetStat+(target.system.unconscious?0:target.system.rank),0,99);
+    integer(targetStat+statRank(target.system,weapon.defense),0,99);
     await consumeWeapon(source,source.items.get(p.itemId),weapon.apCost);
-    const attack={sourceUuid:source.uuid,targetUuid:target.uuid,targetName:target.name,weapon,defending:source.type==='npc'&&target.type==='fated'&&!target.system.unconscious};
+    const attack={sourceUuid:source.uuid,targetUuid:target.uuid,targetName:target.name,weapon,damageFocus:sourcePlan.d.damageFocus,defending:source.type==='npc'&&target.type==='fated'&&!target.system.unconscious};
     if(attack.defending){
-      const tn=skillValue(source.system,weapon.skill,k.aspect)+source.system.rank+integer(p.bonus??0)-actionPenalty(source.system)-(hasEffect(source.system,'negative')?2:0);
-      return startDuel(target,{kind:'duel',skill:weapon.defense,tn,positive:p.negative,negative:p.positive,required:'',attack});
+      const tn=sourcePlan.d.base-2*sourcePlan.d.mod+source.system.rank-actionPenalty(source.system);
+      if(sourcePlan.focused.length)await source.update({'system.effects':source.system.effects.filter(x=>x.kind!=='focus')});
+      return startDuel(target,{kind:'duel',skill:weapon.defense,tn,positive:sourceFate.negative+Number(p.defPositive??0),negative:sourceFate.positive+Number(p.defNegative??0),required:'',attack});
     }
     // Both Fated flip before either cheats. Ties are won by the aggressor.
     if(target.type==='fated'&&!target.system.unconscious){
       assert(user.isGM,'Дуэль двух Сужденных начинает мастер, задавая модификаторы обеих сторон.');
       requireReady(source);requireReady(target);
       const defense=await startDuel(target,{kind:'duel',skill:weapon.defense,tn:0,positive:p.defPositive??0,negative:p.defNegative??0});
-      const offense=await startDuel(source,{kind:'duel',skill:weapon.skill,aspect:k.aspect,tn:0,positive:p.positive,negative:p.negative,bonus:Number(p.bonus??0)-actionPenalty(source.system),attack,action:true,useFocus:p.useFocus});
+      const offense=await startDuel(source,{...sourceSpec,bonus:bonus-actionPenalty(source.system),attack});
       const dd=foundry.utils.deepClone(defense.getFlag(ID,'duel')),od=foundry.utils.deepClone(offense.getFlag(ID,'duel'));
       dd.opposed={otherId:offense.id,role:'defense'};od.opposed={otherId:defense.id,role:'attack'};
       await saveDuel(defense,dd);await saveDuel(offense,od);return offense;
     }
-    return startDuel(source,{kind:'duel',skill:weapon.skill,aspect:k.aspect,tn:targetStat+(target.system.unconscious?0:target.system.rank),positive:p.positive,negative:p.negative,bonus:p.bonus,attack,action:true,useFocus:p.useFocus});
+    return startDuel(source,{...sourceSpec,tn:targetStat+statRank(target.system,weapon.defense),positive:Number(p.positive??0)+targetFate.negative,negative:Number(p.negative??0)+targetFate.positive,attack});
   }
   const {m,d}=messageOf(p.messageId);
   if(p.op==='attackDamage'){
     assert(d.closed&&d.stage!=='cancelled'&&attackMargin(d)!==null&&!d.damageMessageId,'Нет завершённой успешной атаки.');
-    const a=actorFor(user,null,d.attack.sourceUuid),margin=attackMargin(d),mod=accuracy(margin)+integer(p.positive??0,0,99)-integer(p.negative??0,0,99);
+    const a=actorFor(user,null,d.attack.sourceUuid),margin=attackMargin(d),mod=accuracy(margin)+(d.attack.damageFocus??d.damageFocus??0)+integer(p.positive??0,0,99)-integer(p.negative??0,0,99);
     requireReady(a);
     d.damageMessageId='pending';await saveDuel(m,d);
     const child=await startDuel(a,{kind:'damage',positive:Math.max(0,mod),negative:Math.max(0,-mod),track:d.attack.weapon.track,targetUuid:d.attack.targetUuid,ignoreArmor:d.attack.weapon.ignoreArmor,parentAttackId:m.id});
@@ -80,12 +86,12 @@ export async function executeBattle(user,p){
     d.criticalConsciousnessMessageId=child.id;return saveDuel(m,d);
   }
   if(p.op==='consciousness'){
-    assert(d.application&&!d.application.pending&&!d.application.criticalPending&&!d.application.undone&&d.application.after<=0&&!d.consciousnessMessageId,'Проверка сознания не требуется или уже выполнена.');
+    assert(d.application&&d.application.resource!=='rank'&&d.application.amount>0&&!d.application.pending&&!d.application.criticalPending&&!d.application.undone&&d.application.after<=0&&!d.consciousnessMessageId,'Проверка сознания не требуется или уже выполнена.');
     const a=targetOf(d.targetUuid);assert(a.system.wounds.value===d.application.after,'Ранения цели изменились: проверьте сознание вручную по текущему состоянию.');
     if(a.type==='fated')requireReady(a);
     d.consciousnessMessageId='pending';await saveDuel(m,d);
     if(a.type==='npc'){
-      const unconscious=a.system.rank<=5;
+      const unconscious=a.system.rank<=6;
       if(unconscious)await a.update({'system.unconscious':true,'system.prone':true,'system.ap.value':0});d.consciousnessMessageId='rank';d.consciousnessResult=unconscious?'Прислужник/миньон теряет сознание, если критический эффект не игнорируется.':'Силовик или более высокий ранг автоматически сохраняет сознание.';
       return saveDuel(m,d);
     }
@@ -94,20 +100,23 @@ export async function executeBattle(user,p){
   const target=targetOf(d.targetUuid);
   if(p.op==='applyDamage'){
     assert(d.kind==='damage'&&d.closed&&d.stage!=='cancelled'&&!d.application,'Урон уже применён либо флип не завершён.');
-    const r=outcome(d),amount=reducedDamage(r.damage,armorValue(target.system),d.ignoreArmor||p.ignoreArmor===true),before=target.system.wounds.value,after=before-amount;
-    const level=r.critical?'severe':amount>0&&after<=0?(r.card.value<=5?'weak':r.card.value<=10?'moderate':'severe'):null;
-    d.application={before,after,amount,armor:armorValue(target.system),criticalLevel:level,beforeConditions:target.system.conditions,afterConditions:target.system.conditions,beforeUnconscious:target.system.unconscious};
+    const r=outcome(d),swarm=target.type==='npc'&&target.system.rankWounds,resource=swarm?'rank':'wounds';
+    const amount=swarm?swarmDamage(target.system,r.damage,p.areaDamage??''):reducedDamage(r.damage,armorValue(target.system),d.ignoreArmor||p.ignoreArmor===true),before=swarm?target.system.rank:target.system.wounds.value,after=swarm?Math.max(0,before-amount):before-amount;
+    const level=swarm?null:r.critical?'severe':amount>0&&after<=0?(r.card.value<=5?'weak':r.card.value<=10?'moderate':'severe'):null;
+    d.application={resource,before,after,amount,armor:armorValue(target.system),criticalLevel:level,beforeConditions:target.system.conditions,afterConditions:target.system.conditions,beforeUnconscious:target.system.unconscious};
     Object.assign(d.application,{beforeEffects:foundry.utils.deepClone(target.system.effects),afterEffects:foundry.utils.deepClone(target.system.effects),beforeBleeding:target.system.bleeding,afterBleeding:target.system.bleeding,beforeProne:target.system.prone,afterProne:target.system.prone,beforeDead:target.system.dead,afterDead:target.system.dead,beforeAP:target.system.ap.value,afterAP:target.system.ap.value});
     // Record intent before mutation. Interrupted application cannot be replayed silently.
     d.application.pending=true;await saveDuel(m,d);
-    await target.update({'system.wounds.value':after});d.application.pending=false;return saveDuel(m,d);
+    const changes={[swarm?'system.rank':'system.wounds.value']:after};
+    if(swarm&&after===0){changes['system.dead']=true;changes['system.ap.value']=0;d.application.afterDead=true;d.application.afterAP=0;}
+    await target.update(changes);d.application.pending=false;return saveDuel(m,d);
   }
   const app=d.application;assert(app&&!app.undone&&!app.pending&&!app.criticalPending,'Нет завершённого применения урона или критический эффект прерван.');
-  assert(target.system.wounds.value===app.after&&target.system.conditions===app.afterConditions,'Цель изменилась после применения. Проверьте её лист вручную, чтобы не затереть новые изменения.');
+  assert((app.resource==='rank'?target.system.rank:target.system.wounds.value)===app.after&&target.system.conditions===app.afterConditions,'Цель изменилась после применения. Проверьте её лист вручную, чтобы не затереть новые изменения.');
   if(app.afterEffects)assert(JSON.stringify(target.system.effects)===JSON.stringify(app.afterEffects)&&target.system.bleeding===app.afterBleeding&&target.system.ap.value===app.afterAP&&target.system.prone===app.afterProne&&target.system.dead===app.afterDead,'Состояния или ОД цели изменились: восстановление вручную.');
   if(p.op==='undoDamage'){
     assert(!d.consciousnessMessageId&&!d.criticalConsciousnessMessageId,'После проверки сознания отмените последствия вручную, чтобы не затереть новые события.');
-    const restore={'system.wounds.value':app.before,'system.conditions':app.beforeConditions,'system.unconscious':app.beforeUnconscious};
+    const restore={[app.resource==='rank'?'system.rank':'system.wounds.value']:app.before,'system.conditions':app.beforeConditions,'system.unconscious':app.beforeUnconscious};
     if(app.beforeEffects)Object.assign(restore,{'system.effects':app.beforeEffects,'system.bleeding':app.beforeBleeding,'system.prone':app.beforeProne,'system.dead':app.beforeDead,'system.ap.value':app.beforeAP});
     await target.update(restore);app.undone=true;return saveDuel(m,d);
   }

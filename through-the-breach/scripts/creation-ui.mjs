@@ -3,8 +3,9 @@ import {request,stack} from './cards.mjs';
 import {tarotTables,catalogDocuments,catalogMeta} from './creation.mjs';
 const options=(rows,value)=>rows.map(([k,label])=>`<option value="${e(k)}" ${String(k)===String(value)?'selected':''}>${e(label)}</option>`).join('');
 const skillOptions=value=>options([['','Выберите навык'],...Object.values(SKILLS).map(s=>[s.id,s.label])],value);
-async function dialog(title,content,label='Продолжить'){
- return foundry.applications.api.DialogV2.prompt({window:{title,resizable:true},position:{width:680},content:`<div class="ttb-dialog" style="max-height:70vh;overflow:auto">${content}</div>`,ok:{label,callback:(_event,button)=>new FormData(button.form)},rejectClose:false});
+async function dialog(title,content,label='Продолжить',draftButton=false){
+ const form=(button,action)=>{const data=new FormData(button.form);if(action)data.set('creationAction',action);return data;};
+ return foundry.applications.api.DialogV2.prompt({window:{title,resizable:true},position:{width:680},content:`<div class="ttb-dialog" style="max-height:70vh;overflow:auto">${content}</div>`,ok:{label,callback:(_event,button)=>form(button,draftButton?'complete':'')},buttons:draftButton?[{action:'draft',label:'Сохранить черновик',callback:(_event,button)=>form(button,'draft')}]:[],rejectClose:false});
 }
 const label=(text,content)=>`<label>${e(text)}${content}</label>`;
 export async function createCharacter(actor){
@@ -22,30 +23,30 @@ export async function createCharacter(actor){
  }
  for(const [kind,index,title] of [['root',2,'Врождённые навыки'],['endeavor',4,'Навыки Усилий']]){
   html+=`<h3>${title}</h3><p>Каждый навык выбирается только один раз, включая второй набор.</p>`;
-  rows[index][kind].forEach((rank,i)=>{html+=label(`Ранг ${rank}`,`<select name="${kind}" required>${skillOptions(saved[kind]?.[i])}</select>`);});
+  rows[index][kind].forEach((rank,i)=>{html+=label(`Ранг ${rank}`,`<select name="${kind}">${skillOptions(saved[kind]?.[i])}</select>`);});
  }
  html+=`<h3>Станция: ${e(rows[0].station.name)}</h3><p>Навык ${e(SKILLS[rows[0].station.skill].label)} получает ранг 1. Если вы уже выбрали его выше, укажите другой необученный навык.</p>`+label('Заменяющий навык',`<select name="stationSkill">${skillOptions(saved.stationSkill)}</select>`);
  html+='<h3>Две модификации</h3><p>Каждая: +1 к аспекту (до 3) или ранг 2 в необученном навыке. Можно оставить неиспользованной.</p>';
  for(let i=0;i<2;i++)html+=label(`Модификация ${i+1}`,`<select name="mods">${options([['','Не использовать'],...Object.entries(ASPECTS).map(([k,v])=>['aspect.'+k,'+1: '+v]),...Object.values(SKILLS).map(s=>[s.id,'Ранг 2: '+s.label])],saved.mods?.[i])}</select>`);
- html+='<h3>Стремление и общий талант</h3>'+label('Базовое Стремление',`<select name="pursuit" required>${options([['','Выберите Стремление'],...pursuits.map(i=>[i.uuid,i.name])],saved.pursuit)}</select>`)+label('Один общий талант',`<select name="talent" required>${options([['','Выберите талант'],...talents.filter(i=>catalogMeta(i).kind==='general').map(i=>[i.uuid,i.name])],saved.talent)}</select>`);
- html+='<p>Требования и условные эффекты талантов проверяет мастер по описанию записи в библиотеке.</p>';
- if(game.user.isGM)html+=label('Требования общего таланта проверены','<input type="checkbox" name="requirementsConfirmed" required>');
+ html+='<h3>Стремление и общий талант</h3>'+label('Базовое Стремление',`<select name="pursuit">${options([['','Выберите Стремление'],...pursuits.map(i=>[i.uuid,i.name])],saved.pursuit)}</select>`)+label('Один общий талант',`<select name="talent">${options([['','Выберите талант'],...talents.filter(i=>catalogMeta(i).kind==='general').map(i=>[i.uuid,i.name])],saved.talent)}</select>`);
+ html+='<p>Игрок завершает создание самостоятельно. Мастер может проверить и изменить готовый лист. Требования и условные эффекты талантов сверяются по описанию записи в библиотеке.</p>';
+ html+=label('Требования общего таланта проверены по описанию',`<input type="checkbox" name="requirementsConfirmed" ${saved.requirementsConfirmed?'checked':''}>`);
  html+='<h3>Стартовое имущество Стремления</h3><p>Набор инструментов; для Ганфайтера 1–2 пистолета до 20§; для Стража/Мастера рукопашной — оружие ближнего боя и броня до 20§; для Наемника — дальнее оружие и броня до 20§. Стоимость оплачивается отдельно от 10§.</p>';
  for(let i=0;i<6;i++)html+=label(`Бесплатный предмет ${i+1}`,`<select name="starter">${options(equipmentOptions,saved.starter?.[i])}</select>`);
  html+='<h3>Начальный гримуар</h3><p>Только для Дабблера и Расхитителя могил: две разные Магии (одна Колдовства / Некромантии соответственно, вторая — другой школы) и три разных Иммуто. Бесплатное снаряжение выше оставьте пустым. Другим Стремлениям этот раздел заполнять не нужно.</p>';
  for(const [kind,count,title] of [['magia',2,'Магия'],['immuto',3,'Иммуто']])for(let i=0;i<count;i++)html+=label(`${title} ${i+1}`,`<select name="${kind}">${options([['','Не выбирать'],...magic.filter(d=>catalogMeta(d).kind===kind).map(d=>[d.uuid,`${d.name}${kind==='magia'?' · '+SKILLS[d.system.skill].label:''}`])],saved[kind]?.[i])}</select>`);
  html+='<p>Конструкт Жестянщика и альтернативный пневматический старт Ударника пока оформляет мастер отдельно. Стандартный набор Ударника доступен выше.</p>';
- if(game.user.isGM)html+=label('Сложное стартовое имущество будет оформлено отдельно','<input type="checkbox" name="manualStarterConfirmed">');
+ html+=label('Сложное стартовое имущество будет оформлено отдельно',`<input type="checkbox" name="manualStarterConfirmed" ${saved.manualStarterConfirmed?'checked':''}>`);
  html+='<h3>Покупки на начальные 10§</h3><p>Пустые строки пропускаются. Несколько экземпляров покупаются выбором в нескольких строках. Новое начальное стрелковое оружие получает запас на пять перезарядок, минимум 10 патронов.</p>';
  for(let i=0;i<6;i++)html+=label(`Покупка ${i+1}`,`<select name="bought">${options(equipmentOptions,saved.bought?.[i])}</select>`);
  html+='<h3>Масти Смешанной колоды</h3>';
  ['Определяющая','Предков','Центральная','Наследия'].forEach((name,i)=>{html+=label(name,`<select name="twist">${options(Object.entries(SUITS),saved.twist?.[i]??Object.keys(SUITS)[i])}</select>`);});
  html+=label('Концепция, языки и примечания',`<textarea name="notes">${e(saved.notes)}</textarea>`);
- const f=await dialog('Создание персонажа по Таро',html,game.user.isGM?'Проверить и завершить создание':'Сохранить для мастера');if(!f)return;
+ const f=await dialog('Создание персонажа по Таро',html,'Завершить создание',true);if(!f)return;
  const form=Object.fromEntries(f.entries());for(const k of ['body','mind','root','endeavor','mods','starter','bought','twist','magia','immuto'])form[k]=f.getAll(k);for(const k of ['starter','bought','magia','immuto'])form[k]=form[k].filter(Boolean);form.requirementsConfirmed=f.has('requirementsConfirmed');form.manualStarterConfirmed=f.has('manualStarterConfirmed');
  await request({op:'creationSave',actorUuid:actor.uuid,form});
- if(game.user.isGM){await request({op:'creationApply',actorUuid:actor.uuid,form});ui.notifications.info('Персонаж создан; личная колода готова. Триггеры навыков ранга 3 выберите отдельно по книге.');}
- else ui.notifications.info('Черновик отправлен мастеру. Он завершит создание кнопкой в вашем листе.');
+ if(f.get('creationAction')==='complete'){await request({op:'creationApply',actorUuid:actor.uuid,form});ui.notifications.info('Персонаж создан; личная колода готова. Триггеры навыков ранга 3 выберите отдельно по книге.');}
+ else ui.notifications.info('Черновик сохранён. Вы можете продолжить создание позже.');
 }
 export async function browseCatalog(actor){
  assert(actor.isOwner,'Нет прав на лист.');

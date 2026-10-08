@@ -1,8 +1,8 @@
 import {AUTOMATION_OPS,executeAutomation,duelModifiers,availableTriggers} from './automation.mjs';
 import {CREATION_OPS,executeCreation} from './creation.mjs';
 import {executeBattle,battleButtons,attackMargin} from './actions.mjs';
-import {executeTurnAction,hasEffect,actionPenalty} from './turns.mjs';
-import {ID,SUITS,SKILLS,ASPECTS,makeFateDeck,makeTwistDeck,cardName,assert,integer,modifier,selectable,canCheat,parseSuits,derived,defenseSuits,skillValue,aspectValue,outcome,escapeHTML as e} from "./rules.mjs";
+import {executeTurnAction,hasEffect,actionPenalty,canAct} from './turns.mjs';
+import {statRank,ID,SUITS,SKILLS,ASPECTS,makeFateDeck,makeTwistDeck,cardName,assert,integer,modifier,selectable,canCheat,parseSuits,derived,defenseSuits,skillValue,aspectValue,outcome,escapeHTML as e} from "./rules.mjs";
 const {Cards,ChatMessage}=foundry.documents;
 
 export const stack=(role,actorId="")=>game.cards.find(s=>s.getFlag(ID,"role")===role && (s.getFlag(ID,"actorId")??"")===actorId);
@@ -107,7 +107,7 @@ export function duelHTML(d){
     if(d.closed&&od?.closed&&d.stage!=='cancelled'&&od.stage!=='cancelled'){const margin=outcome(d).total-outcome(od).total;result+=`<p>${(d.opposed.role==='attack'?margin>=0&&(!d.spellTN||outcome(d).success):margin>0||od.spellTN&&!outcome(od).success)?'Победа':'Поражение'} · разница ${margin}. При ничьей побеждает агрессор.${d.spellTN?` СЛ заклинания ${d.spellTN}: ${outcome(d).success?'выполнена':'не выполнена (число или масти)'}.`:od.spellTN&&!outcome(od).success?' Заклинание не состоялось: не выполнены его СЛ или масти.':''}</p>`;}
   }
   if(d.attack)result+=`<p>${e(d.attack.weapon.name)} → ${e(d.attack.targetName)}</p>`;
-  if(d.application)result+=`<p>Урон ${d.application.undone?'отменён':d.application.pending?'ожидает проверки мастером':'применён'}: ${d.application.amount}. Ранения: ${d.application.before} → ${d.application.after}.</p>`;
+  if(d.application){const a=d.application;result+=`<p>Урон ${a.undone?'отменён':a.pending?'ожидает проверки мастером':'применён'}: ${a.amount}. ${a.resource==='rank'?'Ранг роя':'Ранения'}: ${a.undone?a.after:a.before} → ${a.undone?a.before:a.after}.</p>`;}
   if(d.criticalResult)result+=`<p>${e(d.criticalResult)}</p>`;
   if(d.application?.criticalPending)result+='<p>Критический эффект прерван или выполняется. Перед дальнейшими действиями мастер проверяет карты и лист цели.</p>';
   if(d.triggerText)result+=`<p>Объявлен триггер: ${e(d.triggerText)}</p>`;
@@ -143,10 +143,19 @@ export function requireReady(actor){
   assert(!(stack("hand",actor.id)?.getFlag(ID,"credits")>0),"Сначала возьмите или отклоните карту за перетасовку во вкладке «Судьба и рука».");
   assert(!game.messages.some(m=>{const d=m.getFlag(ID,"duel");return m.author?.isGM&&(d?.actorUuid??d?.actorId)===(d?.actorUuid?actor.uuid:actor.id)&&!d?.closed;}),"Сначала завершите предыдущую проверку этого персонажа в чате.");
 }
+export function duelFateModifiers(s,p){
+  const extra=p.kind==='duel'?duelModifiers(s,p):{flips:0,suits:[]};
+  const defensive=p.skill==='defense'?Math.min(3,(s.effects??[]).filter(x=>x.kind==='defensive').reduce((n,x)=>n+(x.value??1),0)):0;
+  const focused=p.kind==='duel'&&p.action&&(p.useFocus===true||p.useFocus==='on')?(s.effects??[]).filter(x=>x.kind==='focus'):[];
+  const focus=Math.min(3,focused.reduce((n,x)=>n+(x.value??1),0));
+  return {extra,focused,focus,positive:Number(p.positive??0)+Math.max(0,extra.flips)+defensive+focus,negative:Number(p.negative??0)+Math.max(0,-extra.flips)+(p.sight&&hasEffect(s,'blind')?2:0)+(p.kind==='duel'&&hasEffect(s,'negative')?1:0)};
+}
 export function duelPlan(actor,p){
   requireReady(actor);
   assert(["duel","initiative","damage"].includes(p.kind),"Неизвестный вид проверки.");
   const npc=actor.type==="npc",s=actor.system,computed=derived(s);
+  if(p.kind==='duel'&&p.action)canAct(actor);
+  assert(p.skill!=='willpower'||!s.immuneWillpower,'Персонаж невосприимчив к дуэлям Силы воли.');
   let base=0,baseSuits=[],label=p.kind==="damage"?"Флип урона":p.kind==="initiative"?"Инициатива":"Проверка";
   if(p.kind==="initiative")base=computed.initiative;
   else if(p.kind==="duel"){
@@ -157,16 +166,17 @@ export function duelPlan(actor,p){
   }
   base+=integer(p.bonus??0);
   if(p.checkReason)label+=` · ${p.checkReason}`;
-  const extra=p.kind==='duel'?duelModifiers(s,p):{flips:0,suits:[]};baseSuits.push(...extra.suits);
-  if(p.kind==='duel'&&['intellect','charm','cunning','tenacity'].includes(p.aspect))base-=(s.effects??[]).filter(x=>x.kind==='insanity').reduce((n,x)=>n+(x.value??1),0);
-  const defensive=p.skill==='defense'?Math.min(3,(s.effects??[]).filter(x=>x.kind==='defensive').reduce((n,x)=>n+(x.value??1),0)):0;
-  const focused=p.kind==='duel'&&p.action&&(p.useFocus===true||p.useFocus==='on')?(s.effects??[]).filter(x=>x.kind==='focus'):[];
+  const fate=duelFateModifiers(s,p),{extra,focused,focus}=fate;baseSuits.push(...extra.suits);
+  const usedAspect=p.skill in ASPECTS?p.skill:p.aspect;
+  if(p.kind==='duel'&&['intellect','charm','cunning','tenacity'].includes(usedAspect))base-=(s.effects??[]).filter(x=>x.kind==='insanity').reduce((n,x)=>n+(x.value??1),0);
   if(focused.length&&game.combat?.started)assert(game.combat.combatant?.actor?.uuid===actor.uuid,'Сосредоточенность применяется при объявлении действия в свой ход.');
-  const focus=Math.min(3,focused.reduce((n,x)=>n+(x.value??1),0));
-  const mod=p.kind==="initiative"?0:modifier(Number(p.positive??0)+Math.max(0,extra.flips)+defensive+focus,Number(p.negative??0)+Math.max(0,-extra.flips)+(p.sight&&hasEffect(s,'blind')?2:0)+(p.kind==='duel'&&hasEffect(s,'negative')?1:0));
-  if(npc&&p.kind==="duel")base+=2*mod;
+  const mod=p.kind==="initiative"?0:modifier(fate.positive,fate.negative);
+  // Against a Fated opponent NPC flips are reversed into that opponent's draw.
+  // The +2/-2 numeric conversion applies only when both opponents are NPCs.
+  if(npc&&p.kind==="duel"&&!p.npcVsFated)base+=2*mod;
   const d={skill:p.skill,actorId:actor.id,actorUuid:actor.uuid,actorName:actor.name,kind:p.kind,npc,label,base,baseSuits,tn:integer(Number(p.tn??0)+(p.action?actionPenalty(s):0),0,99),required:parseSuits(p.required),mod,cards:[],selected:null,replacement:null,redSuit:"",cheated:false,closed:false,stage:"drawing",track:(p.track??[1,2,3]).map(n=>integer(n,0,999)),combatantId:p.combatantId??null,combatId:p.combatId??null};
   d.removeEffectId=p.removeEffectId??null;
+  d.damageFocus=focus;
   Object.assign(d,{attack:p.attack??null,targetUuid:p.targetUuid??null,ignoreArmor:p.ignoreArmor===true,parentAttackId:p.parentAttackId??null,unconsciousCheck:p.unconsciousCheck===true,checkReason:p.checkReason??null});
   assert(d.track.length===3,"Укажите три значения урона.");
   assert(stack("fate")&&stack("active")&&stack("discard"),"Мастер должен подготовить общую колоду.");
@@ -176,7 +186,7 @@ export async function startDuel(actor,p){
   const {d,focused}=duelPlan(actor,p),s=actor.system,npc=d.npc,mod=d.mod,label=d.label;
   const message=await ChatMessage.create({speaker:ChatMessage.getSpeaker({actor}),content:`<p>${e(actor.name)}: подготовка ${e(label)}…</p>`,flags:{[ID]:{duel:d}}});
   if(focused.length)await actor.update({'system.effects':s.effects.filter(x=>x.kind!=='focus')});
-  if(npc&&p.kind!=="damage")d.cards=[{id:"rank",rank:true,value:s.rank,suit:"",name:`Ранг ${s.rank}`,img:`systems/${ID}/assets/cards/back.svg`}];
+  if(npc&&p.kind!=="damage")d.cards=[{id:"rank",rank:true,value:statRank(s,p.skill),suit:"",name:`Ранг ${statRank(s,p.skill)}`,img:`systems/${ID}/assets/cards/back.svg`}];
   else {
     // Draw one at a time so exhaustion in the middle preserves already drawn cards.
     for(let i=0;i<1+Math.abs(mod);i++){

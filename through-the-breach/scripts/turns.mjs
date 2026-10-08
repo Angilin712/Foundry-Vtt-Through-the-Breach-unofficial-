@@ -20,7 +20,10 @@ export function turnPlan(s,phase){
   if(!s.openWoundFirst)bleeding+=open;
   const burn=(s.effects??[]).filter(x=>x.kind==='burning').reduce((n,x)=>n+(x.value??1),0),poison=s.living?(s.effects??[]).some(x=>x.kind==='poison'):false;
   const changes={'system.ap.value':0,'system.bleeding':bleeding,'system.dead':s.dead||bleeding>=10,'system.effects':(s.effects??[]).filter(x=>x.kind!=='burning'&&(x.kind!=='poison'||s.living&&(x.value??1)>1)&&(x.endPhase==='start'||!x.ends||x.ends>count)).map(x=>x.kind==='poison'?{...x,value:x.value-1}:x)};
-  if(!s.dead&&(burn||poison))changes['system.wounds.value']=s.wounds.value-(burn?Math.max(1,burn-armorValue(s)):0)-(poison?1:0);
+  if(!s.dead&&(burn||poison)){
+    if(s.rankWounds){changes['system.rank']=Math.max(0,s.rank-(burn?1:0)-(poison?1:0));if(!changes['system.rank'])changes['system.dead']=true;}
+    else changes['system.wounds.value']=s.wounds.value-(burn?Math.max(1,burn-armorValue(s)):0)-(poison?1:0);
+  }
   return changes;
 }
 export function canAct(actor){assert(!actor.system.dead&&!actor.system.unconscious&&!hasEffect(actor.system,'paralyzed'),'Персонаж не может действовать: погиб, без сознания или парализован.');}
@@ -42,12 +45,13 @@ export async function turnLifecycle(combat,combatant,context,phase){
   if(done[key])return;
   assert(!combat.getFlag(ID,'turnPending'),'Обработка хода прервана: проверьте ОД и последствия вручную.');
   await combat.setFlag(ID,'turnPending',key);
-  const wasDead=combatant.actor.system.dead,beforeWounds=combatant.actor.system.wounds.value;
+  const wasDead=combatant.actor.system.dead,beforeWounds=combatant.actor.system.wounds.value,beforeRank=combatant.actor.system.rank;
   await combatant.actor.update(turnPlan(combatant.actor.system,phase));
   await combat.setFlag(ID,'turnLedger',{...done,[key]:true});
   await combat.setFlag(ID,'turnPending','');
-  if(phase==='end'&&!wasDead&&combatant.actor.system.dead)await ChatMessage.create({speaker:ChatMessage.getSpeaker({actor:combatant.actor}),content:`<p>${e(combatant.actor.name)}: погиб от кровотечения. Мастер проверяет исключения способностей.</p>`});
-  if(phase==='end'&&combatant.actor.system.wounds.value<beforeWounds)await ChatMessage.create({speaker:ChatMessage.getSpeaker({actor:combatant.actor}),content:`<p>${e(combatant.actor.name)}: урон Горения / Яда, ранения ${beforeWounds} → ${combatant.actor.system.wounds.value}.${combatant.actor.system.wounds.value<=0?' Мастер разрешает проверку сознания и слабый критический эффект отдельно за каждый источник урона (книга, стр. 302–303).':''}</p>`});
+  if(phase==='end'&&!wasDead&&combatant.actor.system.dead)await ChatMessage.create({speaker:ChatMessage.getSpeaker({actor:combatant.actor}),content:`<p>${e(combatant.actor.name)}: ${combatant.actor.system.rankWounds&&combatant.actor.system.rank===0?'рой распался':'погиб от кровотечения'}. Мастер проверяет исключения способностей.</p>`});
+  if(phase==='end'&&combatant.actor.system.rankWounds&&combatant.actor.system.rank<beforeRank)await ChatMessage.create({speaker:ChatMessage.getSpeaker({actor:combatant.actor}),content:`<p>${e(combatant.actor.name)}: урон Горения / Яда, ранг роя ${beforeRank} → ${combatant.actor.system.rank}.</p>`});
+  if(phase==='end'&&!combatant.actor.system.rankWounds&&combatant.actor.system.wounds.value<beforeWounds)await ChatMessage.create({speaker:ChatMessage.getSpeaker({actor:combatant.actor}),content:`<p>${e(combatant.actor.name)}: урон Горения / Яда, ранения ${beforeWounds} → ${combatant.actor.system.wounds.value}.${combatant.actor.system.wounds.value<=0?' Мастер разрешает проверку сознания и слабый критический эффект отдельно за каждый источник урона (книга, стр. 302–303).':''}</p>`});
 }
 export async function executeTurnAction(user,p){
   const actor=actorFor(user,p.actorId,p.actorUuid);

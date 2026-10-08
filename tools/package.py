@@ -18,7 +18,7 @@ with ZipFile(archive, 'w', ZIP_DEFLATED) as z:
         native_pack = any(relative.startswith(pack['path'] + '/') for pack in manifest.get('packs', []))
         if native_pack and p.name in {'LOCK', 'LOG', 'LOG.old'}:
             continue
-        if not native_pack and p.suffix not in {'.mjs', '.json', '.hbs', '.css', '.svg', '.md'}:
+        if not native_pack and p.suffix not in {'.mjs', '.json', '.hbs', '.css', '.svg', '.md', '.webp', '.jpg', '.png'}:
             raise ValueError(f'Unexpected package file: {p.name}')
         info = ZipInfo(p.relative_to(root).as_posix(), (2026, 1, 1, 0, 0, 0))
         info.compress_type = ZIP_DEFLATED

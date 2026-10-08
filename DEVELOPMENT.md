@@ -53,7 +53,11 @@ Epilogues are saved on the actor with unique session ID, eligible skills and the
 
 Package building includes native WAL `.log`, SST and manifest files, but excludes diagnostic `LOG` and `LOCK`. Native compendium sources and copied databases are tested independently. Never overwrite pack databases open in a running Foundry process: first-time packs can be installed before restart; subsequent pack replacements require the application to be closed.
 
-Creation/catalog/session operations use the existing authoritative GM queue. Incoming item data is never trusted; entries are fetched from an allowlisted system compendium UUID. Player drafts cannot complete creation. A cross-document lock precedes mutations; a failure must be reconciled manually rather than replayed. Session prologue records pending/done per actor before/after drawing. Epilogue reuses the existing unique-session ledger on each Actor.
+Creation/catalog/session operations use the existing authoritative GM queue. Incoming item data is never trusted; entries are fetched from an allowlisted system compendium UUID. An owning player can save a partial draft and complete creation without human GM approval; the online GM client validates and processes the request automatically. The GM can inspect and edit the sheet before or after completion. A cross-document lock precedes mutations; a failure must be reconciled manually rather than replayed. Session prologue records pending/done per actor before/after drawing. Epilogue reuses the existing unique-session ledger on each Actor.
 
 Current catalog coverage and manual effects are documented in the Russian system README. Future work: full merchandise, pursuit-step talent selection, reliable prerequisite expressions and special effects, construct/prosthetic creation, Immuto parameter choices, and a compact step-by-step UI.
 
+
+## Bestiary generation
+
+Private PDF analysis stays under ignored `research/bestiary`; PDFs are excluded from Git. Generate the catalogue in order: `tools/prepare-bestiary.py`, `tools/resolve-bestiary-art.py`, `tools/prepare-legacy-bestiary.py`, `tools/prepare-special-bestiary.py`, `tools/build-bestiary.mjs`. The last script writes `data/bestiary.json` and SVG tokens embedding extracted WebP/JPEG portraits. No network or source PDF is needed at runtime. Do not copy open world or compendium databases: `scripts/bestiary.mjs` creates native Actor/Folder/Macro documents, importing only missing stable keys. Armour, TN and source edition differences are retained explicitly; special rules remain in full profile notes.

@@ -1,6 +1,10 @@
-import {availableTriggers} from './automation.mjs';
+import {availableTriggers,spellPlan} from './automation.mjs';
+import {SpellBuilder} from './spell-ui.mjs';
+import {SKILL_HELP} from './skill-help.mjs';
+import {itemArtwork} from './item-art.mjs';
+import {removeRecord} from './item-management.mjs';
 import {createCharacter,browseCatalog} from './creation-ui.mjs';
-import {ID,SUITS,SYMBOLS,ASPECTS,SKILLS,GROUPS,TWIST_ROLES,derived,skillValue,aspectValue,canCheat,escapeHTML as e} from "./rules.mjs";
+import {statRank,ID,SUITS,SYMBOLS,ASPECTS,SKILLS,GROUPS,TWIST_ROLES,derived,skillValue,aspectValue,canCheat,escapeHTML as e} from "./rules.mjs";
 import {stack,request,authority} from "./cards.mjs";
 import {EFFECT_LABELS} from './turns.mjs';
 const {HandlebarsApplicationMixin,ApplicationV2,DialogV2}=foundry.applications.api;
@@ -41,8 +45,9 @@ export async function handleChat(message,op,element){
     if(f)return request({op,messageId:message.id,living:f.living==='on',positive:Number(f.positive),negative:Number(f.negative)});
   }
   if(op==='applyDamage'){
-    const f=await formDialog('Применить урон',`<p>Цель: ${e(fromUuidSync(d.targetUuid)?.name??'не найдена')}. Броня учитывается автоматически.</p><label><input type="checkbox" name="ignoreArmor">Игнорировать броню</label>`,'Применить');
-    if(f)return request({op,messageId:message.id,ignoreArmor:f.ignoreArmor==='on'});
+    const target=fromUuidSync(d.targetUuid),swarm=target?.type==='npc'&&target.system.rankWounds;
+    const f=await formDialog('Применить урон',`<p>Цель: ${e(target?.name??'не найдена')}.</p>${swarm?'<p>Обычный урон уменьшает ранг на 1; урон по площади учитывается по особенностям профиля.</p><label>Тип урона<select name="areaDamage"><option value="">Обычный</option><option value="blast">Взрыв (b)</option><option value="pulse">Импульс (p)</option></select></label>':'<p>Броня учитывается автоматически.</p><label><input type="checkbox" name="ignoreArmor">Игнорировать броню</label>'}`,'Применить');
+    if(f)return request({op,messageId:message.id,ignoreArmor:f.ignoreArmor==='on',areaDamage:f.areaDamage??''});
   }
   if(op==='critical'){
     const f=await formDialog('Критический эффект','<p>Карта вытягивается без модификаторов и Обмана судьбы. Отрицательные ранения учитываются автоматически.</p><label>Дополнительная поправка к таблице (например, Глубокая рана +2)<input name="bonus" type="number" value="0" min="-99" max="99"></label>','Определить');
@@ -63,32 +68,35 @@ export async function handleChat(message,op,element){
   }
 }
 export class BreachSheet extends HandlebarsApplicationMixin(foundry.applications.sheets.ActorSheetV2){
-  static DEFAULT_OPTIONS={classes:["ttb","ttb-sheet"],position:{width:880,height:820},window:{resizable:true},form:{submitOnChange:true},actions:{creation:BreachSheet.creation,catalog:BreachSheet.catalog,sheetTab:BreachSheet.tab,check:BreachSheet.check,hand:BreachSheet.hand,table:BreachSheet.table,item:BreachSheet.item,createWeapon:BreachSheet.createWeapon,attack:BreachSheet.attack,tieOrder:BreachSheet.tieOrder,turnAction:BreachSheet.turnAction,automation:BreachSheet.automation,createRecord:BreachSheet.createRecord}};
+  static DEFAULT_OPTIONS={classes:["ttb","ttb-sheet"],position:{width:880,height:820},window:{resizable:true},form:{submitOnChange:true},actions:{spellBuilder:BreachSheet.spellBuilder,configureToken:BreachSheet.configureToken,creation:BreachSheet.creation,catalog:BreachSheet.catalog,sheetTab:BreachSheet.tab,skillInfo:BreachSheet.skillInfo,check:BreachSheet.check,hand:BreachSheet.hand,table:BreachSheet.table,item:BreachSheet.item,deleteRecord:BreachSheet.deleteRecord,createWeapon:BreachSheet.createWeapon,attack:BreachSheet.attack,tieOrder:BreachSheet.tieOrder,turnAction:BreachSheet.turnAction,automation:BreachSheet.automation,createRecord:BreachSheet.createRecord}};
   static PARTS={body:{template:`systems/${ID}/templates/actor.hbs`,scrollable:[".ttb-body"]}};
   static creation(){return safely(()=>createCharacter(this.actor));}
   static catalog(){return safely(()=>browseCatalog(this.actor));}
+  static configureToken(){return safely(()=>this.actor.isToken?this.actor.token.sheet.render({force:true}):new CONFIG.Token.prototypeSheetClass({prototype:this.actor.prototypeToken}).render({force:true}));}
   _tab="main";
   get title(){return `${this.actor.name} · ${this.actor.type==="npc"?"Персонаж мастера":"Сужденный"}`;}
   async _prepareContext(options){
     const context=await super._prepareContext(options),s=this.actor.system,c=derived(s),hand=stack("hand",this.actor.id);
     const canViewHand=this.actor.isOwner && hand?.testUserPermission(game.user,"OBSERVER");
     return {...context,systemVersion:game.system.version,actor:this.actor,s,c,isGM:game.user.isGM,isNPC:this.actor.type==="npc",editable:this.isEditable,
+      bestiary:this.actor.getFlag(ID,'bestiary'),tokenImg:this.actor.prototypeToken?.texture?.src||this.actor.img,
       effects:s.effects.map(x=>({...x,label:EFFECT_LABELS[x.kind]??x.kind,timed:!!x.ends})),
       turnPending:!!game.combat?.getFlag(ID,'turnPending'),
-      tabs:[['main','Персонаж'],['skills','Навыки'],['fate','Судьба'],['story','История'],['records','Снаряжение и магия'],['development','Развитие']].map(([id,label])=>({id,label,active:this._tab===id})),
+      creationComplete:!!this.actor.flags?.[ID]?.creation?.complete,hasStates:!!(s.effects.length||s.bleeding||s.unconscious||s.prone||s.dead),
+      tabs:[['main','Персонаж'],['skills','Навыки'],['fate','Судьба'],['story','История'],['records','Снаряжение и магия'],['development','Развитие']].map(([id,label])=>({id,label,icon:`systems/${ID}/assets/ui/${id}.svg`,active:this._tab===id})),
       pursuitOptions:{'':'Без отдельной записи',...Object.fromEntries(this.actor.items.filter(i=>i.type==='talent'&&i.system.category==='pursuit').map(i=>[i.id,i.name]))},
       recordsTab:this._tab==='records',developmentTab:this._tab==='development',
-      records:this.actor.items.map(i=>({id:i.id,name:i.name,type:i.type,...i.system.toObject(),isMagic:i.type==='magic'&&['spell','magia'].includes(i.system.magicKind),isGrimoire:i.type==='magic'&&i.system.magicKind==='grimoire',isEquipment:i.type==='equipment',step:s.pursuitProgress.find(x=>x.id===i.id)?.step??0})),
+      records:this.actor.items.map(i=>({id:i.id,name:i.name,type:i.type,img:itemArtwork(i),...i.system.toObject(),isMagic:i.type==='magic'&&['spell','magia'].includes(i.system.magicKind),isGrimoire:i.type==='magic'&&i.system.magicKind==='grimoire',isEquipment:i.type==='equipment',step:s.pursuitProgress.find(x=>x.id===i.id)?.step??0})),
       pursuitRows:s.pursuitProgress.map(x=>({name:this.actor.items.get(x.id)?.name??x.id,step:x.step,maximum:this.actor.items.get(x.id)?.system.stepMax})),
       epilogues:s.epilogues.map(x=>({...x,eligibleNames:x.eligible.map(k=>SKILLS[k]?.label).join(', '),chosenName:SKILLS[x.chosen]?.label})),triggers:s.learnedTriggers.map(x=>({...x,skillName:SKILLS[x.skill]?.label})),
       main:this._tab==="main",skillsTab:this._tab==="skills",fateTab:this._tab==="fate",storyTab:this._tab==="story",
       aspects:Object.entries(ASPECTS).map(([key,label])=>({key,label,value:s.aspects[key],temporary:s.temporaryAspects[key],total:aspectValue(s,key)})),aspectOptions:ASPECTS,suitOptions:SUITS,
-      skillGroups:Object.entries(GROUPS).map(([id,label])=>({label,skills:Object.values(SKILLS).filter(k=>k.group===id).map(k=>({...k,...s.skills[k.id],av:skillValue(s,k.id)}))})),
-      stats:[['defense','Защита'],['willpower','Сила воли'],['wounds','Макс. ранений'],['initiative','Инициатива'],['walk','Ходьба'],['charge','Рывок']].map(([id,label])=>({id,label,value:c[id],bonus:s.bonuses[id]})),
+      skillGroups:Object.entries(GROUPS).map(([id,label])=>({id,label,skills:Object.values(SKILLS).filter(k=>k.group===id).map(k=>({...k,...s.skills[k.id],av:skillValue(s,k.id),help:SKILL_HELP[k.id]?.[1],page:SKILL_HELP[k.id]?.[0],aspectName:ASPECTS[s.skills[k.id].aspect]}))})),
+      stats:[['defense','Защита'],['willpower','Сила воли'],['wounds',s.rankWounds?'Ранг роя':'Макс. ранений'],['initiative','Инициатива'],['walk','Ходьба'],['charge','Рывок']].map(([id,label])=>({id,label,value:c[id],bonus:s.bonuses[id]})),
       twistRoles:TWIST_ROLES.map((label,i)=>({label,index:i,suit:s.twist[i]})),hasDeck:!!stack("twist",this.actor.id),
       handCards:canViewHand?hand.cards.map(card=>({id:card.id,name:card.name,img:card.faces[0]?.img})):[],
       handCount:canViewHand?hand.cards.size:0,overflow:canViewHand&&hand.cards.size>5,credits:canViewHand?(hand.getFlag(ID,"credits")??0):0,refresh:canViewHand&&hand.getFlag(ID,"refresh"),
-      masterOnline:!!authority(),npcDefense:c.defense+s.rank,npcWillpower:c.willpower+s.rank,
+      masterOnline:!!authority(),npcDefense:c.defense+statRank(s,'defense'),npcWillpower:c.willpower+statRank(s,'willpower'),
       items:this.actor.items.map(item=>({id:item.id,name:item.name,description:item.system.description,quantity:item.system.quantity})),
       weapons:this.actor.items.filter(item=>item.system.isWeapon).map(item=>({id:item.id,name:item.name,range:item.system.range,damage:item.system.damage,skill:SKILLS[item.system.skill]?.label})),
       openChecks:game.messages.filter(m=>m.author?.isGM&&m.getFlag(ID,"duel")?.actorId===this.actor.id&&!m.getFlag(ID,"duel").closed).map(m=>({id:m.id,label:m.getFlag(ID,"duel").label}))
@@ -99,8 +107,49 @@ export class BreachSheet extends HandlebarsApplicationMixin(foundry.applications
     if(result.system?.twist)result.system.twist=Object.values(result.system.twist);
     return result;
   }
-  async _onRender(context,options){await super._onRender(context,options);this.element.querySelectorAll('[data-hand-card]').forEach(el=>el.addEventListener("change",event=>event.stopPropagation()));}
+  _folds=new Map();
+  _skillSearch='';
+  _trainedOnly=false;
+  async _onRender(context,options){
+    await super._onRender(context,options);
+    this.element.querySelectorAll('[data-hand-card]').forEach(el=>el.addEventListener('change',event=>event.stopPropagation()));
+    this.element.querySelectorAll('details[data-fold]').forEach(el=>{
+      if(this._folds.has(el.dataset.fold))el.open=this._folds.get(el.dataset.fold);
+      el.addEventListener('toggle',()=>this._folds.set(el.dataset.fold,el.open));
+    });
+    this.element.querySelectorAll('.ttb-skill-label').forEach(label=>{
+      const place=()=>{
+        const tip=label.querySelector('.ttb-skill-tip'),body=this.element.querySelector('.ttb-body');
+        label.classList.toggle('tip-above',label.getBoundingClientRect().bottom+tip.offsetHeight+8>body.getBoundingClientRect().bottom);
+      };
+      label.addEventListener('mouseenter',place);label.addEventListener('focusin',place);
+    });
+    const search=this.element.querySelector('[data-skill-search]'),trained=this.element.querySelector('[data-trained-only]');
+    if(!search)return;
+    search.value=this._skillSearch;trained.checked=this._trainedOnly;
+    const filter=()=>{
+      const query=this._skillSearch.trim().toLocaleLowerCase('ru');let count=0;
+      this.element.querySelectorAll('[data-skill-group]').forEach(group=>{
+        let visible=0;
+        group.querySelectorAll('[data-skill-entry]').forEach(row=>{
+          row.hidden=!(row.dataset.label.toLocaleLowerCase('ru').includes(query)&&(!this._trainedOnly||Number(row.querySelector('input[name$=".rank"]').value)>0));
+          if(!row.hidden)visible++;
+        });
+        group.hidden=!visible;count+=visible;if(query&&visible)group.open=true;
+      });
+      this.element.querySelector('[data-skill-empty]').hidden=!!count;
+    };
+    search.addEventListener('input',event=>{event.stopPropagation();this._skillSearch=search.value;filter();});
+    search.addEventListener('change',event=>event.stopPropagation());
+    trained.addEventListener('change',event=>{event.stopPropagation();this._trainedOnly=trained.checked;filter();});
+    filter();
+  }
   static tab(_event,target){this._tab=target.dataset.tab;this.render();}
+  static skillInfo(_event,target){return safely(async()=>{
+    const skill=SKILLS[target.dataset.skill],help=SKILL_HELP[skill?.id];
+    if(!this.actor.isOwner||!help)return;
+    return ChatMessage.create({speaker:ChatMessage.getSpeaker({actor:this.actor}),content:`<section class="ttb-chat ttb-skill-reference"><header>${e(skill.label)}</header><p>${e(help[1])}</p><footer>Основная книга, стр. ${help[0]} · Краткая справка</footer></section>`});
+  });}
   static turnAction(_event,target){return safely(async()=>{
     const op=target.dataset.op;
     if(op==='recoverTurn'){
@@ -114,6 +163,7 @@ export class BreachSheet extends HandlebarsApplicationMixin(foundry.applications
     return request({op,actorUuid:this.actor.uuid,cost:Number(target.dataset.cost??0),effectId:target.dataset.effectId});
   });}
   static table(){new FateTable().render({force:true});}
+  static spellBuilder(){if(this.isEditable)new SpellBuilder(this.actor).render({force:true});}
   static createRecord(_event,target){return safely(async()=>{if(!this.isEditable)return;const type=target.dataset.type??'equipment',category=target.dataset.category??'',magicKind=target.dataset.magicKind??'spell';const [item]=await this.actor.createEmbeddedDocuments('Item',[{name:category==='pursuit'?'Новое Стремление':type==='magic'?'Новая магическая запись':type==='talent'?'Новый талант':'Новый предмет',type,system:{category,magicKind,skill:type==='magic'?'sorcery':'melee'}}]);item.sheet.render({force:true});});}
   static automation(_event,target){return safely(async()=>{
     if(!this.isEditable)return;const op=target.dataset.op,item=this.actor.items.get(target.dataset.itemId);let f;
@@ -123,7 +173,10 @@ export class BreachSheet extends HandlebarsApplicationMixin(foundry.applications
     else if(op==='epilogue')f=await formDialog('Открыть эпилог',`<label>Уникальное название сессии<input name="session" required></label><label>Первый навык<select name="first">${choices(skills,'notice')}</select></label><label>Второй навык<select name="second">${choices(skills,'evade')}</select></label><label>Продвигаемое Стремление<select name="pursuitId"><option value="">Без записи Стремления (шаг отметить вручную)</option>${this.actor.items.filter(i=>i.type==='talent'&&i.system.category==='pursuit').map(i=>`<option value="${e(i.id)}">${e(i.name)}</option>`).join('')}</select></label><p>Выдаётся 1 опыт и 1 шаг выбранного Стремления. Талант за шаг выберите и добавьте отдельно по его таблице; для продвинутого Стремления мастер проверяет требования.</p>`);
     else if(op==='advanceSkill'){const ep=this.actor.system.epilogues.find(x=>x.id===target.dataset.epilogueId);f=await formDialog('Повысить один навык',`<p>За этот эпилог можно повысить один навык. 0 → 1 бесплатно; иначе цена — текущий ранг. Максимум 5.</p><label>Навык<select name="skill">${choices(Object.fromEntries(ep.eligible.map(k=>[k,`${SKILLS[k].label}: ранг ${this.actor.system.skills[k].rank}, цена ${this.actor.system.skills[k].rank}`])),ep.eligible[0])}</select></label>`);}
     else if(op==='learnTrigger')f=await formDialog('Изучить триггер',`<p>Цена: 1 опыт. Одно место при ранге 3, два при ранге 5. Изученные при создании триггеры заносит мастер по правилам создания.</p>${game.user.isGM?'<label><input type="checkbox" name="creation">Бесплатный триггер при создании персонажа (один за навык)</label>':''}<label>Навык<select name="skill">${choices(skills,'pistol')}</select></label><label>Название<input name="name" required></label><label>Масти<input name="suits" placeholder="R, TT, RM"></label><label>Эффект и условия<textarea name="description"></textarea></label>`);
-    else if(op==='castSpell')f=await formDialog(`Магия: ${item.name}`,`<p>СЛ ${item.system.tn} ${e(item.system.required)}, ${item.system.apCost} ОД; ${e(item.system.range)}; длительность ${e(item.system.duration)}.</p><label>Цель<select name="targetUuid"><option value="">Без цели</option>${targetChoices(this.actor)}</select></label><p>Иммуто: укажите число применений (0 — не использовать).</p>${this.actor.items.filter(i=>i.type==='magic'&&i.system.magicKind==='immuto').map(i=>`<label>${e(i.name)}: СЛ ${i.system.tnAdjustment>=0?'+':''}${i.system.tnAdjustment}, ОД ${i.system.apAdjustment}<input data-immuto-count="${e(i.id)}" name="immutoCount-${e(i.id)}" type="number" min="0" max="${i.system.maxCopies}" value="0"></label>`).join('')}<label>Дополнительных +<input name="positive" type="number" min="0" value="0"></label><label>Дополнительных −<input name="negative" type="number" min="0" value="0"></label><label>Числовая поправка к дуэли<input name="bonus" type="number" value="0"></label>${game.user.isGM?'<div class="ttb-dialog-grid"><label>Сопротивление Сужденного: +<input name="defPositive" type="number" min="0" value="0"></label><label>Сопротивление Сужденного: −<input name="defNegative" type="number" min="0" value="0"></label></div>':''}<label><input type="checkbox" name="earth">На Земле (дополнительный −)</label><label><input type="checkbox" name="willing">Цель добровольно принимает эффект</label><label><input type="checkbox" name="confirmed" required>Требования Магии, Иммуто и магической теории проверены; их особые эффекты применяет мастер</label><p>Парную дуэль против сопротивляющегося Сужденного запускает мастер. Комбинации дороже 2 ОД пока разрешаются вручную.</p>`);
+    else if(op==='castSpell'){
+      const plan=spellPlan(this.actor,item),prepared=!!item.system.spellBaseId;
+      f=await formDialog(`Магия: ${item.name}`,`<p>СЛ ${plan.tn} ${e(plan.required)}, ${plan.ap} ОД; ${e(plan.range??item.system.range)}; длительность ${e(plan.duration??item.system.duration)}.</p><label>Цель<select name="targetUuid"><option value="">Без цели</option>${targetChoices(this.actor)}</select></label>${prepared?'<p>Магия и Иммуто уже учтены в сохранённом составе.</p>':`<p>Для выбора параметров и повторений Иммуто используйте «Создать заклинание». Здесь можно произнести основу или добавить заранее настроенные Иммуто.</p>${this.actor.items.filter(i=>i.type==='magic'&&i.system.magicKind==='immuto'&&i.system.equipped&&!i.getFlag(ID,'catalog')?.configurationRequired).map(i=>`<label>${e(i.name)}<input data-immuto-count="${e(i.id)}" name="immutoCount-${e(i.id)}" type="number" min="0" max="${i.system.maxCopies}" value="0"></label>`).join('')}`}<label>Дополнительных +<input name="positive" type="number" min="0" value="0"></label><label>Дополнительных −<input name="negative" type="number" min="0" value="0"></label><label>Числовая поправка к дуэли<input name="bonus" type="number" value="0"></label>${game.user.isGM?'<div class="ttb-dialog-grid"><label>Сопротивление Сужденного: +<input name="defPositive" type="number" min="0" value="0"></label><label>Сопротивление Сужденного: −<input name="defNegative" type="number" min="0" value="0"></label></div>':''}<label><input type="checkbox" name="sight" checked>Требует зрения (Слепота: −−)</label><label><input type="checkbox" name="useFocus">Использовать Сосредоточенность</label><label><input type="checkbox" name="earth">На Земле (дополнительный −)</label><label><input type="checkbox" name="willing">Цель добровольно принимает эффект</label><label><input type="checkbox" name="confirmed" required>Требования Магии, Иммуто и магической теории проверены; их особые эффекты применяет мастер</label><p>Парную дуэль против сопротивляющегося Сужденного запускает мастер.</p>`);
+    }
     else if(op==='attune')f=await formDialog('Настройка на Гримуар','<p>Мастер подтверждает завершённую настройку. Для заклинаний будет доступен один выбранный Гримуар. Поддержание памяти и исключения талантов пока контролируются вручную.</p>');
     else if(op==='recoverOperation')f=await formDialog('Снять блокировку операции','<p>Сверьте ОД, патроны, записи и последние действия. Исправьте последствия вручную. Эта кнопка только снимает блокировку и не повторяет действие.</p>');
     else if(op==='buyItem')f=await formDialog('Купить предмет',`<p>Купить одну единицу «${e(item.name)}» за ${item.system.price} скрипов? Проверьте цену и наличие у продавца.</p>`);
@@ -134,13 +187,20 @@ export class BreachSheet extends HandlebarsApplicationMixin(foundry.applications
     return request({op,actorUuid:this.actor.uuid,itemId:item?.id,epilogueId:target.dataset.epilogueId,...f,eligible:op==='epilogue'?[f.first,f.second]:undefined,immutoIds:f.immutoIds??[],creation:f.creation==='on',confirmed:f.confirmed==='on',earth:f.earth==='on',willing:f.willing==='on'});
   });}
   static item(_event,target){this.actor.items.get(target.dataset.itemId)?.sheet.render({force:true});}
+  static deleteRecord(_event,target){return safely(async()=>{
+    if(!this.isEditable||!this.actor.isOwner)return;
+    const item=this.actor.items.get(target.dataset.itemId);if(!item)return;
+    const grimoire=item.system.magicKind==='grimoire';
+    const confirmed=await DialogV2.confirm({window:{title:'Удалить запись?'},content:`<div class="ttb-dialog"><p>Удалить «${e(item.name)}» из листа персонажа?</p><p>Будет удалена вся запись, включая всё указанное количество. Скрипы не возвращаются.${grimoire?' Связанные Магии и Иммуто останутся, но их применение потребует другого Гримуара и ручной смены привязки.':''}</p></div>`,yes:{label:'Удалить'},no:{label:'Отмена'},rejectClose:false});
+    if(confirmed)await removeRecord(this.actor,item.id);
+  });}
   static createWeapon(){return safely(async()=>{if(!this.isEditable)return;const [item]=await this.actor.createEmbeddedDocuments('Item',[{name:'Новое оружие',type:'equipment',system:{isWeapon:true}}]);item.sheet.render({force:true});});}
   static attack(_event,target){return safely(async()=>{
     if(!this.isEditable)return;
     const item=this.actor.items.get(target.dataset.itemId);
     const defenseModifiers=game.user.isGM?'<p>Для цели-Сужденного: модификаторы её защиты (для ПМ не используются).</p><label>Защита: +<input name="defPositive" type="number" value="0" min="0" max="99"></label><label>Защита: −<input name="defNegative" type="number" value="0" min="0" max="99"></label>':'';
-    const f=await formDialog(`Атака: ${item.name}`,`<p>Дальность: ${e(item.system.range)}. Расстояние, укрытие и особые свойства проверяет мастер. Патроны списываются автоматически при включённом учёте боезапаса.</p><label>Цель<select name="targetUuid" required>${targetChoices(this.actor)}</select></label><label>Положительных +<input name="positive" type="number" value="0" min="0" max="99"></label><label>Отрицательных −<input name="negative" type="number" value="0" min="0" max="99"></label><label>Числовая поправка к атаке<input name="bonus" type="number" value="0"></label><label><input name="useFocus" type="checkbox">Использовать Сосредоточенность</label>${defenseModifiers}`,'Атаковать');
-    if(f)return request({op:'attack',actorUuid:this.actor.uuid,itemId:item.id,...f});
+    const f=await formDialog(`Атака: ${item.name}`,`<p>Дальность: ${e(item.system.range)}. Расстояние, укрытие и особые свойства проверяет мастер. Патроны списываются автоматически при включённом учёте боезапаса.</p><label>Цель<select name="targetUuid" required>${targetChoices(this.actor)}</select></label><label>Положительных +<input name="positive" type="number" value="0" min="0" max="99"></label><label>Отрицательных −<input name="negative" type="number" value="0" min="0" max="99"></label><label>Числовая поправка к атаке<input name="bonus" type="number" value="0"></label><label><input name="useFocus" type="checkbox">Использовать Сосредоточенность</label><label><input name="sight" type="checkbox" checked>Атака требует зрения (Слепота: −−)</label>${defenseModifiers}`,'Атаковать');
+    if(f)return request({op:'attack',actorUuid:this.actor.uuid,itemId:item.id,...f,sight:f.sight==='on'});
   });}
   static tieOrder(){return safely(async()=>{
     if(!game.user.isGM)return;
@@ -165,7 +225,7 @@ export class BreachSheet extends HandlebarsApplicationMixin(foundry.applications
 export class BreachItemSheet extends HandlebarsApplicationMixin(foundry.applications.sheets.ItemSheetV2){
   static DEFAULT_OPTIONS={classes:["ttb"],position:{width:600,height:740},window:{resizable:true},form:{submitOnChange:true}};
   static PARTS={body:{template:`systems/${ID}/templates/item.hbs`}};
-  async _prepareContext(options){return {...await super._prepareContext(options),item:this.document,s:this.document.system,pursuitOption:{pursuit:'Стремление'},grimoireOptions:{'':'Вне Гримуара (талант / проявленная сила)',...Object.fromEntries((this.document.parent?.items??[]).filter(i=>i.type==='magic'&&i.system.magicKind==='grimoire').map(i=>[i.id,i.name]))},isMagic:this.document.type==='magic',isTalent:this.document.type==='talent',isEquipment:this.document.type==='equipment',aspectOptions:ASPECTS,magicOptions:{spell:'Подготовленное заклинание',magia:'Магия',immuto:'Иммуто',grimoire:'Гримуар'},bonusOptions:{'':'Нет',...Object.fromEntries(Object.entries(ASPECTS).map(([k,v])=>[`aspect.${k}`,`Аспект: ${v}`])),...Object.fromEntries(Object.values(SKILLS).map(k=>[`skill.${k.id}`,`Навык: ${k.label}`])),defense:'Защита',willpower:'Сила воли',wounds:'Макс. ранений',initiative:'Инициатива',walk:'Ходьба',charge:'Рывок',armor:'Броня'},skillOptions:Object.fromEntries(Object.values(SKILLS).map(k=>[k.id,k.label])),defenseOptions:{defense:'Защита',willpower:'Сила воли'},resistanceOptions:{'':'Нет',defense:'Защита',willpower:'Сила воли'},slotOptions:{'':'Нет',arms:'Руки',legs:'Ноги',head:'Голова',chest:'Грудь'},armorOptions:{'':'Нет',light:'Лёгкая',heavy:'Тяжёлая'}};}
+  async _prepareContext(options){return {...await super._prepareContext(options),item:this.document,itemImg:itemArtwork(this.document),s:this.document.system,pursuitOption:{pursuit:'Стремление'},grimoireOptions:{'':'Вне Гримуара (талант / проявленная сила)',...Object.fromEntries((this.document.parent?.items??[]).filter(i=>i.type==='magic'&&i.system.magicKind==='grimoire').map(i=>[i.id,i.name]))},isGM:game.user.isGM,isMagic:this.document.type==='magic',isTalent:this.document.type==='talent',isEquipment:this.document.type==='equipment',aspectOptions:ASPECTS,magicOptions:{spell:'Подготовленное заклинание',magia:'Магия',immuto:'Иммуто',grimoire:'Гримуар'},bonusOptions:{'':'Нет',...Object.fromEntries(Object.entries(ASPECTS).map(([k,v])=>[`aspect.${k}`,`Аспект: ${v}`])),...Object.fromEntries(Object.values(SKILLS).map(k=>[`skill.${k.id}`,`Навык: ${k.label}`])),defense:'Защита',willpower:'Сила воли',wounds:'Макс. ранений',initiative:'Инициатива',walk:'Ходьба',charge:'Рывок',armor:'Броня'},skillOptions:Object.fromEntries(Object.values(SKILLS).map(k=>[k.id,k.label])),defenseOptions:{defense:'Защита',willpower:'Сила воли'},resistanceOptions:{'':'Нет',defense:'Защита',willpower:'Сила воли'},slotOptions:{'':'Нет',arms:'Руки',legs:'Ноги',head:'Голова',chest:'Грудь'},armorOptions:{'':'Нет',light:'Лёгкая',heavy:'Тяжёлая'}};}
 }
 export class FateTable extends HandlebarsApplicationMixin(ApplicationV2){
   static DEFAULT_OPTIONS={id:"ttb-fate-table",classes:["ttb","ttb-table"],window:{title:"Стол Судьбы",resizable:true},position:{width:740,height:680},actions:{manage:FateTable.manage,actor:FateTable.actor}};

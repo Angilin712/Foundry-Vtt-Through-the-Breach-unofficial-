@@ -1,5 +1,7 @@
 import {createCharacter,beginSession,endScene,endSession} from './creation-ui.mjs';
+import {importBestiary} from './bestiary.mjs';
 import {repairCreatedPursuit} from './creation.mjs';
+import {defaultArtwork,needsArtwork,refreshDefaultArtwork} from './item-art.mjs';
 import {ID} from "./rules.mjs";
 import {BreachActorModel,BreachItemModel} from "./models.mjs";
 import {BreachSheet,BreachItemSheet,FateTable,handleChat,safely} from "./ui.mjs";
@@ -31,16 +33,21 @@ Hooks.once("init",()=>{
   game.settings.register(ID,"requests",{scope:"world",config:false,type:Object,default:{}});
   game.settings.registerMenu(ID,"table",{name:"Стол Судьбы",label:"Открыть Стол Судьбы",hint:"Подготовка колод, раздача и личные руки.",icon:"fas fa-cards",type:FateTable,restricted:false});
   game.settings.register(ID,"sessions",{scope:"world",config:false,type:Object,default:{}});
-  game.ttb={createCharacter,beginSession,endScene,endSession,openTable:()=>new FateTable().render({force:true}),request};
+  game.settings.register(ID,'artworkVersion',{scope:'world',config:false,type:Number,default:0});
+  game.settings.register(ID,'bestiaryVersion',{scope:'world',config:false,type:Number,default:0});
+  game.ttb={createCharacter,beginSession,endScene,endSession,importBestiary:()=>enqueue(()=>safely(importBestiary)),openTable:()=>new FateTable().render({force:true}),request};
 });
 Hooks.on("preCreateActor",(actor)=>{
-  actor.updateSource({prototypeToken:{actorLink:actor.type==="fated",bar1:{attribute:"wounds"},displayName:20},...(actor.type==="npc"?{"system.characteristics":"Живой"}:{})});
+  actor.updateSource({prototypeToken:{actorLink:actor.type==="fated",bar1:{attribute:"wounds"},displayName:20},...(actor.type==="npc"&&!actor._source.system?.characteristics?{"system.characteristics":"Живой"}:{})});
 });
 Hooks.on("createChatMessage",message=>processRequest(message));
+Hooks.on('preCreateItem',item=>{if(needsArtwork(item))item.updateSource({img:defaultArtwork(item)});});
 Hooks.once("ready",()=>{
   if(authority()?.id===game.user.id){
     game.messages.forEach(processRequest);
     for(const actor of game.actors)enqueue(async()=>{await repairCreatedPursuit(actor);await syncHand(actor);});
+    enqueue(()=>safely(refreshDefaultArtwork));
+    if(game.settings.get(ID,'bestiaryVersion')<4||!game.macros.some(m=>m.getFlag(ID,'bestiaryImport')))enqueue(()=>safely(importBestiary));
   }
   ui.notifications.info("Сквозь Пролом: откройте «Стол Судьбы» из листа персонажа или настроек системы.");
 });

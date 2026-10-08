@@ -44,7 +44,7 @@ export function creationPlan(draft,form,tables,catalog){
  makeTwistDeck(form.twist);
  const get=(uuid,kind)=>{const item=catalog.find(i=>i.uuid===uuid);assert(item&&catalogMeta(item).kind===kind,`Выберите запись типа ${kind} из библиотеки.`);return item;};
  const pursuit=get(form.pursuit,'pursuit'),talent=get(form.talent,'general');
- assert(form.requirementsConfirmed,'Мастер должен сверить требования выбранного общего таланта с книгой.');
+ assert(form.requirementsConfirmed,'Проверьте требования выбранного общего таланта по его описанию.');
  const starter=Array.isArray(form.starter)?form.starter:[],bought=Array.isArray(form.bought)?form.bought:[];
  assert(starter.length<=10&&bought.length<=30,'Слишком много начальных предметов.');
  const equipment=uuids=>uuids.map(uuid=>{const item=catalog.find(i=>i.uuid===uuid);assert(item?.type==='equipment'&&catalogMeta(item).kind,'Выберите предмет из библиотеки снаряжения.');return item;});
@@ -99,7 +99,7 @@ export async function executeCreation(user,p){
  }
  if(p.op==='creationSave'){assert(draft&&!draft.complete&&!draft.pending,'Нет открытого расклада.');const data=clone(p.form);assert(JSON.stringify(data).length<=20000,'Слишком большой черновик.');return actor.setFlag(ID,'creation',{...draft,form:data});}
  if(p.op==='creationApply'){
-  assert(user.isGM,'Завершение создания подтверждает мастер в листе персонажа.');assert(blankCharacter(actor)&&!draft?.pending,'Создание уже завершено либо лист содержит данные.');
+  assert(blankCharacter(actor)&&!draft?.pending,'Создание уже завершено либо лист содержит данные.');
   assert(!stack('twist',actor.id),'Личная колода уже существует. Сначала мастер должен сверить её с раскладом.');
   const spread=stack('creationSpread',actor.id);assert(spread?.cards.size===5&&draft?.cards?.length===5&&new Set(draft.cards.map(c=>c.cardId)).size===5&&draft.cards.every(c=>{const native=spread.cards.get(c.cardId);return native&&native.value===c.value&&native.suit===c.suit;}),'Черновик не совпадает с сохранёнными мастером картами Таро.');
   const catalog=(await Promise.all(['pursuits','talents','equipment','magic'].map(catalogDocuments))).flat();const plan=creationPlan(draft,p.form,await tarotTables(),catalog);

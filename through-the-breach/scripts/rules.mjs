@@ -61,8 +61,8 @@ export function derived(s) {
   const a=Object.fromEntries(Object.keys(ASPECTS).map(k=>[k,aspectValue(s,k)])), k=s.skills, b=Object.fromEntries(Object.keys(s.bonuses).map(k=>[k,s.bonuses[k]+itemBonus(s,k)]));
   const walk=4+(s.walkRoundUp?Math.ceil:Math.floor)(a.speed/2)+b.walk;
   return {armor:armorValue(s),defense:2+Math.max(a.speed,k.evade.rank)+b.defense-armorValue(s), willpower:2+Math.max(a.tenacity,k.centering.rank)+b.willpower,
-    wounds:4+k.toughness.rank+Math.ceil(Math.max(0,a.resilience)/2)+b.wounds,
-    initiative:a.speed+k.notice.rank+b.initiative,walk,charge:Math.max(walk,4+a.speed+b.charge)};
+    wounds:s.rankWounds?s.rank:4+k.toughness.rank+Math.ceil(Math.max(0,a.resilience)/2)+b.wounds,
+    initiative:a.speed+k.notice.rank+b.initiative,walk,charge:s.canCharge===false?0:Math.max(s.allowShortCharge?0:walk,4+a.speed+b.charge)};
 }
 export function defenseSuits(s, stat) {
   const skill=stat==="defense"?"evade":"centering", aspect=stat==="defense"?"speed":"tenacity";
@@ -79,3 +79,5 @@ export function outcome(d) {
     degrees:Math.floor(Math.abs(total-d.tn)/5),damage:damage(c,d.track??[0,0,0]),critical:c.value===14};
 }
 export function escapeHTML(value) {return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+
+export function statRank(s,stat){return s.unconscious||stat==='defense'&&s.rankDefense===false?0:s.rank;}

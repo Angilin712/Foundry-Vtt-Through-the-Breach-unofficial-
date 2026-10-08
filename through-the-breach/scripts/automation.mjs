@@ -1,8 +1,9 @@
-import {ID,SKILLS,ASPECTS,assert,integer,parseSuits,derived,activeItems,outcome,containsSuits} from './rules.mjs';
-import {actorFor,startDuel,requireReady,saveDuel,duelPlan} from './cards.mjs';
+import {statRank,ID,SKILLS,ASPECTS,assert,integer,parseSuits,derived,activeItems,outcome,containsSuits} from './rules.mjs';
+import {actorFor,startDuel,requireReady,saveDuel,duelPlan,duelFateModifiers} from './cards.mjs';
 import {canAct,spendAP,validateAP,actionPenalty} from './turns.mjs';
+import {compileSpell} from './spell-builder.mjs';
 
-export const AUTOMATION_OPS=['reload','useItem','buyItem','epilogue','advanceSkill','learnTrigger','declareTrigger','attune','castSpell','heal','recoverOperation'];
+export const AUTOMATION_OPS=['buildSpell','reload','useItem','buyItem','epilogue','advanceSkill','learnTrigger','declareTrigger','attune','castSpell','heal','recoverOperation'];
 export function advancePlan(s,epilogueId,skill){
   const ep=s.epilogues.find(x=>x.id===epilogueId);
   assert(ep&&!ep.chosen&&!ep.closed,'Эпилог закрыт, повышение уже использовано или эпилог не найден.');
@@ -29,6 +30,7 @@ export function triggerPlan(s,p,creation=false){
 export function availableTriggers(s,d){const r=outcome(d);return r?(s.learnedTriggers??[]).filter(t=>t.skill===d.skill&&containsSuits(r.suits,parseSuits(t.suits))):[];}
 export function spellPlan(actor,item,immutos=[]){
   const s=item?.system;assert(item?.type==='magic'&&['spell','magia'].includes(s.magicKind),'Выберите заклинание или Магию.');
+  if(s.spellBaseId){assert(!immutos.length,'Измените состав через конструктор; дополнительные Иммуто нельзя учитывать дважды.');assert(s.equipped&&s.quantity>0,'Заклинание недоступно.');return compileSpell(actor,{baseId:s.spellBaseId,immutos:s.spellImmutos});}
   assert(s.skill in SKILLS&&SKILLS[s.skill].group==='magic'&&s.aspect in ASPECTS,'Для магии нужен магический навык и известный аспект.');
   assert(s.equipped&&s.quantity>0,'Заклинание недоступно.');
   if(s.grimoireId){const g=actor.items.get(s.grimoireId);assert(g?.system.magicKind==='grimoire'&&g.system.attuned&&actor.system.activeGrimoire===g.id,'Нужна настройка на Гримуар этой Магии.');}
@@ -38,7 +40,7 @@ export function spellPlan(actor,item,immutos=[]){
     const count=(used.get(i.id)??0)+1;assert(count<=x.maxCopies,'Превышено число применений Иммуто.');used.set(i.id,count);tn+=x.tnAdjustment;ap+=x.apAdjustment;
   }
   parseSuits(s.required);assert(ap>=0&&ap<=2,'Эта комбинация требует особого правила ОД; пока разрешите её вручную.');
-  return {tn:integer(tn,0,99),ap,skill:s.skill,aspect:s.aspect,required:s.required};
+  return {tn:integer(tn,0,99),ap,skill:s.skill,aspect:s.aspect,required:s.required,resistance:s.resistance};
 }
 export function duelModifiers(s,p){
   const selected=activeItems(s).filter(i=>i.system.bonusTarget===`skill.${p.skill}`||i.system.bonusTarget===p.skill);
@@ -64,6 +66,14 @@ export async function executeAutomation(user,p){
   const actor=actorFor(user,p.actorId,p.actorUuid),s=actor.system;
   if(p.op==='recoverOperation'){assert(user.isGM,'Блокировку снимает мастер после сверки ресурсов.');return actor.update({'system.operationPending':''});}
   assert(!s.operationPending,'Операция прервана: обратитесь к мастеру.');
+  if(p.op==='buildSpell'){
+    const name=String(p.name??'').trim();assert(name&&name.length<=120,'Введите название заклинания (до 120 символов).');
+    const plan=compileSpell(actor,p.recipe);
+    return withOperation(actor,`Создание заклинания: ${name}`,async()=>{
+      for(const focus of plan.focusUpdates)await actor.items.get(focus.id).update({'system.focusObject':focus.text,'system.focusPortability':focus.portability,'system.focusRarity':focus.rarity});
+      return actor.createEmbeddedDocuments('Item',[{name,type:'magic',img:plan.base.img,system:{magicKind:'spell',skill:plan.skill,aspect:plan.aspect,tn:plan.tn,required:plan.required,apCost:plan.ap,resistance:plan.resistance,range:plan.range,duration:plan.duration,ignoreArmor:plan.ignoreArmor,grimoireId:plan.base.system.grimoireId,description:plan.description,reference:plan.base.system.reference,spellBaseId:p.recipe.baseId,spellImmutos:p.recipe.immutos??[]}}]);
+    });
+  }
   if(p.op==='advanceSkill')return actor.update(advancePlan(s,p.epilogueId,p.skill));
   if(p.op==='learnTrigger'){assert(!p.creation||user.isGM,'Бесплатный триггер создания добавляет мастер.');return actor.update(triggerPlan(s,p,p.creation===true));}
   if(p.op==='declareTrigger'){
@@ -115,23 +125,34 @@ export async function executeAutomation(user,p){
     const positive=integer(p.positive??0,0,99),negative=integer(p.negative??0,0,99)+(p.earth?1:0),bonus=integer(p.bonus??0);
     let tn=plan.tn;const target=p.targetUuid?fromUuidSync(p.targetUuid):null;
     assert(!p.targetUuid||target?.documentName==='Actor','Цель не найдена.');
-    assert(!item.system.resistance||target,'Для сопротивления нужна цель.');
-    if(item.system.resistance)assert(['defense','willpower'].includes(item.system.resistance),'Неизвестное сопротивление.');
-    const opposed=item.system.resistance&&target.type==='fated'&&p.willing!==true&&!target.system.unconscious;
+    assert(!plan.resistance||target,'Для сопротивления нужна цель.');
+    if(plan.resistance)assert(['defense','willpower'].includes(plan.resistance),'Неизвестное сопротивление.');
+    assert(plan.resistance!=='willpower'||!target?.system.immuneWillpower,'Цель невосприимчива к дуэлям Силы воли.');
+    const opposed=plan.resistance&&target.type==='fated'&&p.willing!==true&&!target.system.unconscious;
     if(opposed){assert(user.isGM,'Парное заклинание против сопротивляющегося Сужденного начинает мастер.');requireReady(target);}
-    if(item.system.resistance&&!p.willing&&!opposed)tn=Math.max(tn,derived(target.system)[item.system.resistance]+(target.system.unconscious?0:target.system.rank));
+    if(plan.resistance&&!p.willing&&!opposed)tn=Math.max(tn,derived(target.system)[plan.resistance]+statRank(target.system,plan.resistance));
     canAct(actor);requireReady(actor);
-    duelPlan(actor,{kind:'duel',...plan,tn,positive,negative,bonus,action:true});
-    if(opposed)duelPlan(target,{kind:'duel',skill:item.system.resistance,tn:0,positive:defPositive,negative:defNegative});
+    const npcVsFated=opposed&&actor.type==='npc';
+    const cast={kind:'duel',skill:plan.skill,aspect:plan.aspect,required:plan.required,tn,positive,negative,bonus,action:true,useFocus:p.useFocus,sight:p.sight,npcVsFated};
+    const defense={kind:'duel',skill:plan.resistance,tn:0,positive:defPositive,negative:defNegative};
+    if(npcVsFated){
+      const attackerFate=duelFateModifiers(actor.system,cast);
+      defense.positive+=attackerFate.negative;defense.negative+=attackerFate.positive;
+    }else if(plan.resistance&&!p.willing&&target.type==='npc'){
+      const defenderFate=duelFateModifiers(target.system,defense);
+      cast.positive+=defenderFate.negative;cast.negative+=defenderFate.positive;
+    }
+    duelPlan(actor,cast);
+    if(opposed)duelPlan(target,defense);
     if(game.combat?.started)await spendAP(actor,plan.ap);
     if(opposed){
-      const defense=await startDuel(target,{kind:'duel',skill:item.system.resistance,tn:0,positive:defPositive,negative:defNegative});
-      const offense=await startDuel(actor,{kind:'duel',...plan,tn:plan.tn,positive,negative,bonus,action:true,checkReason:item.name});
-      const dd=foundry.utils.deepClone(defense.getFlag(ID,'duel')),od=foundry.utils.deepClone(offense.getFlag(ID,'duel'));
-      dd.opposed={otherId:offense.id,role:'defense'};od.opposed={otherId:defense.id,role:'attack'};od.spellTN=od.tn;
-      await saveDuel(defense,dd);await saveDuel(offense,od);return offense;
+      const defenseMessage=await startDuel(target,defense);
+      const offense=await startDuel(actor,{...cast,tn:plan.tn,checkReason:item.name});
+      const dd=foundry.utils.deepClone(defenseMessage.getFlag(ID,'duel')),od=foundry.utils.deepClone(offense.getFlag(ID,'duel'));
+      dd.opposed={otherId:offense.id,role:'defense'};od.opposed={otherId:defenseMessage.id,role:'attack'};od.spellTN=od.tn;
+      await saveDuel(defenseMessage,dd);await saveDuel(offense,od);return offense;
     }
-    return startDuel(actor,{kind:'duel',...plan,tn,positive,negative,bonus,action:true,checkReason:`${item.name}; эффект и длительность применяет мастер`});
+    return startDuel(actor,{...cast,checkReason:`${item.name}; эффект и длительность применяет мастер`});
   }
   throw Error('Неизвестная автоматизация.');
 }
