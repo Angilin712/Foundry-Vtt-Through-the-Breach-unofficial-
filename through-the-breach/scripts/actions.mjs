@@ -7,14 +7,15 @@ import {canAct,hasEffect,actionPenalty} from './turns.mjs';
 
 export function attackMargin(d){
   const r=outcome(d);if(!r||!d.attack)return null;
+  if(d.attack.kind==='spell'&&!r.success)return null;
   if(d.opposed){const other=game.messages.get(d.opposed.otherId)?.getFlag(ID,'duel');if(!other?.closed||!d.closed||other.stage==='cancelled')return null;const margin=r.total-outcome(other).total;return margin>=0?margin:null;}
   if(d.attack.defending)return r.success?null:d.tn-r.total;
-  return r.success?r.margin:null;
+  return r.success?d.attack.kind==='spell'?Math.max(0,r.total-d.attack.defenseTN):r.margin:null;
 }
 export function battleButtons(d){
   if(d.stage==='cancelled')return '';
   let html='';
-  if(d.closed&&d.attack&&attackMargin(d)!==null&&!d.damageMessageId)html+='<button type="button" data-ttb="attackDamage">Флип урона атаки</button>';
+  if(d.closed&&d.attack&&attackMargin(d)!==null&&!d.damageMessageId)html+=`<button type="button" data-ttb="attackDamage">${d.attack.effectsOnZero?'Разрешить вторичные эффекты (без урона)':'Флип урона атаки'}</button>`;
   if(d.closed&&d.kind==='damage'&&d.targetUuid&&!d.application)html+='<button type="button" data-ttb="applyDamage">Применить урон к цели</button>';
   if(d.application&&!d.application.undone&&!d.application.pending&&!d.application.criticalPending){
     if(!d.consciousnessMessageId&&!d.criticalConsciousnessMessageId)html+='<button type="button" data-ttb="undoDamage">Отменить применение урона</button>';
@@ -66,10 +67,14 @@ export async function executeBattle(user,p){
   const {m,d}=messageOf(p.messageId);
   if(p.op==='attackDamage'){
     assert(d.closed&&d.stage!=='cancelled'&&attackMargin(d)!==null&&!d.damageMessageId,'Нет завершённой успешной атаки.');
+    assert(!d.attack.delayed||user.isGM&&p.confirmed===true,'Срабатывание задержанного заклинания подтверждает мастер.');
     const a=actorFor(user,null,d.attack.sourceUuid),margin=attackMargin(d),mod=accuracy(margin)+(d.attack.damageFocus??d.damageFocus??0)+integer(p.positive??0,0,99)-integer(p.negative??0,0,99);
     requireReady(a);
     d.damageMessageId='pending';await saveDuel(m,d);
-    const child=await startDuel(a,{kind:'damage',positive:Math.max(0,mod),negative:Math.max(0,-mod),track:d.attack.weapon.track,targetUuid:d.attack.targetUuid,ignoreArmor:d.attack.weapon.ignoreArmor,parentAttackId:m.id});
+    const spec={kind:'damage',positive:Math.max(0,mod),negative:Math.max(0,-mod),track:d.attack.weapon.track,targetUuid:d.attack.targetUuid,ignoreArmor:d.attack.weapon.ignoreArmor,parentAttackId:m.id,damageEffects:d.attack.effects??[],effectsOnZero:d.attack.effectsOnZero===true,manualEffects:d.attack.manualEffects??[]};
+    let child;
+    if(spec.effectsOnZero){const effect=duelPlan(a,spec).d;Object.assign(effect,{cards:[{id:'effect-only',value:1,suit:'',name:'Вторичные эффекты — без флипа урона'}],selected:0,closed:true,stage:'closed'});child=await foundry.documents.ChatMessage.create({flags:{[ID]:{duel:effect}}});await saveDuel(child,effect);}
+    else child=await startDuel(a,spec);
     d.damageMessageId=child.id;return saveDuel(m,d);
   }
   assert(user.isGM,'Урон, критические последствия и отмену применения подтверждает мастер.');
@@ -108,6 +113,22 @@ export async function executeBattle(user,p){
     // Record intent before mutation. Interrupted application cannot be replayed silently.
     d.application.pending=true;await saveDuel(m,d);
     const changes={[swarm?'system.rank':'system.wounds.value']:after};
+    if(amount>0||d.effectsOnZero&&r.card.value!==0){
+      const effects=foundry.utils.deepClone(target.system.effects),wasSlow=hasEffect(target.system,'slow'),current=game.combat?.started&&game.combat.combatant?.actor?.uuid===target.uuid;
+      for(const effect of d.damageEffects??[]){
+        let kind=effect.kind;
+        if(kind==='poison'&&!target.system.living)continue;
+        if(kind==='ice')kind=effect.value>=2&&wasSlow?'paralyzed':'slow';
+        assert(['burning','poison','slow','paralyzed'].includes(kind),'Неизвестный эффект урона.');
+        if(kind==='slow'&&effects.some(x=>x.kind==='fast')){effects.splice(0,effects.length,...effects.filter(x=>!['fast','slow'].includes(x.kind)));if(current&&!wasSlow)changes['system.ap.value']=Math.max(0,target.system.ap.value-1);continue;}
+        const value=['burning','poison'].includes(kind)?effect.value:1,old=effects.find(x=>x.kind===kind),ends=['slow','paralyzed'].includes(kind)?target.system.turnCount+(current?0:1):0;
+        if(old){if(['burning','poison'].includes(kind))old.value=(old.value??1)+value;old.ends=!old.ends||!ends?0:Math.max(old.ends,ends);}
+        else effects.push({id:foundry.utils.randomID(),kind,value,ends,starts:0,source:m.id,endPhase:'end'});
+        if(kind==='paralyzed')changes['system.ap.value']=0;
+        else if(kind==='slow'&&current&&!wasSlow)changes['system.ap.value']=Math.max(0,target.system.ap.value-1);
+      }
+      changes['system.effects']=effects;d.application.afterEffects=effects;d.application.afterAP=changes['system.ap.value']??target.system.ap.value;
+    }
     if(swarm&&after===0){changes['system.dead']=true;changes['system.ap.value']=0;d.application.afterDead=true;d.application.afterAP=0;}
     await target.update(changes);d.application.pending=false;return saveDuel(m,d);
   }

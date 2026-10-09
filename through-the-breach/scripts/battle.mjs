@@ -1,4 +1,12 @@
-import {assert,integer,SKILLS,ASPECTS} from './rules.mjs';
+import {assert,integer,SKILLS,ASPECTS,skillValue} from './rules.mjs';
+
+export function weaponRating(actor,item){
+  const skill=item.system.skill,rank=actor.system.skills[skill]?.rank??0;
+  assert(skill in SKILLS,'У оружия не выбран известный навык.');
+  const aspect=item.system.attackAspect||actor.system.skills[skill].aspect;
+  const total=skillValue(actor.system,skill,aspect)+(item.system.attackBonus??0);
+  return {skill,rank,aspect,total,label:`${SKILLS[skill].label}: ранг ${rank}, рейтинг ${total}${rank===0?' · необученный навык':''}`};
+}
 
 export function weaponData(item){
   assert(item?.system.isWeapon,'Выберите предмет, отмеченный как оружие.');

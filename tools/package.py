@@ -23,11 +23,13 @@ with ZipFile(archive, 'w', ZIP_DEFLATED) as z:
         info = ZipInfo(p.relative_to(root).as_posix(), (2026, 1, 1, 0, 0, 0))
         info.compress_type = ZIP_DEFLATED
         info.external_attr = 0o100644 << 16
-        z.writestr(info, p.read_bytes())
+        z.writestr(info, p.read_bytes(), compresslevel=9)
 with ZipFile(archive) as z:
     assert z.testzip() is None
     for name in manifest['esmodules'] + manifest['styles'] + [x['path'] for x in manifest['languages']]:
         assert f'through-the-breach/{name}' in z.namelist()
 checksum = hashlib.sha256(archive.read_bytes()).hexdigest()
+if archive.stat().st_size >= 100 * 1024 * 1024:
+    raise ValueError('Installation ZIP exceeds the GitHub single-file limit; use release assets or reduce package size.')
 (out / f'{archive.name}.sha256').write_text(f'{checksum}  {archive.name}\n', encoding='utf-8')
 print(f'{archive.name}: {archive.stat().st_size} bytes, SHA256 {checksum}')

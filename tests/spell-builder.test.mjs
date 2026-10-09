@@ -24,17 +24,17 @@ test('Copied catalogue documents cannot bypass Immuto limits or combine the same
   const baseCopy={...b,id:'b-copy'};a.items.set(baseCopy.id,baseCopy);assert.throws(()=>compileSpell(a,recipe(b,row(c,1,{magiaId:baseCopy.id}))));
 });
 test('Range follows the table in both directions and preserves untagged range; delay modes have flat costs',()=>{
-  const a=actor(),b=add(a,'Элементальный снаряд'),r=add(a,'Изменение Дальности'),d=add(a,'Задержка');
-  let p=compileSpell(a,recipe(b,row(r,1,{choice:'down'})));assert.equal(p.range,'y3 ярда');assert.equal(p.tn,b.system.tn-2);
-  p=compileSpell(a,recipe(b,row(r,2,{choice:'up'}),row(d,1,{choice:'rounds',rounds:10})));assert.equal(p.range,'z15 ярдов');assert.equal(p.tn,b.system.tn+6);
-  b.system.range='4 ярда';p=compileSpell(a,recipe(b,row(r,1,{choice:'up'}),row(d,1,{choice:'condition',text:'Слово «ворон»'})));assert.equal(p.range,'5 ярдов');assert.equal(p.tn,b.system.tn+7);
-  assert.throws(()=>compileSpell(a,recipe(b,row(d,1,{choice:'rounds',rounds:11}))));b.system.range='-';assert.throws(()=>compileSpell(a,recipe(b,row(r,1,{choice:'up'}))));
+  const a=actor(),b=add(a,'Элементальный снаряд'),r=add(a,'Изменение Дальности'),d=add(a,'Задержка'),water=add(a,'Вода');
+  let p=compileSpell(a,recipe(b,row(water),row(r,1,{choice:'down'})));assert.equal(p.range,'y3 ярда');assert.equal(p.tn,b.system.tn-2+1);
+  p=compileSpell(a,recipe(b,row(water),row(r,2,{choice:'up'}),row(d,1,{choice:'rounds',rounds:10})));assert.equal(p.range,'z15 ярдов');assert.equal(p.tn,b.system.tn+6+1);
+  b.system.range='4 ярда';p=compileSpell(a,recipe(b,row(water),row(r,1,{choice:'up'}),row(d,1,{choice:'condition',text:'Слово «ворон»'})));assert.equal(p.range,'5 ярдов');assert.equal(p.tn,b.system.tn+7+1);
+  assert.throws(()=>compileSpell(a,recipe(b,row(water),row(d,1,{choice:'rounds',rounds:11}))));b.system.range='-';assert.throws(()=>compileSpell(a,recipe(b,row(water),row(r,1,{choice:'up'}))));
 });
 test('AP reduction floors at zero; increase may exceed two but actual turn resources gate casting',async()=>{
-  const a=actor(),b=add(a,'Элементальный снаряд'),less=add(a,'Уменьшить ОД'),more=add(a,'Увеличить ОД');
-  assert.equal(compileSpell(a,recipe(b,row(less,3))).ap,0);
-  b.system.tn=20;const p=compileSpell(a,recipe(b,row(more,2)));assert.equal(p.ap,b.system.apCost+2);
-  const prepared={id:'prepared',type:'magic',system:new BreachItemModel({magicKind:'spell',spellBaseId:b.id,spellImmutos:[row(more,2)]}).toObject()};a.items.set(prepared.id,prepared);
+  const a=actor(),b=add(a,'Элементальный снаряд'),less=add(a,'Уменьшить ОД'),more=add(a,'Увеличить ОД'),water=add(a,'Вода');
+  assert.equal(compileSpell(a,recipe(b,row(water),row(less,3))).ap,0);
+  b.system.tn=20;const p=compileSpell(a,recipe(b,row(water),row(more,2)));assert.equal(p.ap,b.system.apCost+2);
+  const prepared={id:'prepared',type:'magic',system:new BreachItemModel({magicKind:'spell',spellBaseId:b.id,spellImmutos:[row(water),row(more,2)]}).toObject()};a.items.set(prepared.id,prepared);
   await execute(gm,{op:'setup',actorUuid:a.uuid});game.combat={started:true,combatant:{actor:a},getFlag:()=>null};const before=stack('fate').availableCards.length;
   await assert.rejects(()=>execute(player,{op:'castSpell',actorUuid:a.uuid,itemId:prepared.id,targetUuid:actor('NPC','npc',gm).uuid,confirmed:true}));assert.equal(a.system.ap.value,2);assert.equal(stack('fate').availableCards.length,before);
 });

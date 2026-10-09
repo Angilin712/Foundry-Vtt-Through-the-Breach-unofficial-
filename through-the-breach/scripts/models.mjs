@@ -14,12 +14,12 @@ export class BreachActorModel extends foundry.abstract.TypeDataModel {
     openWoundFirst:new BooleanField({initial:false}),
     effects:new ArrayField(new SchemaField({id:string(),kind:string(),ends:number(0,0,999999),starts:number(0,0,999999),source:string(),value:number(1,1,99),endPhase:string('end')})),
     freeActionUsed:new BooleanField({initial:false}),autoArmor:new BooleanField({initial:false}),operationPending:string(),
-    epilogues:new ArrayField(new SchemaField({id:string(),eligible:new ArrayField(string()),chosen:string(),pursuitId:string(),closed:new BooleanField({initial:false})})),
+    epilogues:new ArrayField(new SchemaField({id:string(),eligible:new ArrayField(string()),chosen:string(),pursuitId:string(),rewardStep:number(0,0,99),rewardChosen:string(),closed:new BooleanField({initial:false})})),
     pursuitProgress:new ArrayField(new SchemaField({id:string(),step:number(0,0,99)})),
     learnedTriggers:new ArrayField(new SchemaField({id:string(),skill:string(),name:string(),suits:string(),description:string()})),
-    activeGrimoire:string(),currentPursuitId:string(),
+    activeGrimoire:string(),currentPursuitId:string(),controllerUuid:string(),
     xp:number(0,0,9999),scrip:new NumberField({initial:10,min:0,required:true,nullable:false}),
-    pursuit:string(),station:string(),characteristics:string("Живой, Сужденный"),player:string(),
+    pursuit:string(),station:string(),characteristics:string("Р–РёРІРѕР№, РЎСѓР¶РґРµРЅРЅС‹Р№"),player:string(),
     fate:string(),notes:string(),conditions:string(),magicTheory:string(),grimoire:string(),
     twist:new ArrayField(string(),{initial:DEFAULT_TWIST}),
     weapons:new ArrayField(new SchemaField({name:string(),skill:string("melee"),range:string(),damage:string("1/2/3"),notes:string()})),
@@ -28,12 +28,12 @@ export class BreachActorModel extends foundry.abstract.TypeDataModel {
   prepareDerivedData(){super.prepareDerivedData();this.computed=derived(this);this.wounds.max=this.computed.wounds;}
 }
 export class BreachItemModel extends foundry.abstract.TypeDataModel {
-  static defineSchema(){return {description:string(),quantity:number(1,0,9999),isWeapon:new BooleanField({initial:false}),skill:string("melee"),range:string("1 ярд"),damage:string("1/2/3"),defense:string("defense"),ignoreArmor:new BooleanField({initial:false}),apCost:number(1,0,99),
+  static defineSchema(){return {description:string(),quantity:number(1,0,9999),isWeapon:new BooleanField({initial:false}),skill:string("melee"),range:string("1 СЏСЂРґ"),damage:string("1/2/3"),defense:string("defense"),ignoreArmor:new BooleanField({initial:false}),apCost:number(1,0,99),
     attackAspect:string(),attackBonus:number(),equipped:new BooleanField({initial:true}),isConsumable:new BooleanField({initial:false}),category:string(),reference:string(),price:new NumberField({initial:0,min:0,required:true,nullable:false}),
     bonusTarget:string(),bonus:number(),flipBonus:number(0,-3,3),bonusSuits:string(),
     armorSlot:string(),armorType:string(),capacity:number(0,0,9999),loaded:number(0,0,9999),reserve:number(0,0,9999),reloadCost:number(1,1,99),reloadProgress:number(0,0,99),
     eligibleSkills:string(),stepMax:number(10,1,99),
-    magicKind:string('spell'),aspect:string('intellect'),tn:number(10,0,99),required:string(),resistance:string(),duration:string(),grimoireId:string(),attuned:new BooleanField({initial:false}),
+    magicKind:string('spell'),magicDamage:new BooleanField({initial:false}),aspect:string('intellect'),tn:number(10,0,99),required:string(),resistance:string(),duration:string(),grimoireId:string(),attuned:new BooleanField({initial:false}),
     tnAdjustment:number(),apAdjustment:number(),maxCopies:number(1,1,99),requirements:string(),
     spellBaseId:string(),spellImmutos:new ArrayField(new SchemaField({itemId:string(),count:number(1,1,99),suit:string(),choice:string(),rounds:number(1,1,10),text:string(),portability:number(0,0,3),rarity:number(0,0,3),magiaId:string()})),
     focusObject:string(),focusPortability:number(0,0,3),focusRarity:number(0,0,3)

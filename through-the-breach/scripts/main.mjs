@@ -9,6 +9,7 @@ import {BreachSheet,BreachItemSheet,FateTable,handleChat,safely} from "./ui.mjs"
 import {request,processRequest,syncHand,enqueue,authority} from "./cards.mjs";
 import {compareCombatants} from './battle.mjs';
 import {turnLifecycle} from './turns.mjs';
+import {movementDocument} from './movement.mjs';
 const {Actor,Item,Combat}=foundry.documents;
 
 class BreachCombat extends Combat {
@@ -29,11 +30,14 @@ Hooks.once("init",()=>{
   CONFIG.Actor.typeLabels.fated="TYPES.Actor.fated";CONFIG.Actor.typeLabels.npc="TYPES.Actor.npc";
   Object.assign(CONFIG.Item.typeLabels,{equipment:"TYPES.Item.equipment",talent:"TYPES.Item.talent",magic:"TYPES.Item.magic"});
   CONFIG.Combat.documentClass=BreachCombat;
+  CONFIG.Token.documentClass=movementDocument(CONFIG.Token.documentClass);
   foundry.applications.apps.DocumentSheetConfig.registerSheet(Actor,ID,BreachSheet,{types:["fated","npc"],makeDefault:true,label:"Сквозь Пролом"});
   foundry.applications.apps.DocumentSheetConfig.registerSheet(Item,ID,BreachItemSheet,{types:["equipment","talent","magic"],makeDefault:true,label:"Сквозь Пролом"});
   game.settings.register(ID,"requests",{scope:"world",config:false,type:Object,default:{}});
   game.settings.registerMenu(ID,"table",{name:"Стол Судьбы",label:"Открыть Стол Судьбы",hint:"Подготовка колод, раздача и личные руки.",icon:"fas fa-cards",type:FateTable,restricted:false});
   game.settings.register(ID,"sessions",{scope:"world",config:false,type:Object,default:{}});
+  game.settings.register(ID,'dramaticTime',{scope:'world',config:false,type:Boolean,default:false});
+  game.settings.register(ID,'gmFreeMovement',{name:'Свободная расстановка токенов мастером',hint:'Без оплаты Ходьбы: расстановка, толчки, телепорты и исправление позиции. Действует только для мастера на этом клиенте.',scope:'client',config:true,type:Boolean,default:false});
   game.settings.register(ID,'artworkVersion',{scope:'world',config:false,type:Number,default:0});
   game.settings.register(ID,'bestiaryVersion',{scope:'world',config:false,type:Number,default:0});
   game.ttb={createCharacter,beginSession,endScene,endSession,importBestiary:()=>enqueue(()=>safely(importBestiary)),importStarterAdventure:()=>enqueue(()=>safely(importStarterAdventure)),prepareStarterEncounter:count=>enqueue(()=>safely(()=>prepareStarterEncounter(count))),openTable:()=>new FateTable().render({force:true}),request};
@@ -58,13 +62,14 @@ Hooks.on("userConnected",()=>{if(authority()?.id===game.user.id)game.messages.fo
 Hooks.on("updateActor",actor=>{if(authority()?.id===game.user.id)enqueue(()=>syncHand(actor));});
 Hooks.on("renderChatMessageHTML",(message,html)=>{
   if(message.getFlag(ID,"status")==="done"&&message.getFlag(ID,"request")){const row=html.closest('.message')??html;row.classList.add('ttb-request-done');row.hidden=true;return;}
+  if(message.getFlag(ID,'status')==='error'&&message.getFlag(ID,'request')){const a=fromUuidSync(message.getFlag(ID,'blockedActorUuid'));html.querySelectorAll('[data-ttb="openHand"]').forEach(b=>{b.hidden=!a?.isOwner;b.addEventListener('click',event=>{event.preventDefault();safely(()=>handleChat(message,'openHand',b));});});return;}
   const d=message.getFlag(ID,"duel");if(!d||!message.author?.isGM)return;
   const actor=d.actorUuid?fromUuidSync(d.actorUuid):game.actors.get(d.actorId);
   html.querySelectorAll("[data-ttb]").forEach(button=>{
-    const gmOnly=['applyDamage','undoDamage','critical','consciousness','criticalConsciousness'].includes(button.dataset.ttb);
-    const controller=button.dataset.ttb==='attackDamage'?fromUuidSync(d.attack.sourceUuid):actor;
+    const gmOnly=['applyDamage','undoDamage','critical','consciousness','criticalConsciousness'].includes(button.dataset.ttb)||button.dataset.ttb==='attackDamage'&&d.attack?.delayed;
+    const controller=['pursuitDraw','pursuitDecline'].includes(button.dataset.ttb)?fromUuidSync(d.pursuitBonus?.actorUuid):button.dataset.ttb==='attackDamage'?fromUuidSync(d.attack.sourceUuid):actor;
     if(!controller?.isOwner||(gmOnly&&!game.user.isGM)){button.hidden=true;return;}
-    button.addEventListener("click",event=>{event.preventDefault();button.disabled=true;safely(()=>handleChat(message,button.dataset.ttb,button)).finally(()=>{button.disabled=false;});});
+    button.addEventListener("click",event=>{event.preventDefault();const disabled=button.disabled;button.disabled=true;safely(()=>handleChat(message,button.dataset.ttb,button)).finally(()=>{button.disabled=disabled;});});
   });
 });
 let renderTimer;
@@ -72,4 +77,4 @@ function refreshApps(){clearTimeout(renderTimer);renderTimer=setTimeout(()=>{
   for(const actor of game.actors)for(const app of Object.values(actor.apps))if(app.rendered)app.render({force:false});
   const table=foundry.applications.instances.get("ttb-fate-table");if(table?.rendered)table.render({force:false});
 },100);}
-for(const hook of ["createCards","updateCards","deleteCards","createCard","updateCard","deleteCard","createItem","updateItem","deleteItem"])Hooks.on(hook,refreshApps);
+for(const hook of ["updateSetting","updateChatMessage","updateActor","createChatMessage","createCards","updateCards","deleteCards","createCard","updateCard","deleteCard","createItem","updateItem","deleteItem"])Hooks.on(hook,refreshApps);

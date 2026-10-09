@@ -1,5 +1,11 @@
-import {ID,assert,integer,armorValue,escapeHTML as e} from './rules.mjs';
+import {ID,assert,integer,armorValue,derived,escapeHTML as e} from './rules.mjs';
 import {actorFor,requireReady,startDuel,stack} from './cards.mjs';
+
+export function walkPlan(s,p){
+  const distance=Number(p.distance),difficult=p.difficult===true||p.difficult==='on',maxDistance=derived(s).walk,paidDistance=distance*(difficult?2:1);
+  assert(Number.isFinite(distance)&&distance>0&&paidDistance<=maxDistance+1e-6,'Путь превышает Ходьбу за 1 ОД; трудная местность удваивает стоимость расстояния.');
+  return {cost:1,distance,difficult,maxDistance,paidDistance};
+}
 
 export const EFFECT_LABELS={stunned:'Ошеломлён: СЛ действий +2',negative:'Минус к дуэлям следующего хода',slow:'Замедлен',fast:'Быстр',paralyzed:'Парализован',hyperventilation:'Гипервентиляция: СЛ действий +2',pain:'Мучительная боль: на 1 ОД меньше',openWound:'Открытая рана: Кровотечение +1 в конце хода',burning:'Горит',poison:'Отравлен',defensive:'Оборона',focus:'Сосредоточенность',insanity:'Безумие',blind:'Слеп: −− при использовании зрения'};
 export function hasEffect(s,kind){return (s.effects??[]).some(x=>x.kind===kind&&(!x.starts||x.starts<=(s.turnCount??0)));}
@@ -55,6 +61,17 @@ export async function turnLifecycle(combat,combatant,context,phase){
 }
 export async function executeTurnAction(user,p){
   const actor=actorFor(user,p.actorId,p.actorUuid);
+  if(p.op==='focusAction'){
+    assert(game.combat?.started||game.settings.get(ID,'dramaticTime')===true,'Сосредоточенность — действие в Драматическое время; мастер должен объявить его или начать бой.');
+    validateAP(actor,1);const s=actor.system,value=(s.effects??[]).filter(x=>x.kind==='focus').reduce((n,x)=>n+(x.value??1),0);
+    assert(value<3,'Сосредоточенность уже достигла максимального флипа +++.');
+    return actor.update({'system.ap.value':s.ap.value-1,'system.effects':[...s.effects.filter(x=>x.kind!=='focus'),{id:foundry.utils.randomID(),kind:'focus',ends:s.turnCount||1,starts:0,source:'focus-action',value:value+1,endPhase:'end'}]});
+  }
+  if(p.op==='walkAction'){
+    assert(p.confirmed===true,'Подтвердите путь на карте, видимость и условия движения.');const plan=walkPlan(actor.system,p);validateAP(actor,1);
+    await actor.update({'system.ap.value':actor.system.ap.value-1});
+    return foundry.documents.ChatMessage.create({speaker:foundry.documents.ChatMessage.getSpeaker({actor}),content:`<p>${e(actor.name)}: Ходьба ${plan.distance} ярд${plan.difficult?'ов по трудной местности':''}, оплачено 1 ОД. Допустимый путь ${plan.maxDistance} ярдов. Переместите токен измеренным путём; выход из бучи и опасную местность разрешает мастер.</p>`});
+  }
   if(p.op==='spendAP')return spendAP(actor,p.cost);
   if(p.op==='recoverTurn'){
     assert(user.isGM,'Прерванный ход подтверждает мастер.');const combat=game.combat,key=combat?.getFlag(ID,'turnPending');assert(key,'Нет прерванной обработки хода.');

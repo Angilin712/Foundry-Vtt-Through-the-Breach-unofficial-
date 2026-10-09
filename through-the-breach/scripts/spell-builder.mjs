@@ -1,5 +1,6 @@
 // Core book, printed pp. 262, 272–277. Recipes contain inventory IDs, never trusted totals.
 import {ID,SKILLS,ASPECTS,SUITS,assert,integer,parseSuits} from './rules.mjs';
+import {spellCombatData} from './spell-effects.mjs';
 const repeated=new Set(['Изменение Дальности','Игнорировать персонажа','Увеличить ОД','Усилить Импульс','Повышение сопротивляемости','Повысить урон','Увеличенная длительность','Уменьшить ОД','Уменьшить урон','Снизить сопротивление','Тьма','Разложение','Свет','Природа','Ветер','Ужас']);
 const capped={'Взрыв':3,'Огонь':3,'Яд':3,'Лед':2};
 const letters={rams:'R',crows:'C',tomes:'T',masks:'M'};
@@ -55,5 +56,6 @@ export function compileSpell(actor,recipe){
   }
   if(rows.some(r=>immutoRule(actor.items.get(r.itemId)).name==='Усилить Импульс'))assert(rows.some(r=>immutoRule(actor.items.get(r.itemId)).name==='Импульс')||/импульс/i.test(s.description),'Усилить Импульс требует эффекта Импульса.');
   parseSuits(required);ap=Math.max(0,ap);integer(ap,0,99);integer(tn,0,99);
-  return {base,tn,ap,required,resistance,range,skill:s.skill,aspect:s.aspect,duration:s.duration,ignoreArmor,focusUpdates,description:`${s.description}\n\nСостав заклинания:\n${lines.join('\n\n')}\n\nСовместимость, теория и применение эффектов проверяются по книге.`,breakdown:lines.map(t=>t.split('\n')[0])};
+  const combat=spellCombatData(base,rows.map(row=>({item:actor.items.get(row.itemId),count:row.count??1})));
+  return {base,tn,ap,required,resistance,range,skill:s.skill,aspect:s.aspect,duration:s.duration,ignoreArmor,focusUpdates,...combat,description:`${s.description}\n\nСостав заклинания:\n${lines.join('\n\n')}\n\nСовместимость, теория и применение эффектов проверяются по книге.`,breakdown:lines.map(t=>t.split('\n')[0])};
 }

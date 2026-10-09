@@ -2,8 +2,10 @@ import {statRank,ID,SKILLS,ASPECTS,assert,integer,parseSuits,derived,activeItems
 import {actorFor,startDuel,requireReady,saveDuel,duelPlan,duelFateModifiers} from './cards.mjs';
 import {canAct,spendAP,validateAP,actionPenalty} from './turns.mjs';
 import {compileSpell} from './spell-builder.mjs';
+import {spellCombatData} from './spell-effects.mjs';
+import {chooseReward,adoptPursuit} from './pursuits.mjs';
 
-export const AUTOMATION_OPS=['buildSpell','reload','useItem','buyItem','epilogue','advanceSkill','learnTrigger','declareTrigger','attune','castSpell','heal','recoverOperation'];
+export const AUTOMATION_OPS=['buildSpell','reload','useItem','buyItem','epilogue','advanceSkill','choosePursuitTalent','adoptPursuit','learnTrigger','declareTrigger','attune','castSpell','heal','recoverOperation'];
 export function advancePlan(s,epilogueId,skill){
   const ep=s.epilogues.find(x=>x.id===epilogueId);
   assert(ep&&!ep.chosen&&!ep.closed,'Эпилог закрыт, повышение уже использовано или эпилог не найден.');
@@ -28,7 +30,7 @@ export function triggerPlan(s,p,creation=false){
   return {'system.xp':s.xp-(creation?0:1),'system.learnedTriggers':[...s.learnedTriggers,{id:foundry.utils.randomID(),skill:p.skill,name:String(p.name).trim(),suits:String(p.suits??''),description:String(p.description??'')}]};
 }
 export function availableTriggers(s,d){const r=outcome(d);return r?(s.learnedTriggers??[]).filter(t=>t.skill===d.skill&&containsSuits(r.suits,parseSuits(t.suits))):[];}
-export function spellPlan(actor,item,immutos=[]){
+export function spellPlan(actor,item,immutos=[],preview=false){
   const s=item?.system;assert(item?.type==='magic'&&['spell','magia'].includes(s.magicKind),'Выберите заклинание или Магию.');
   if(s.spellBaseId){assert(!immutos.length,'Измените состав через конструктор; дополнительные Иммуто нельзя учитывать дважды.');assert(s.equipped&&s.quantity>0,'Заклинание недоступно.');return compileSpell(actor,{baseId:s.spellBaseId,immutos:s.spellImmutos});}
   assert(s.skill in SKILLS&&SKILLS[s.skill].group==='magic'&&s.aspect in ASPECTS,'Для магии нужен магический навык и известный аспект.');
@@ -40,7 +42,8 @@ export function spellPlan(actor,item,immutos=[]){
     const count=(used.get(i.id)??0)+1;assert(count<=x.maxCopies,'Превышено число применений Иммуто.');used.set(i.id,count);tn+=x.tnAdjustment;ap+=x.apAdjustment;
   }
   parseSuits(s.required);assert(ap>=0&&ap<=2,'Эта комбинация требует особого правила ОД; пока разрешите её вручную.');
-  return {tn:integer(tn,0,99),ap,skill:s.skill,aspect:s.aspect,required:s.required,resistance:s.resistance};
+  const combat=spellCombatData(item,[...used].map(([id,count])=>({item:actor.items.get(id),count})),!preview);
+  return {tn:integer(tn,0,99),ap,skill:s.skill,aspect:s.aspect,required:s.required,resistance:s.resistance,range:s.range,ignoreArmor:s.ignoreArmor,...combat};
 }
 export function duelModifiers(s,p){
   const selected=activeItems(s).filter(i=>i.system.bonusTarget===`skill.${p.skill}`||i.system.bonusTarget===p.skill);
@@ -74,6 +77,8 @@ export async function executeAutomation(user,p){
       return actor.createEmbeddedDocuments('Item',[{name,type:'magic',img:plan.base.img,system:{magicKind:'spell',skill:plan.skill,aspect:plan.aspect,tn:plan.tn,required:plan.required,apCost:plan.ap,resistance:plan.resistance,range:plan.range,duration:plan.duration,ignoreArmor:plan.ignoreArmor,grimoireId:plan.base.system.grimoireId,description:plan.description,reference:plan.base.system.reference,spellBaseId:p.recipe.baseId,spellImmutos:p.recipe.immutos??[]}}]);
     });
   }
+  if(p.op==='adoptPursuit')return adoptPursuit(actor,p.pursuitId);
+  if(p.op==='choosePursuitTalent')return chooseReward(actor,p);
   if(p.op==='advanceSkill')return actor.update(advancePlan(s,p.epilogueId,p.skill));
   if(p.op==='learnTrigger'){assert(!p.creation||user.isGM,'Бесплатный триггер создания добавляет мастер.');return actor.update(triggerPlan(s,p,p.creation===true));}
   if(p.op==='declareTrigger'){
@@ -91,7 +96,7 @@ export async function executeAutomation(user,p){
     const additional=current?String(current.system.eligibleSkills).split(/[\s,;]+/).filter(Boolean):[];assert(additional.every(k=>k in SKILLS),'В Стремлении указаны неизвестные навыки. Используйте идентификаторы из подсказки.');
     const progress=s.pursuitProgress.map(x=>({...x}));if(pursuit){let row=progress.find(x=>x.id===pursuit.id);if(!row){row={id:pursuit.id,step:0};progress.push(row);}assert(row.step<pursuit.system.stepMax,'Стремление завершено; выберите другое.');row.step++;}
     assert(s.xp<9999,'Достигнут предел поля опыта.');
-    return actor.update({'system.xp':s.xp+1,'system.pursuitProgress':progress,'system.epilogues':[...s.epilogues.map(x=>({...x,closed:true})),{id,eligible:[...new Set([...p.eligible,...additional])],chosen:'',pursuitId:p.pursuitId??'',closed:false}]});
+    return actor.update({'system.xp':s.xp+1,'system.pursuitProgress':progress,'system.epilogues':[...s.epilogues.map(x=>({...x,closed:true})),{id,eligible:[...new Set([...p.eligible,...additional])],chosen:'',pursuitId:p.pursuitId??'',rewardStep:pursuit?progress.find(x=>x.id===pursuit.id).step:0,rewardChosen:'',closed:false}]});
   }
   if(p.op==='heal'){
     assert(user.isGM,'Объём исцеления подтверждает мастер после разрешения эффекта.');const amount=integer(p.amount,1,999);assert(!s.dead,'Исцеление не воскрешает погибшего.');
@@ -130,7 +135,8 @@ export async function executeAutomation(user,p){
     assert(plan.resistance!=='willpower'||!target?.system.immuneWillpower,'Цель невосприимчива к дуэлям Силы воли.');
     const opposed=plan.resistance&&target.type==='fated'&&p.willing!==true&&!target.system.unconscious;
     if(opposed){assert(user.isGM,'Парное заклинание против сопротивляющегося Сужденного начинает мастер.');requireReady(target);}
-    if(plan.resistance&&!p.willing&&!opposed)tn=Math.max(tn,derived(target.system)[plan.resistance]+statRank(target.system,plan.resistance));
+    const defenseTN=plan.resistance&&!p.willing&&!opposed?derived(target.system)[plan.resistance]+statRank(target.system,plan.resistance):null;
+    if(defenseTN!==null)tn=Math.max(tn,defenseTN);
     canAct(actor);requireReady(actor);
     const npcVsFated=opposed&&actor.type==='npc';
     const cast={kind:'duel',skill:plan.skill,aspect:plan.aspect,required:plan.required,tn,positive,negative,bonus,action:true,useFocus:p.useFocus,sight:p.sight,npcVsFated};
@@ -144,15 +150,17 @@ export async function executeAutomation(user,p){
     }
     duelPlan(actor,cast);
     if(opposed)duelPlan(target,defense);
+    if(plan.damageTrack)assert(target,'Для заклинания с уроном выберите цель.');
+    const attack=plan.damageTrack?{kind:'spell',sourceUuid:actor.uuid,targetUuid:target.uuid,targetName:target.name,defenseTN:opposed?null:defenseTN??plan.tn,damageFocus:duelPlan(actor,cast).d.damageFocus,weapon:{name:item.name,track:plan.damageTrack,ignoreArmor:plan.ignoreArmor},delayed:plan.delayed,effects:plan.effects,effectsOnZero:plan.effectsOnZero,manualEffects:plan.manualEffects}:null;
     if(game.combat?.started)await spendAP(actor,plan.ap);
     if(opposed){
       const defenseMessage=await startDuel(target,defense);
-      const offense=await startDuel(actor,{...cast,tn:plan.tn,checkReason:item.name});
+      const offense=await startDuel(actor,{...cast,tn:plan.tn,checkReason:item.name,attack});
       const dd=foundry.utils.deepClone(defenseMessage.getFlag(ID,'duel')),od=foundry.utils.deepClone(offense.getFlag(ID,'duel'));
       dd.opposed={otherId:offense.id,role:'defense'};od.opposed={otherId:defenseMessage.id,role:'attack'};od.spellTN=od.tn;
       await saveDuel(defenseMessage,dd);await saveDuel(offense,od);return offense;
     }
-    return startDuel(actor,{...cast,checkReason:`${item.name}; эффект и длительность применяет мастер`});
+    return startDuel(actor,{...cast,checkReason:`${item.name}; ${attack?'урон и эффекты — кнопкой атаки':'эффект и длительность применяет мастер'}`,attack});
   }
   throw Error('Неизвестная автоматизация.');
 }

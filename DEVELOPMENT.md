@@ -61,3 +61,16 @@ Current catalog coverage and manual effects are documented in the Russian system
 ## Bestiary generation
 
 Private PDF analysis stays under ignored `research/bestiary`; PDFs are excluded from Git. Generate the catalogue in order: `tools/prepare-bestiary.py`, `tools/resolve-bestiary-art.py`, `tools/prepare-legacy-bestiary.py`, `tools/prepare-special-bestiary.py`, `tools/build-bestiary.mjs`. The last script writes `data/bestiary.json` and SVG tokens embedding extracted WebP/JPEG portraits. No network or source PDF is needed at runtime. Do not copy open world or compendium databases: `scripts/bestiary.mjs` creates native Actor/Folder/Macro documents, importing only missing stable keys. Armour, TN and source edition differences are retained explicitly; special rules remain in full profile notes.
+
+
+## Проверка 0.5.4
+
+Новые `pursuits.mjs`, `ongoing.mjs`, `spell-effects.mjs` используют существующую очередь проверенных запросов мастера. Статические таблицы `pursuit-progression.json` и `pursuit-talents.json` сверены с основной книгой; исходные полные страницы для критического аудита хранятся вне пакета. Идентификаторы старых записей компедиумов сохранены.
+
+Смена Стремления выполняется `adoptPursuit`: талант шага 0, текущий путь и прогресс, без стартовых денег и предметов. Эпилог фиксирует rewardStep; старые эпилоги не мигрируются в новые автоматические награды во избежание дублирования уже вручную выданных талантов. В прерванной выдаче сохраняется operationPending. Мастер сверяет предметы и снимает блокировку.
+
+Флаг dramaticTime устанавливает только мастер, снимок сохраняется при начале проверки. В парных проверках предложение бонуса возникает после завершения обеих сторон; spellTN проверяется по наличию, включая 0. Прерванный добор сохраняет pending и требует сверки руки, автоматического повторения нет.
+
+Базы компедиумов нельзя подменять во время работы Foundry. Перед установкой 0.5.4 полностью закрыть сервер, сохранить резервную копию системы и мира, затем заменить системный пакет. Мир обновляется через штатное чтение модели, исторические награды не повторяются.
+
+Автоматическая Ходьба: movement.mjs расширяет TokenDocument._preUpdateMovement; исходное перемещение заменяется аутентифицированным запросом активному GM. Права/текущий токен/позиция проверяются до движения; стоимость вычисляет native core в GM replay. Внутренний билет сохраняется по цепочке ID продолжений, поскольку core не переносит произвольные updateOptions. Короткий маршрут не переносит остаток через другие действия. Движение и AP не являются единой транзакцией Foundry: полный отказ компенсируется без перезаписи ручного AP; частичный сбой сохраняет recovery lock. 191 тест проходит.

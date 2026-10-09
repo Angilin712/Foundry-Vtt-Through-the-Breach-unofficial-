@@ -1,11 +1,20 @@
 import {ID,SKILLS,ASPECTS,SUITS,cardName,escapeHTML as e,assert} from './rules.mjs';
 import {request,stack} from './cards.mjs';
 import {tarotTables,catalogDocuments,catalogMeta} from './creation.mjs';
+import {weaponRating} from './battle.mjs';
 const options=(rows,value)=>rows.map(([k,label])=>`<option value="${e(k)}" ${String(k)===String(value)?'selected':''}>${e(label)}</option>`).join('');
 const skillOptions=value=>options([['','Выберите навык'],...Object.values(SKILLS).map(s=>[s.id,s.label])],value);
-async function dialog(title,content,label='Продолжить',draftButton=false){
+async function dialog(title,content,label='Продолжить',draftButton=false,onRender){
  const form=(button,action)=>{const data=new FormData(button.form);if(action)data.set('creationAction',action);return data;};
- return foundry.applications.api.DialogV2.prompt({window:{title,resizable:true},position:{width:680},content:`<div class="ttb-dialog" style="max-height:70vh;overflow:auto">${content}</div>`,ok:{label,callback:(_event,button)=>form(button,draftButton?'complete':'')},buttons:draftButton?[{action:'draft',label:'Сохранить черновик',callback:(_event,button)=>form(button,'draft')}]:[],rejectClose:false});
+ return foundry.applications.api.DialogV2.prompt({window:{title,resizable:true},position:{width:680},content:`<div class="ttb-dialog" style="max-height:70vh;overflow:auto">${content}</div>`,render:(_event,app)=>onRender?.(app.element),ok:{label,callback:(_event,button)=>form(button,draftButton?'complete':'')},buttons:draftButton?[{action:'draft',label:'Сохранить черновик',callback:(_event,button)=>form(button,'draft')}]:[],rejectClose:false});
+}
+export function draftWeaponRating(form,rows,item){
+ const aspects=Object.fromEntries(Object.keys(ASPECTS).map((key,i)=>[key,Number(form.getAll(i<4?'body':'mind')[i%4]??0)]));
+ const skills=Object.fromEntries(Object.values(SKILLS).map(s=>[s.id,{rank:0,aspect:s.aspect}]));
+ for(const [kind,index] of [['root',2],['endeavor',4]])form.getAll(kind).forEach((k,i)=>{if(skills[k])skills[k].rank=rows[index][kind][i]??0;});
+ const station=skills[rows[0].station.skill].rank?form.get('stationSkill'):rows[0].station.skill;if(skills[station]&&!skills[station].rank)skills[station].rank=1;
+ for(const mod of form.getAll('mods')){if(mod.startsWith('aspect.')&&mod.slice(7) in aspects)aspects[mod.slice(7)]++;else if(skills[mod]&&!skills[mod].rank)skills[mod].rank=2;}
+ return weaponRating({system:{aspects,skills}},item);
 }
 const label=(text,content)=>`<label>${e(text)}${content}</label>`;
 export async function createCharacter(actor){
@@ -42,7 +51,12 @@ export async function createCharacter(actor){
  html+='<h3>Масти Смешанной колоды</h3>';
  ['Определяющая','Предков','Центральная','Наследия'].forEach((name,i)=>{html+=label(name,`<select name="twist">${options(Object.entries(SUITS),saved.twist?.[i]??Object.keys(SUITS)[i])}</select>`);});
  html+=label('Концепция, языки и примечания',`<textarea name="notes">${e(saved.notes)}</textarea>`);
- const f=await dialog('Создание персонажа по Таро',html,'Завершить создание',true);if(!f)return;
+ html+='<section data-weapon-preview aria-live="polite"></section>';
+ const f=await dialog('Создание персонажа по Таро',html,'Завершить создание',true,element=>{
+   const form=element.querySelector('form'),preview=element.querySelector('[data-weapon-preview]');
+   const update=()=>{const data=new FormData(form);preview.innerHTML='<h3>Выбранное оружие</h3>'+['starter','bought'].flatMap(k=>data.getAll(k)).map(uuid=>equipment.find(i=>i.uuid===uuid)).filter(i=>i?.system.isWeapon).map(i=>`<p>${e(i.name)} · ${e(draftWeaponRating(data,rows,i).label)}</p>`).join('')+'<p>Предварительный рейтинг по текущему распределению навыков и аспектов. Условные бонусы талантов учитывайте отдельно. Необученное оружие использовать можно.</p>';};
+   form.addEventListener('change',update);update();
+ });if(!f)return;
  const form=Object.fromEntries(f.entries());for(const k of ['body','mind','root','endeavor','mods','starter','bought','twist','magia','immuto'])form[k]=f.getAll(k);for(const k of ['starter','bought','magia','immuto'])form[k]=form[k].filter(Boolean);form.requirementsConfirmed=f.has('requirementsConfirmed');form.manualStarterConfirmed=f.has('manualStarterConfirmed');
  await request({op:'creationSave',actorUuid:actor.uuid,form});
  if(f.get('creationAction')==='complete'){await request({op:'creationApply',actorUuid:actor.uuid,form});ui.notifications.info('Персонаж создан; личная колода готова. Триггеры навыков ранга 3 выберите отдельно по книге.');}
@@ -52,7 +66,8 @@ export async function browseCatalog(actor){
  assert(actor.isOwner,'Нет прав на лист.');
  const f=await dialog('Добавить из библиотеки',label('Раздел',`<select name="pack">${options([['equipment','Снаряжение'],['pursuits','Стремления'],['talents','Таланты'],['magic','Магии и Иммуто'],['stations','Станции'],['skills','Навыки (справочник)']],'equipment')}</select>`));if(!f)return;
  const name=f.get('pack'),docs=await catalogDocuments(name);
- const selected=await dialog('Запись библиотеки',label('Запись',`<select name="uuid">${options(docs.map(i=>[i.uuid,`${i.name}${i.type==='equipment'?' · '+i.system.price+'§':''}`]))}</select>`)+label('Количество','<input name="quantity" type="number" min="1" max="99" value="1">')+(game.user.isGM?label('Добавить бесплатно (выдача мастером)','<input name="free" type="checkbox">'):'')+'<p>Купить можно только снаряжение. Таланты, Станции и Стремления добавляет мастер после проверки правил. Справочник навыков не выдаёт ранги.</p>','Добавить');if(!selected)return;
+ const rating=i=>i.system.isWeapon?' · '+weaponRating(actor,i).label:'';
+ const selected=await dialog('Запись библиотеки',label('Запись',`<select name="uuid">${options(docs.map(i=>[i.uuid,`${i.name}${rating(i)}${i.type==='equipment'?' · '+i.system.price+'§':''}`]))}</select>`)+label('Количество','<input name="quantity" type="number" min="1" max="99" value="1">')+(game.user.isGM?label('Добавить бесплатно (выдача мастером)','<input name="free" type="checkbox">'):'')+'<p>Купить можно только снаряжение. Таланты, Станции и Стремления добавляет мастер после проверки правил. Справочник навыков не выдаёт ранги.</p>','Добавить');if(!selected)return;
  await request({op:selected.has('free')?'catalogImport':'catalogBuy',actorUuid:actor.uuid,uuid:selected.get('uuid'),quantity:Number(selected.get('quantity'))});
 }
 export async function beginSession(){
@@ -64,7 +79,7 @@ export async function endSession(){
  assert(game.user.isGM,'Эпилог проводит мастер.');const sessions=game.settings.get(ID,'sessions');const f=await dialog('Эпилог',label('Сессия',`<select name="session">${options(Object.keys(sessions).map(k=>[k,k]))}</select>`));if(!f)return;const session=f.get('session');assert(sessions[session],'Сначала проведите пролог с названием сессии.');
  for(const [id,status] of Object.entries(sessions[session].actors)){
   const actor=game.actors.get(id);if(!actor||status!=='done'||actor.system.epilogues.some(x=>x.id===session))continue;
-  const choice=await dialog(`Эпилог: ${actor.name}`,label('Первый разрешённый навык',`<select name="first" required>${skillOptions()}</select>`)+label('Второй разрешённый навык',`<select name="second" required>${skillOptions()}</select>`)+label('Стремление',`<select name="pursuit">${options([['','Без отдельной записи'],...actor.items.filter(i=>i.system.category==='pursuit').map(i=>[i.id,i.name])],actor.system.currentPursuitId)}</select>`)+`<p>1 опыт и шаг Стремления; один навык затем повышается в разделе «Развитие». Талант за шаг добавляет мастер. Уже обработанные участники пропускаются.</p>`,'Выдать развитие');if(!choice)return;
+  const choice=await dialog(`Эпилог: ${actor.name}`,label('Первый разрешённый навык',`<select name="first" required>${skillOptions()}</select>`)+label('Второй разрешённый навык',`<select name="second" required>${skillOptions()}</select>`)+label('Стремление',`<select name="pursuit">${options([['','Без отдельной записи'],...actor.items.filter(i=>i.system.category==='pursuit').map(i=>[i.id,i.name])],actor.system.currentPursuitId)}</select>`)+`<p>1 опыт и шаг Стремления; один навык затем повышается в разделе «Развитие». Талант за шаг игрок выбирает в разделе «Развитие». Уже обработанные участники пропускаются.</p>`,'Выдать развитие');if(!choice)return;
   await request({op:'epilogue',actorUuid:actor.uuid,session,eligible:[choice.get('first'),choice.get('second')],pursuitId:choice.get('pursuit')});
  }
  ui.notifications.info('Эпилог проведён. Игроки могут выбрать повышение навыка в листах.');

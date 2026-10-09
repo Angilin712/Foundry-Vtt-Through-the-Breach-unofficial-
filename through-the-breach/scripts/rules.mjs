@@ -75,8 +75,10 @@ export function outcome(d) {
   const c=d.replacement??d.cards[d.selected];
   const suits=[...d.baseSuits,...(!c.rank&&c.value===14?(d.redSuit?[d.redSuit]:[]):c.suit?[c.suit]:[])];
   const total=d.base+c.value;
-  return {card:c,total,suits,success:total>=d.tn && containsSuits(suits,d.required),margin:total-d.tn,
-    degrees:Math.floor(Math.abs(total-d.tn)/5),damage:damage(c,d.track??[0,0,0]),critical:c.value===14};
+  const margin=total-d.tn,numericSuccess=margin>=0,suitSuccess=containsSuits(suits,d.required),success=numericSuccess&&suitSuccess;
+  const successDegrees=success?Math.floor(margin/5):0,failureDegrees=numericSuccess?0:Math.floor(-margin/5);
+  return {card:c,total,suits,success,numericSuccess,suitSuccess,margin,successDegrees,failureDegrees,
+    degrees:success?successDegrees:failureDegrees,damage:damage(c,d.track??[0,0,0]),critical:c.value===14};
 }
 export function escapeHTML(value) {return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 

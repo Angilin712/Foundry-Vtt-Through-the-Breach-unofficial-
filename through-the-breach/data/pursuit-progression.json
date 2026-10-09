@@ -1,0 +1,1359 @@
+{
+  "source": "Основная книга, русский перевод, предоставленный пользователем",
+  "pursuits": [
+    {
+      "key": "pursuit-0",
+      "name": "Академик",
+      "group": "academic",
+      "printedPage": 100,
+      "drawAbilityText": "Заядлый студент\nКогда этот персонаж проваливает академическую \nдуэль, он может вытянуть карту.\nВо время Эпилога персонаж, в этом Стремлении,\nможет продвинуться в любом академическом навыке в дополнение к тем, которые предлагает ему \nМастер Судьбы.",
+      "drawRequiresDramatic": false,
+      "drawActor": "self",
+      "drawSkill": null,
+      "progression": [
+        {
+          "step": 0,
+          "general": false,
+          "options": [
+            "Всезнайка"
+          ],
+          "printedPage": 100
+        },
+        {
+          "step": 1,
+          "general": false,
+          "options": [
+            "Студенческое знание",
+            "научная классификация"
+          ],
+          "printedPage": 100
+        },
+        {
+          "step": 2,
+          "general": true,
+          "options": [],
+          "printedPage": 100
+        },
+        {
+          "step": 3,
+          "general": false,
+          "options": [
+            "Рациональный разум",
+            "Симпозиум"
+          ],
+          "printedPage": 100
+        },
+        {
+          "step": 4,
+          "general": true,
+          "options": [],
+          "printedPage": 100
+        },
+        {
+          "step": 5,
+          "general": false,
+          "options": [
+            "Назойливый",
+            "Скучная лекция"
+          ],
+          "printedPage": 100
+        },
+        {
+          "step": 6,
+          "general": true,
+          "options": [],
+          "printedPage": 100
+        },
+        {
+          "step": 7,
+          "general": false,
+          "options": [
+            "Выученные уроки",
+            "Закалка разума"
+          ],
+          "printedPage": 100
+        },
+        {
+          "step": 8,
+          "general": true,
+          "options": [],
+          "printedPage": 100
+        },
+        {
+          "step": 9,
+          "general": false,
+          "options": [
+            "Философ",
+            "Эрудиция"
+          ],
+          "printedPage": 100
+        },
+        {
+          "step": 10,
+          "general": false,
+          "options": [
+            "Момент Эврики"
+          ],
+          "printedPage": 100
+        }
+      ]
+    },
+    {
+      "key": "pursuit-1",
+      "name": "Преступник",
+      "group": "training",
+      "printedPage": 104,
+      "drawAbilityText": "Оппортунист\nКогда этот персонаж проваливает дуэль Тренируемых навыков, он может вытянуть карту.\nВо время Эпилога персонаж, использующий это \nСтремление, может продвинуться в любом Тренируемом навыке в дополнение к тем вариантам \nнавыков, которые предоставляет мастер.",
+      "drawRequiresDramatic": false,
+      "drawActor": "self",
+      "drawSkill": null,
+      "progression": [
+        {
+          "step": 0,
+          "general": false,
+          "options": [
+            "Импровизация"
+          ],
+          "printedPage": 104
+        },
+        {
+          "step": 1,
+          "general": false,
+          "options": [
+            "Негодяй",
+            "Друзья поневоле"
+          ],
+          "printedPage": 104
+        },
+        {
+          "step": 2,
+          "general": true,
+          "options": [],
+          "printedPage": 104
+        },
+        {
+          "step": 3,
+          "general": false,
+          "options": [
+            "Беспощадный",
+            "Двуличный"
+          ],
+          "printedPage": 104
+        },
+        {
+          "step": 4,
+          "general": true,
+          "options": [],
+          "printedPage": 104
+        },
+        {
+          "step": 5,
+          "general": false,
+          "options": [
+            "Грязный трюк",
+            "Отморозки"
+          ],
+          "printedPage": 104
+        },
+        {
+          "step": 6,
+          "general": true,
+          "options": [],
+          "printedPage": 104
+        },
+        {
+          "step": 7,
+          "general": false,
+          "options": [
+            "Изучить противника",
+            "Уйти в тень"
+          ],
+          "printedPage": 104
+        },
+        {
+          "step": 8,
+          "general": true,
+          "options": [],
+          "printedPage": 104
+        },
+        {
+          "step": 9,
+          "general": false,
+          "options": [
+            "Не-туда",
+            "Шок и трепет"
+          ],
+          "printedPage": 104
+        },
+        {
+          "step": 10,
+          "general": false,
+          "options": [
+            "Шустрый"
+          ],
+          "printedPage": 104
+        }
+      ]
+    },
+    {
+      "key": "pursuit-2",
+      "name": "Дабблер",
+      "group": "magic",
+      "printedPage": 108,
+      "drawAbilityText": "Прозрение\nКогда этот персонаж терпит поражение в магической дуэли в течение Драматического времени, он\nможет вытянуть карту.\nВо время Эпилога персонаж с этим Стремлением\nможет продвинуться в любом магическом навыке в\nдополнение к тем вариантам продвижения навыка,\nкоторые предоставляет Мастер Судьбы.",
+      "drawRequiresDramatic": true,
+      "drawActor": "self",
+      "drawSkill": null,
+      "progression": [
+        {
+          "step": 0,
+          "general": false,
+          "options": [
+            "Воплощенная защита"
+          ],
+          "printedPage": 108
+        },
+        {
+          "step": 1,
+          "general": false,
+          "options": [
+            "Контрмагия",
+            "Освоенный иммуто"
+          ],
+          "printedPage": 108
+        },
+        {
+          "step": 2,
+          "general": true,
+          "options": [],
+          "printedPage": 108
+        },
+        {
+          "step": 3,
+          "general": false,
+          "options": [
+            "Чародейство",
+            "Освоенная магия"
+          ],
+          "printedPage": 108
+        },
+        {
+          "step": 4,
+          "general": true,
+          "options": [],
+          "printedPage": 108
+        },
+        {
+          "step": 5,
+          "general": false,
+          "options": [
+            "Смешивание",
+            "Освоенный иммуто"
+          ],
+          "printedPage": 108
+        },
+        {
+          "step": 6,
+          "general": true,
+          "options": [],
+          "printedPage": 108
+        },
+        {
+          "step": 7,
+          "general": false,
+          "options": [
+            "Всплеск",
+            "Освоенная магия"
+          ],
+          "printedPage": 108
+        },
+        {
+          "step": 8,
+          "general": true,
+          "options": [],
+          "printedPage": 108
+        },
+        {
+          "step": 9,
+          "general": false,
+          "options": [
+            "Усиленное чародейство",
+            "Освоенный иммуто"
+          ],
+          "printedPage": 108
+        },
+        {
+          "step": 10,
+          "general": false,
+          "options": [
+            "Эксперт заклинатель"
+          ],
+          "printedPage": 108
+        }
+      ]
+    },
+    {
+      "key": "pursuit-3",
+      "name": "Ударник",
+      "group": "training",
+      "printedPage": 112,
+      "drawAbilityText": "Долгие дни\nКогда этот персонаж проваливает Соревнование \nТренированных навыков, он может вытянуть карту.\nВо время Эпилога персонаж с этим Стремлением \nможет продвинуться в любом Тренированном навыке в дополнение к тем вариантам продвижения \nнавыков, которые предоставил Мастер Судьбы.",
+      "drawRequiresDramatic": false,
+      "drawActor": "self",
+      "drawSkill": null,
+      "progression": [
+        {
+          "step": 0,
+          "general": false,
+          "options": [
+            "Трудяга"
+          ],
+          "printedPage": 112
+        },
+        {
+          "step": 1,
+          "general": false,
+          "options": [
+            "Стоять",
+            "Терпеть"
+          ],
+          "printedPage": 112
+        },
+        {
+          "step": 2,
+          "general": true,
+          "options": [],
+          "printedPage": 112
+        },
+        {
+          "step": 3,
+          "general": false,
+          "options": [
+            "Командная работа",
+            "Трудно убить"
+          ],
+          "printedPage": 112
+        },
+        {
+          "step": 4,
+          "general": true,
+          "options": [],
+          "printedPage": 112
+        },
+        {
+          "step": 5,
+          "general": false,
+          "options": [
+            "Устойчивый темп",
+            "Медленная смерть"
+          ],
+          "printedPage": 112
+        },
+        {
+          "step": 6,
+          "general": true,
+          "options": [],
+          "printedPage": 112
+        },
+        {
+          "step": 7,
+          "general": false,
+          "options": [
+            "Стиснув зубы",
+            "Терпение и Труд"
+          ],
+          "printedPage": 112
+        },
+        {
+          "step": 8,
+          "general": true,
+          "options": [],
+          "printedPage": 112
+        },
+        {
+          "step": 9,
+          "general": false,
+          "options": [
+            "Просто царапина",
+            "Неудержимый"
+          ],
+          "printedPage": 112
+        },
+        {
+          "step": 10,
+          "general": false,
+          "options": [
+            "Удел всей моей жизни"
+          ],
+          "printedPage": 112
+        }
+      ]
+    },
+    {
+      "key": "pursuit-4",
+      "name": "Расхититель могил",
+      "group": "magic",
+      "printedPage": 116,
+      "drawAbilityText": "Чёрная душа\nКогда этот персонаж терпит поражение в магической дуэли в течение Драматического времени, он\nможет вытянуть карту.\nВо время Эпилога персонаж с этим Стремлением\nможет продвинуться в любом магическом навыке в\nдополнение к тем вариантам продвижения навыков,\nкоторые предоставляет Мастер Судьбы.",
+      "drawRequiresDramatic": true,
+      "drawActor": "self",
+      "drawSkill": null,
+      "progression": [
+        {
+          "step": 0,
+          "general": false,
+          "options": [
+            "Чувство трупов"
+          ],
+          "printedPage": 116
+        },
+        {
+          "step": 1,
+          "general": false,
+          "options": [
+            "Им это не понадобится",
+            "Освоенный иммуто"
+          ],
+          "printedPage": 116
+        },
+        {
+          "step": 2,
+          "general": true,
+          "options": [],
+          "printedPage": 116
+        },
+        {
+          "step": 3,
+          "general": false,
+          "options": [
+            "Мерзкие помыслы",
+            "Освоенная магия"
+          ],
+          "printedPage": 116
+        },
+        {
+          "step": 4,
+          "general": true,
+          "options": [],
+          "printedPage": 116
+        },
+        {
+          "step": 5,
+          "general": false,
+          "options": [
+            "Мрачные отвары",
+            "Освоенный иммуто"
+          ],
+          "printedPage": 116
+        },
+        {
+          "step": 6,
+          "general": true,
+          "options": [],
+          "printedPage": 116
+        },
+        {
+          "step": 7,
+          "general": false,
+          "options": [
+            "Поглощать трупы",
+            "Освоенная магия"
+          ],
+          "printedPage": 116
+        },
+        {
+          "step": 8,
+          "general": true,
+          "options": [],
+          "printedPage": 116
+        },
+        {
+          "step": 9,
+          "general": false,
+          "options": [
+            "Маниакальный хохот",
+            "Освоенный иммуто"
+          ],
+          "printedPage": 116
+        },
+        {
+          "step": 10,
+          "general": false,
+          "options": [
+            "Нечестивый маяк"
+          ],
+          "printedPage": 116
+        }
+      ]
+    },
+    {
+      "key": "pursuit-5",
+      "name": "Страж",
+      "group": "close",
+      "printedPage": 120,
+      "drawAbilityText": "Железная бандура\nКогда этот персонаж терпит неудачу в Соревновании навыков ближнего боя во время Драматического времени, он может вытянуть карту.\nВо время Эпилога персонаж с этим стремлением\nможет продвинуться в любом навыке ближнего боя\nв дополнение к тем вариантам продвижения навыков, которые предоставлены Мастером Судьбы.",
+      "drawRequiresDramatic": true,
+      "drawActor": "self",
+      "drawSkill": null,
+      "progression": [
+        {
+          "step": 0,
+          "general": false,
+          "options": [
+            "Долгосрочная задача"
+          ],
+          "printedPage": 120
+        },
+        {
+          "step": 1,
+          "general": false,
+          "options": [
+            "Стойкая защита",
+            "Устойчивость"
+          ],
+          "printedPage": 120
+        },
+        {
+          "step": 2,
+          "general": true,
+          "options": [],
+          "printedPage": 120
+        },
+        {
+          "step": 3,
+          "general": false,
+          "options": [
+            "Принять удар",
+            "Укрывающий взор"
+          ],
+          "printedPage": 120
+        },
+        {
+          "step": 4,
+          "general": true,
+          "options": [],
+          "printedPage": 120
+        },
+        {
+          "step": 5,
+          "general": false,
+          "options": [
+            "Шквал",
+            "Отставить смех"
+          ],
+          "printedPage": 120
+        },
+        {
+          "step": 6,
+          "general": true,
+          "options": [],
+          "printedPage": 120
+        },
+        {
+          "step": 7,
+          "general": false,
+          "options": [
+            "Джаггернаут",
+            "Внушительная стойка"
+          ],
+          "printedPage": 120
+        },
+        {
+          "step": 8,
+          "general": true,
+          "options": [],
+          "printedPage": 120
+        },
+        {
+          "step": 9,
+          "general": false,
+          "options": [
+            "Несокрушимая оборона",
+            "Контрудар"
+          ],
+          "printedPage": 120
+        },
+        {
+          "step": 10,
+          "general": false,
+          "options": [
+            "Страж"
+          ],
+          "printedPage": 120
+        }
+      ]
+    },
+    {
+      "key": "pursuit-6",
+      "name": "Ганфайтер",
+      "group": "ranged",
+      "printedPage": 124,
+      "drawAbilityText": "Ровно в полдень\nКогда этот персонаж терпит поражение в поединке\nДальнего Боя в Драматическое время, он может\nвытянуть карту.\nВо время Эпилога персонаж с этим стремлением\nможет продвинуться в любом навыке дальнего боя в\nдополнение к тем вариантам продвижения навыков,\nкоторые предоставил Мастер Судьбы.",
+      "drawRequiresDramatic": true,
+      "drawActor": "self",
+      "drawSkill": null,
+      "progression": [
+        {
+          "step": 0,
+          "general": false,
+          "options": [
+            "Быстрая жеребьевка"
+          ],
+          "printedPage": 124
+        },
+        {
+          "step": 1,
+          "general": false,
+          "options": [
+            "Вызов",
+            "Пуленепробиваемый"
+          ],
+          "printedPage": 124
+        },
+        {
+          "step": 2,
+          "general": true,
+          "options": [],
+          "printedPage": 124
+        },
+        {
+          "step": 3,
+          "general": false,
+          "options": [
+            "Ганфайтер",
+            "Быстрая перезарядка"
+          ],
+          "printedPage": 124
+        },
+        {
+          "step": 4,
+          "general": true,
+          "options": [],
+          "printedPage": 124
+        },
+        {
+          "step": 5,
+          "general": false,
+          "options": [
+            "Быстрый огонь",
+            "Быстрейший ствол"
+          ],
+          "printedPage": 124
+        },
+        {
+          "step": 6,
+          "general": true,
+          "options": [],
+          "printedPage": 124
+        },
+        {
+          "step": 7,
+          "general": false,
+          "options": [
+            "На это нет времени",
+            "Изнуряющий Выстрел"
+          ],
+          "printedPage": 124
+        },
+        {
+          "step": 8,
+          "general": true,
+          "options": [],
+          "printedPage": 124
+        },
+        {
+          "step": 9,
+          "general": false,
+          "options": [
+            "Палец на курке",
+            "Закрутить пулю"
+          ],
+          "printedPage": 124
+        },
+        {
+          "step": 10,
+          "general": false,
+          "options": [
+            "Эксперт в стрельбе"
+          ],
+          "printedPage": 124
+        }
+      ]
+    },
+    {
+      "key": "pursuit-7",
+      "name": "Наемник",
+      "group": "ranged",
+      "printedPage": 128,
+      "drawAbilityText": "Пригоршень скрипов\nКогда этот персонаж терпит поражение в поединке\nДальнего Боя во время Драматического времени, он\nможет вытянуть карту.\nВо время Эпилога персонаж с этим Стремлением\nможет продвинуться в любом навыке дальнего боя в\nдополнение к тем навыкам, которые были предоставлены Мастером Судьбы.",
+      "drawRequiresDramatic": true,
+      "drawActor": "self",
+      "drawSkill": null,
+      "progression": [
+        {
+          "step": 0,
+          "general": false,
+          "options": [
+            "Охотник за головами"
+          ],
+          "printedPage": 128
+        },
+        {
+          "step": 1,
+          "general": false,
+          "options": [
+            "Бесконечная погоня",
+            "Мелкие поручения"
+          ],
+          "printedPage": 128
+        },
+        {
+          "step": 2,
+          "general": true,
+          "options": [],
+          "printedPage": 128
+        },
+        {
+          "step": 3,
+          "general": false,
+          "options": [
+            "Высочайшая ставка",
+            "Переговоры по контракту"
+          ],
+          "printedPage": 128
+        },
+        {
+          "step": 4,
+          "general": true,
+          "options": [],
+          "printedPage": 128
+        },
+        {
+          "step": 5,
+          "general": false,
+          "options": [
+            "Живой щит",
+            "Свести концы с концами"
+          ],
+          "printedPage": 128
+        },
+        {
+          "step": 6,
+          "general": true,
+          "options": [],
+          "printedPage": 128
+        },
+        {
+          "step": 7,
+          "general": false,
+          "options": [
+            "Монета за смерть",
+            "Охотник смерти"
+          ],
+          "printedPage": 128
+        },
+        {
+          "step": 8,
+          "general": true,
+          "options": [],
+          "printedPage": 128
+        },
+        {
+          "step": 9,
+          "general": false,
+          "options": [
+            "Тяжелая жизнь",
+            "Одолженное время"
+          ],
+          "printedPage": 128
+        },
+        {
+          "step": 10,
+          "general": false,
+          "options": [
+            "Авансовый платеж"
+          ],
+          "printedPage": 128
+        }
+      ]
+    },
+    {
+      "key": "pursuit-8",
+      "name": "Начальник",
+      "group": "social",
+      "printedPage": 132,
+      "drawAbilityText": "Надзор\nКогда этот персонаж терпит поражение в Социальной дуэли, он может вытянуть карту.\nВо время Эпилога персонаж с этим Стремлением \nможет продвинуться в любом социальном навыке в \nдополнение к тем вариантам продвижения навыка,\nкоторые были представлены Мастером Судьбы.",
+      "drawRequiresDramatic": false,
+      "drawActor": "self",
+      "drawSkill": null,
+      "progression": [
+        {
+          "step": 0,
+          "general": false,
+          "options": [
+            "Управленческий материал"
+          ],
+          "printedPage": 132
+        },
+        {
+          "step": 1,
+          "general": false,
+          "options": [
+            "Согласованные усилия",
+            "Супервизия"
+          ],
+          "printedPage": 132
+        },
+        {
+          "step": 2,
+          "general": true,
+          "options": [],
+          "printedPage": 132
+        },
+        {
+          "step": 3,
+          "general": false,
+          "options": [
+            "Работай головой",
+            "Помни о худшем"
+          ],
+          "printedPage": 132
+        },
+        {
+          "step": 4,
+          "general": true,
+          "options": [],
+          "printedPage": 132
+        },
+        {
+          "step": 5,
+          "general": false,
+          "options": [
+            "Лучшие практики",
+            "Защити меня!"
+          ],
+          "printedPage": 132
+        },
+        {
+          "step": 6,
+          "general": true,
+          "options": [],
+          "printedPage": 132
+        },
+        {
+          "step": 7,
+          "general": false,
+          "options": [
+            "Как тебе работать",
+            "Ты, ленивая сука"
+          ],
+          "printedPage": 132
+        },
+        {
+          "step": 8,
+          "general": true,
+          "options": [],
+          "printedPage": 132
+        },
+        {
+          "step": 9,
+          "general": false,
+          "options": [
+            "Закончить работу",
+            "Сосредоточься"
+          ],
+          "printedPage": 132
+        },
+        {
+          "step": 10,
+          "general": false,
+          "options": [
+            "Для чего нужны лакеи"
+          ],
+          "printedPage": 132
+        }
+      ]
+    },
+    {
+      "key": "pursuit-9",
+      "name": "Артист",
+      "group": "social",
+      "printedPage": 136,
+      "drawAbilityText": "Склонность к \nдраматизму\nКогда этот персонаж терпит поражение в социальной дуэли, он может вытянуть карту.\nВо время эпилога персонаж с этим Стремлением\nможет продвинуться в любом Социальном Навыке в\nдополнение к тем навыкам, которые предлагает\nМастер Судьбы.",
+      "drawRequiresDramatic": false,
+      "drawActor": "self",
+      "drawSkill": null,
+      "progression": [
+        {
+          "step": 0,
+          "general": false,
+          "options": [
+            "В центре внимания"
+          ],
+          "printedPage": 136
+        },
+        {
+          "step": 1,
+          "general": false,
+          "options": [
+            "Отвлекающее представление"
+          ],
+          "printedPage": 136
+        },
+        {
+          "step": 2,
+          "general": true,
+          "options": [],
+          "printedPage": 136
+        },
+        {
+          "step": 3,
+          "general": false,
+          "options": [
+            "Благодать под огнем",
+            "Мощное впечатление"
+          ],
+          "printedPage": 136
+        },
+        {
+          "step": 4,
+          "general": true,
+          "options": [],
+          "printedPage": 136
+        },
+        {
+          "step": 5,
+          "general": false,
+          "options": [
+            "Чертовский вход",
+            "Очаровательное поведение"
+          ],
+          "printedPage": 136
+        },
+        {
+          "step": 6,
+          "general": true,
+          "options": [],
+          "printedPage": 136
+        },
+        {
+          "step": 7,
+          "general": false,
+          "options": [
+            "Вступительный акт",
+            "Мир — это сцена"
+          ],
+          "printedPage": 136
+        },
+        {
+          "step": 8,
+          "general": true,
+          "options": [],
+          "printedPage": 136
+        },
+        {
+          "step": 9,
+          "general": false,
+          "options": [
+            "Шепнуть на ушко",
+            "Практика производства"
+          ],
+          "printedPage": 136
+        },
+        {
+          "step": 10,
+          "general": false,
+          "options": [
+            "Это Шоубиз"
+          ],
+          "printedPage": 136
+        }
+      ]
+    },
+    {
+      "key": "pursuit-10",
+      "name": "Пионер",
+      "group": "training",
+      "printedPage": 140,
+      "drawAbilityText": "Надежный индивид\nКогда этот персонаж проваливает Соревнование \nТренированных навыков, он может вытянуть карту.\nВо время Эпилога персонаж в этом Стремлении \nможет продвинуться в любом Тренированном навыке в дополнение к тем вариантам продвижения навыков, которые предоставил Мастер Судьбы.",
+      "drawRequiresDramatic": false,
+      "drawActor": "self",
+      "drawSkill": null,
+      "progression": [
+        {
+          "step": 0,
+          "general": false,
+          "options": [
+            "Беспрепятственный"
+          ],
+          "printedPage": 140
+        },
+        {
+          "step": 1,
+          "general": false,
+          "options": [
+            "Обходимся тем, что имеем"
+          ],
+          "printedPage": 140
+        },
+        {
+          "step": 2,
+          "general": true,
+          "options": [],
+          "printedPage": 140
+        },
+        {
+          "step": 3,
+          "general": false,
+          "options": [
+            "Повозки в круг",
+            "С первого взгляда"
+          ],
+          "printedPage": 140
+        },
+        {
+          "step": 4,
+          "general": true,
+          "options": [],
+          "printedPage": 140
+        },
+        {
+          "step": 5,
+          "general": false,
+          "options": [
+            "Лечение подорожником",
+            "Благоприятная местность"
+          ],
+          "printedPage": 140
+        },
+        {
+          "step": 6,
+          "general": true,
+          "options": [],
+          "printedPage": 140
+        },
+        {
+          "step": 7,
+          "general": false,
+          "options": [
+            "Выживальщик",
+            "Знание троп"
+          ],
+          "printedPage": 140
+        },
+        {
+          "step": 8,
+          "general": true,
+          "options": [],
+          "printedPage": 140
+        },
+        {
+          "step": 9,
+          "general": false,
+          "options": [
+            "Первопроходец",
+            "Любитель природы"
+          ],
+          "printedPage": 140
+        },
+        {
+          "step": 10,
+          "general": false,
+          "options": [
+            "Предначертание судьбы"
+          ],
+          "printedPage": 140
+        }
+      ]
+    },
+    {
+      "key": "pursuit-11",
+      "name": "Мастер рукопашной",
+      "group": "close",
+      "printedPage": 144,
+      "drawAbilityText": "Кровавые мысли\nКогда этот персонаж терпит неудачу в поединке\nБлижнего Боя во время Драматического времени, он\nможет вытянуть карту.\nВо время Эпилога персонаж с этим Стремлением\nможет продвинуться в любом навыке Ближнего Боя\nв дополнение к тем вариантам продвижения навыков, которые предоставлены Мастером Судьбы.",
+      "drawRequiresDramatic": true,
+      "drawActor": "self",
+      "drawSkill": null,
+      "progression": [
+        {
+          "step": 0,
+          "general": false,
+          "options": [
+            "Вступая в драку"
+          ],
+          "printedPage": 144
+        },
+        {
+          "step": 1,
+          "general": false,
+          "options": [
+            "Уклонение и обход",
+            "Исцеление"
+          ],
+          "printedPage": 144
+        },
+        {
+          "step": 2,
+          "general": true,
+          "options": [],
+          "printedPage": 144
+        },
+        {
+          "step": 3,
+          "general": false,
+          "options": [
+            "Приблизиться",
+            "В меня не стреляй"
+          ],
+          "printedPage": 144
+        },
+        {
+          "step": 4,
+          "general": true,
+          "options": [],
+          "printedPage": 144
+        },
+        {
+          "step": 5,
+          "general": false,
+          "options": [
+            "Свирепый",
+            "Шквал"
+          ],
+          "printedPage": 144
+        },
+        {
+          "step": 6,
+          "general": true,
+          "options": [],
+          "printedPage": 144
+        },
+        {
+          "step": 7,
+          "general": false,
+          "options": [
+            "Прикончить шавку",
+            "Контратака"
+          ],
+          "printedPage": 144
+        },
+        {
+          "step": 8,
+          "general": true,
+          "options": [],
+          "printedPage": 144
+        },
+        {
+          "step": 9,
+          "general": false,
+          "options": [
+            "Прыжковое наступление",
+            "Импульс"
+          ],
+          "printedPage": 144
+        },
+        {
+          "step": 10,
+          "general": false,
+          "options": [
+            "Эксперт рукопашного боя"
+          ],
+          "printedPage": 144
+        }
+      ]
+    },
+    {
+      "key": "pursuit-12",
+      "name": "Жестянщик",
+      "group": "magic",
+      "printedPage": 148,
+      "drawAbilityText": "Шестернеголовый\nКогда один из подчиненных Конструктов этого персонажа терпит поражение в Пневматической дуэли \nво время Драматического времени, этот персонаж \nможет вытянуть карту.\nВо время Эпилога персонаж в этом Стремлении \nможет продвинуться в любом магическом навыке в \nдополнение к тем, которые были предложены Мастером Судьбы.",
+      "drawRequiresDramatic": true,
+      "drawActor": "subordinate-construct-owner",
+      "drawSkill": "pneumatic",
+      "progression": [
+        {
+          "step": 0,
+          "general": false,
+          "options": [
+            "Магия машин"
+          ],
+          "printedPage": 148
+        },
+        {
+          "step": 1,
+          "general": false,
+          "options": [
+            "Верный защитник"
+          ],
+          "printedPage": 148
+        },
+        {
+          "step": 2,
+          "general": true,
+          "options": [],
+          "printedPage": 148
+        },
+        {
+          "step": 3,
+          "general": false,
+          "options": [
+            "Специалист по Конструктам",
+            "Раздвинуть границы"
+          ],
+          "printedPage": 148
+        },
+        {
+          "step": 4,
+          "general": true,
+          "options": [],
+          "printedPage": 148
+        },
+        {
+          "step": 5,
+          "general": false,
+          "options": [
+            "Штопать сталь",
+            "Многозадачность"
+          ],
+          "printedPage": 148
+        },
+        {
+          "step": 6,
+          "general": true,
+          "options": [],
+          "printedPage": 148
+        },
+        {
+          "step": 7,
+          "general": false,
+          "options": [
+            "Нереальные ожидания",
+            "Технологии в крови"
+          ],
+          "printedPage": 148
+        },
+        {
+          "step": 8,
+          "general": true,
+          "options": [],
+          "printedPage": 148
+        },
+        {
+          "step": 9,
+          "general": false,
+          "options": [
+            "Избыточное давление",
+            "магическое обслуживание"
+          ],
+          "printedPage": 148
+        },
+        {
+          "step": 10,
+          "general": false,
+          "options": [
+            "Восход машин"
+          ],
+          "printedPage": 148
+        }
+      ]
+    },
+    {
+      "key": "pursuit-13",
+      "name": "Аферист",
+      "group": "expertise",
+      "printedPage": 152,
+      "drawAbilityText": "Тузы и восьмерки\nКогда этот персонаж проваливает дуэль на Экспертизу, он может вытянуть карту.\nВо время Эпилога персонаж в этом Стремлении \nможет продвинуться в любом Экспертном Навыке в \nдополнение к тем вариантам продвижения навыков,\nкоторые предоставляет Мастер Судьбы.",
+      "drawRequiresDramatic": false,
+      "drawActor": "self",
+      "drawSkill": null,
+      "progression": [
+        {
+          "step": 0,
+          "general": false,
+          "options": [
+            "Везение по жребию"
+          ],
+          "printedPage": 152
+        },
+        {
+          "step": 1,
+          "general": false,
+          "options": [
+            "Карты в рукаве"
+          ],
+          "printedPage": 152
+        },
+        {
+          "step": 2,
+          "general": true,
+          "options": [],
+          "printedPage": 152
+        },
+        {
+          "step": 3,
+          "general": false,
+          "options": [
+            "Меченые карты",
+            "Удвоить ставку"
+          ],
+          "printedPage": 152
+        },
+        {
+          "step": 4,
+          "general": true,
+          "options": [],
+          "printedPage": 152
+        },
+        {
+          "step": 5,
+          "general": false,
+          "options": [
+            "Олл-ин",
+            "Считать карты"
+          ],
+          "printedPage": 152
+        },
+        {
+          "step": 6,
+          "general": true,
+          "options": [],
+          "printedPage": 152
+        },
+        {
+          "step": 7,
+          "general": false,
+          "options": [
+            "Поставить на кон свою жизнь",
+            "Удвоить ставку"
+          ],
+          "printedPage": 152
+        },
+        {
+          "step": 8,
+          "general": true,
+          "options": [],
+          "printedPage": 152
+        },
+        {
+          "step": 9,
+          "general": false,
+          "options": [
+            "Высокие тузы",
+            "Муллиган"
+          ],
+          "printedPage": 152
+        },
+        {
+          "step": 10,
+          "general": false,
+          "options": [
+            "Шанс пятьдесят на пятьдесят"
+          ],
+          "printedPage": 152
+        }
+      ]
+    }
+  ]
+}
