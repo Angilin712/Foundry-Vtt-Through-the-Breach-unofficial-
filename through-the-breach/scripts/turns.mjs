@@ -1,13 +1,15 @@
+import {liveLabels} from './localization.mjs';
+import {t as ttbT,tr as ttbTr} from './localization.mjs';
 import {ID,assert,integer,armorValue,derived,escapeHTML as e} from './rules.mjs';
 import {actorFor,requireReady,startDuel,stack} from './cards.mjs';
 
 export function walkPlan(s,p){
   const distance=Number(p.distance),difficult=p.difficult===true||p.difficult==='on',maxDistance=derived(s).walk,paidDistance=distance*(difficult?2:1);
-  assert(Number.isFinite(distance)&&distance>0&&paidDistance<=maxDistance+1e-6,'Путь превышает Ходьбу за 1 ОД; трудная местность удваивает стоимость расстояния.');
+  assert(Number.isFinite(distance)&&distance>0&&paidDistance<=maxDistance+1e-6,ttbT('Путь превышает Ходьбу за 1 ОД; трудная местность удваивает стоимость расстояния.'));
   return {cost:1,distance,difficult,maxDistance,paidDistance};
 }
 
-export const EFFECT_LABELS={stunned:'Ошеломлён: СЛ действий +2',negative:'Минус к дуэлям следующего хода',slow:'Замедлен',fast:'Быстр',paralyzed:'Парализован',hyperventilation:'Гипервентиляция: СЛ действий +2',pain:'Мучительная боль: на 1 ОД меньше',openWound:'Открытая рана: Кровотечение +1 в конце хода',burning:'Горит',poison:'Отравлен',defensive:'Оборона',focus:'Сосредоточенность',insanity:'Безумие',blind:'Слеп: −− при использовании зрения'};
+export const EFFECT_LABELS=liveLabels({stunned:ttbT('Ошеломлён: СЛ действий +2'),negative:ttbT('Минус к дуэлям следующего хода'),slow:ttbT('Замедлен'),fast:ttbT('Быстр'),paralyzed:ttbT('Парализован'),hyperventilation:ttbT('Гипервентиляция: СЛ действий +2'),pain:ttbT('Мучительная боль: на 1 ОД меньше'),openWound:ttbT('Открытая рана: Кровотечение +1 в конце хода'),burning:ttbT('Горит'),poison:ttbT('Отравлен'),defensive:ttbT('Оборона'),focus:ttbT('Сосредоточенность'),insanity:ttbT('Безумие'),blind:ttbT('Слеп: −− при использовании зрения')});
 export function hasEffect(s,kind){return (s.effects??[]).some(x=>x.kind===kind&&(!x.starts||x.starts<=(s.turnCount??0)));}
 export function actionPenalty(s){return (hasEffect(s,'stunned')?2:0)+(hasEffect(s,'hyperventilation')?2:0);}
 export function turnPlan(s,phase){
@@ -32,13 +34,13 @@ export function turnPlan(s,phase){
   }
   return changes;
 }
-export function canAct(actor){assert(!actor.system.dead&&!actor.system.unconscious&&!hasEffect(actor.system,'paralyzed'),'Персонаж не может действовать: погиб, без сознания или парализован.');}
+export function canAct(actor){assert(!actor.system.dead&&!actor.system.unconscious&&!hasEffect(actor.system,'paralyzed'),ttbT('Персонаж не может действовать: погиб, без сознания или парализован.'));}
 export function validateAP(actor,cost){
   canAct(actor);cost=integer(cost,0,99);
   const combat=game.combat;
-  if(combat?.started){assert(combat.combatant?.actor?.uuid===actor.uuid,'Сейчас ход другого персонажа.');assert(!combat.getFlag(ID,'turnPending'),'Начало или конец хода не завершены; мастер должен проверить последствия.');}
-  assert(actor.system.ap.value>=cost,'Недостаточно очков действий.');
-  if(combat?.started&&cost===0)assert(!actor.system.freeActionUsed,'В свой ход можно выполнить только одно действие (0).');
+  if(combat?.started){assert(combat.combatant?.actor?.uuid===actor.uuid,ttbT('Сейчас ход другого персонажа.'));assert(!combat.getFlag(ID,'turnPending'),ttbT('Начало или конец хода не завершены; мастер должен проверить последствия.'));}
+  assert(actor.system.ap.value>=cost,ttbT('Недостаточно очков действий.'));
+  if(combat?.started&&cost===0)assert(!actor.system.freeActionUsed,ttbT('В свой ход можно выполнить только одно действие (0).'));
 }
 export async function spendAP(actor,cost){
   validateAP(actor,cost);cost=integer(cost,0,99);
@@ -49,36 +51,36 @@ export async function turnLifecycle(combat,combatant,context,phase){
   const key=`${context.round}:${context.turn}:${combatant.id}:${phase}`;
   const done=combat.getFlag(ID,'turnLedger')??{};
   if(done[key])return;
-  assert(!combat.getFlag(ID,'turnPending'),'Обработка хода прервана: проверьте ОД и последствия вручную.');
+  assert(!combat.getFlag(ID,'turnPending'),ttbT('Обработка хода прервана: проверьте ОД и последствия вручную.'));
   await combat.setFlag(ID,'turnPending',key);
   const wasDead=combatant.actor.system.dead,beforeWounds=combatant.actor.system.wounds.value,beforeRank=combatant.actor.system.rank;
   await combatant.actor.update(turnPlan(combatant.actor.system,phase));
   await combat.setFlag(ID,'turnLedger',{...done,[key]:true});
   await combat.setFlag(ID,'turnPending','');
-  if(phase==='end'&&!wasDead&&combatant.actor.system.dead)await ChatMessage.create({speaker:ChatMessage.getSpeaker({actor:combatant.actor}),content:`<p>${e(combatant.actor.name)}: ${combatant.actor.system.rankWounds&&combatant.actor.system.rank===0?'рой распался':'погиб от кровотечения'}. Мастер проверяет исключения способностей.</p>`});
-  if(phase==='end'&&combatant.actor.system.rankWounds&&combatant.actor.system.rank<beforeRank)await ChatMessage.create({speaker:ChatMessage.getSpeaker({actor:combatant.actor}),content:`<p>${e(combatant.actor.name)}: урон Горения / Яда, ранг роя ${beforeRank} → ${combatant.actor.system.rank}.</p>`});
-  if(phase==='end'&&!combatant.actor.system.rankWounds&&combatant.actor.system.wounds.value<beforeWounds)await ChatMessage.create({speaker:ChatMessage.getSpeaker({actor:combatant.actor}),content:`<p>${e(combatant.actor.name)}: урон Горения / Яда, ранения ${beforeWounds} → ${combatant.actor.system.wounds.value}.${combatant.actor.system.wounds.value<=0?' Мастер разрешает проверку сознания и слабый критический эффект отдельно за каждый источник урона (книга, стр. 302–303).':''}</p>`});
+  if(phase==='end'&&!wasDead&&combatant.actor.system.dead)await ChatMessage.create({speaker:ChatMessage.getSpeaker({actor:combatant.actor}),content:ttbTr`<p>${e(combatant.actor.name)}: ${combatant.actor.system.rankWounds&&combatant.actor.system.rank===0?ttbT('рой распался'):ttbT('погиб от кровотечения')}. Мастер проверяет исключения способностей.</p>`});
+  if(phase==='end'&&combatant.actor.system.rankWounds&&combatant.actor.system.rank<beforeRank)await ChatMessage.create({speaker:ChatMessage.getSpeaker({actor:combatant.actor}),content:ttbTr`<p>${e(combatant.actor.name)}: урон Горения / Яда, ранг роя ${beforeRank} → ${combatant.actor.system.rank}.</p>`});
+  if(phase==='end'&&!combatant.actor.system.rankWounds&&combatant.actor.system.wounds.value<beforeWounds)await ChatMessage.create({speaker:ChatMessage.getSpeaker({actor:combatant.actor}),content:ttbTr`<p>${e(combatant.actor.name)}: урон Горения / Яда, ранения ${beforeWounds} → ${combatant.actor.system.wounds.value}.${combatant.actor.system.wounds.value<=0?ttbT(' Мастер разрешает проверку сознания и слабый критический эффект отдельно за каждый источник урона (книга, стр. 302–303).'):''}</p>`});
 }
 export async function executeTurnAction(user,p){
   const actor=actorFor(user,p.actorId,p.actorUuid);
   if(p.op==='focusAction'){
-    assert(game.combat?.started||game.settings.get(ID,'dramaticTime')===true,'Сосредоточенность — действие в Драматическое время; мастер должен объявить его или начать бой.');
+    assert(game.combat?.started||game.settings.get(ID,'dramaticTime')===true,ttbT('Сосредоточенность — действие в Драматическое время; мастер должен объявить его или начать бой.'));
     validateAP(actor,1);const s=actor.system,value=(s.effects??[]).filter(x=>x.kind==='focus').reduce((n,x)=>n+(x.value??1),0);
-    assert(value<3,'Сосредоточенность уже достигла максимального флипа +++.');
+    assert(value<3,ttbT('Сосредоточенность уже достигла максимального флипа +++.'));
     return actor.update({'system.ap.value':s.ap.value-1,'system.effects':[...s.effects.filter(x=>x.kind!=='focus'),{id:foundry.utils.randomID(),kind:'focus',ends:s.turnCount||1,starts:0,source:'focus-action',value:value+1,endPhase:'end'}]});
   }
   if(p.op==='walkAction'){
-    assert(p.confirmed===true,'Подтвердите путь на карте, видимость и условия движения.');const plan=walkPlan(actor.system,p);validateAP(actor,1);
+    assert(p.confirmed===true,ttbT('Подтвердите путь на карте, видимость и условия движения.'));const plan=walkPlan(actor.system,p);validateAP(actor,1);
     await actor.update({'system.ap.value':actor.system.ap.value-1});
-    return foundry.documents.ChatMessage.create({speaker:foundry.documents.ChatMessage.getSpeaker({actor}),content:`<p>${e(actor.name)}: Ходьба ${plan.distance} ярд${plan.difficult?'ов по трудной местности':''}, оплачено 1 ОД. Допустимый путь ${plan.maxDistance} ярдов. Переместите токен измеренным путём; выход из бучи и опасную местность разрешает мастер.</p>`});
+    return foundry.documents.ChatMessage.create({speaker:foundry.documents.ChatMessage.getSpeaker({actor}),content:ttbTr`<p>${e(actor.name)}: Ходьба ${plan.distance} ярд${plan.difficult?ttbT('ов по трудной местности'):''}, оплачено 1 ОД. Допустимый путь ${plan.maxDistance} ярдов. Переместите токен измеренным путём; выход из бучи и опасную местность разрешает мастер.</p>`});
   }
   if(p.op==='spendAP')return spendAP(actor,p.cost);
   if(p.op==='recoverTurn'){
-    assert(user.isGM,'Прерванный ход подтверждает мастер.');const combat=game.combat,key=combat?.getFlag(ID,'turnPending');assert(key,'Нет прерванной обработки хода.');
+    assert(user.isGM,ttbT('Прерванный ход подтверждает мастер.'));const combat=game.combat,key=combat?.getFlag(ID,'turnPending');assert(key,ttbT('Нет прерванной обработки хода.'));
     await combat.setFlag(ID,'turnLedger',{...(combat.getFlag(ID,'turnLedger')??{}),[key]:true});return combat.setFlag(ID,'turnPending','');
   }
   if(p.op==='addEffect'){
-    assert(user.isGM&&p.kind in EFFECT_LABELS,'Состояние добавляет мастер.');
+    assert(user.isGM&&p.kind in EFFECT_LABELS,ttbT('Состояние добавляет мастер.'));
     const current=game.combat?.started&&game.combat.combatant?.actor?.uuid===actor.uuid;
     const standard=['fast','slow','focus','paralyzed','defensive'].includes(p.kind);
     const ends=p.temporary?actor.system.turnCount+1:standard?actor.system.turnCount+(current&&p.kind!=='defensive'?0:1):0;
@@ -97,20 +99,20 @@ export async function executeTurnAction(user,p){
     return actor.update(changes);
   }
   if(p.op==='clearEffect'){
-    assert(user.isGM,'Снятие состояния подтверждает мастер.');
-    assert(actor.system.effects.some(x=>x.id===p.effectId),'Состояние уже снято.');
+    assert(user.isGM,ttbT('Снятие состояния подтверждает мастер.'));
+    assert(actor.system.effects.some(x=>x.id===p.effectId),ttbT('Состояние уже снято.'));
     return actor.update({'system.effects':actor.system.effects.filter(x=>x.id!==p.effectId)});
   }
   if(p.op==='endSceneEffects'){
-    assert(user.isGM,'Конец сцены подтверждает мастер.');
+    assert(user.isGM,ttbT('Конец сцены подтверждает мастер.'));
     return actor.update({'system.effects':actor.system.effects.filter(x=>!x.ends),'system.ap.value':0});
   }
   if(p.op==='hyperventilation'){
-    const effect=actor.system.effects.find(x=>x.kind==='hyperventilation');assert(effect,'Нет гипервентиляции.');
+    const effect=actor.system.effects.find(x=>x.kind==='hyperventilation');assert(effect,ttbT('Нет гипервентиляции.'));
     requireReady(actor);canAct(actor);
     const tn=8+Math.max(0,-actor.system.wounds.value)+actionPenalty(actor.system);
     integer(tn,0,99);await spendAP(actor,1);
-    return startDuel(actor,{kind:'duel',skill:'toughness',aspect:'resilience',tn,positive:0,negative:0,removeEffectId:effect.id,checkReason:'Пропуск: снять гипервентиляцию'});
+    return startDuel(actor,{kind:'duel',skill:'toughness',aspect:'resilience',tn,positive:0,negative:0,removeEffectId:effect.id,checkReason:ttbT('Пропуск: снять гипервентиляцию')});
   }
-  throw Error('Неизвестное действие хода.');
+  throw Error(ttbT('Неизвестное действие хода.'));
 }

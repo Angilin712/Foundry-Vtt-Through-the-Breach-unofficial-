@@ -1,8 +1,17 @@
 # Сквозь Пролом / Through the Breach — система для Foundry VTT
 
-Неофициальная игровая система для **второго издания Through the Breach**, сеттинг Malifaux. **Версия 0.5.4**, русский интерфейс. Кости заменены штатными картами Foundry: общая Колода Судьбы и личные Смешанные колоды персонажей.
+Неофициальная игровая система для **второго издания Through the Breach**, сеттинг Malifaux. **Версия 0.6.0**, русский и английский интерфейсы. Кости заменены штатными картами Foundry: общая Колода Судьбы и личные Смешанные колоды персонажей.
 
 Это тестовая версия. Минимум — **Foundry VTT 14**; проверенная рабочая сборка — **14.365**. Установка на 14.368 разрешена манифестом, но полный игровой прогон на ней пока не подтверждён. Отсутствие верхнего ограничения в манифесте не гарантирует работу на будущих основных версиях Foundry.
+
+
+## Русский и английский языки (0.6.0)
+
+Английская основная книга второго издания — главный источник правил и терминов. Язык выбирается в настройках Foundry: English или Русский. После установки обновления полностью перезапустите Foundry, чтобы сервер перечитал список языков системы. Для собственных переводов системы Babele не требуется.
+
+Переведены интерфейс, библиотечные справки, конструктор заклинаний, бестиарий и материалы стартового приключения. Английские подписи карт показываются на английском клиенте. Проверки в чате отображаются на языке клиента без нового флипа. Ваши имена, заметки, изменённые описания и собственные названия не переводятся автоматически. Изменение другого поля не перезаписывает исходное описание его отображаемым переводом.
+
+Обновление 0.6.0 добавляет русский и английский интерфейсы. Автоматические проверки: 205/205. Два критика сверили терминологию, 216 числовых массивов Таро и 32 набора параметров Магий с английской книгой. Основные английские экраны проверены в работающем Foundry 14.365; русский язык восстановлен. Подробности и ограничения: [отчёт проверки](https://github.com/Angilin712/Foundry-Vtt-Through-the-Breach-unofficial-/blob/main/docs/BILINGUAL-ACCEPTANCE.md).
 
 ## Скачать и установить
 
@@ -12,8 +21,8 @@
 https://raw.githubusercontent.com/Angilin712/Foundry-Vtt-Through-the-Breach-unofficial-/main/through-the-breach/system.json
 ```
 
-- [ZIP версии 0.5.4](https://raw.githubusercontent.com/Angilin712/Foundry-Vtt-Through-the-Breach-unofficial-/main/dist/through-the-breach-0.5.4.zip)
-- [Контрольная сумма SHA256](https://raw.githubusercontent.com/Angilin712/Foundry-Vtt-Through-the-Breach-unofficial-/main/dist/through-the-breach-0.5.4.zip.sha256)
+- [ZIP версии 0.6.0](https://github.com/Angilin712/Foundry-Vtt-Through-the-Breach-unofficial-/releases/download/v0.6.0/through-the-breach-0.6.0.zip)
+- [Контрольная сумма SHA256](https://github.com/Angilin712/Foundry-Vtt-Through-the-Breach-unofficial-/releases/download/v0.6.0/through-the-breach-0.6.0.zip.sha256)
 - [Полная история изменений](https://github.com/Angilin712/Foundry-Vtt-Through-the-Breach-unofficial-/blob/main/CHANGELOG.md)
 - [Инструкция, включённая в систему](https://github.com/Angilin712/Foundry-Vtt-Through-the-Breach-unofficial-/blob/main/through-the-breach/README.ru.md)
 

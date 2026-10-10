@@ -1,3 +1,6 @@
+import {t as ttbT,tr as ttbTr} from './localization.mjs';
+import {initializeLocalization,localizationKey} from './localization.mjs';
+import {renderLocalizedDirectory,renderLocalizedPacks,renderLocalizedJournal} from './localization-ui.mjs';
 import {createCharacter,beginSession,endScene,endSession} from './creation-ui.mjs';
 import {importBestiary} from './bestiary.mjs';
 import {importStarterAdventure,prepareStarterEncounter,starterMacros} from './starter-adventure.mjs';
@@ -6,7 +9,7 @@ import {defaultArtwork,needsArtwork,refreshDefaultArtwork} from './item-art.mjs'
 import {ID} from "./rules.mjs";
 import {BreachActorModel,BreachItemModel} from "./models.mjs";
 import {BreachSheet,BreachItemSheet,FateTable,handleChat,safely} from "./ui.mjs";
-import {request,processRequest,syncHand,enqueue,authority} from "./cards.mjs";
+import {request,processRequest,syncHand,enqueue,authority,duelHTML} from "./cards.mjs";
 import {compareCombatants} from './battle.mjs';
 import {turnLifecycle} from './turns.mjs';
 import {movementDocument} from './movement.mjs';
@@ -25,25 +28,26 @@ class BreachCombat extends Combat {
   _sortCombatants(a,b){return compareCombatants(a,b);}
 }
 Hooks.once("init",()=>{
+  initializeLocalization();
   CONFIG.Actor.dataModels.fated=BreachActorModel;CONFIG.Actor.dataModels.npc=BreachActorModel;
   for(const t of ["equipment","talent","magic"])CONFIG.Item.dataModels[t]=BreachItemModel;
   CONFIG.Actor.typeLabels.fated="TYPES.Actor.fated";CONFIG.Actor.typeLabels.npc="TYPES.Actor.npc";
   Object.assign(CONFIG.Item.typeLabels,{equipment:"TYPES.Item.equipment",talent:"TYPES.Item.talent",magic:"TYPES.Item.magic"});
   CONFIG.Combat.documentClass=BreachCombat;
   CONFIG.Token.documentClass=movementDocument(CONFIG.Token.documentClass);
-  foundry.applications.apps.DocumentSheetConfig.registerSheet(Actor,ID,BreachSheet,{types:["fated","npc"],makeDefault:true,label:"Сквозь Пролом"});
-  foundry.applications.apps.DocumentSheetConfig.registerSheet(Item,ID,BreachItemSheet,{types:["equipment","talent","magic"],makeDefault:true,label:"Сквозь Пролом"});
+  foundry.applications.apps.DocumentSheetConfig.registerSheet(Actor,ID,BreachSheet,{types:["fated","npc"],makeDefault:true,label:localizationKey("Сквозь Пролом")});
+  foundry.applications.apps.DocumentSheetConfig.registerSheet(Item,ID,BreachItemSheet,{types:["equipment","talent","magic"],makeDefault:true,label:localizationKey("Сквозь Пролом")});
   game.settings.register(ID,"requests",{scope:"world",config:false,type:Object,default:{}});
-  game.settings.registerMenu(ID,"table",{name:"Стол Судьбы",label:"Открыть Стол Судьбы",hint:"Подготовка колод, раздача и личные руки.",icon:"fas fa-cards",type:FateTable,restricted:false});
+  game.settings.registerMenu(ID,"table",{name:localizationKey("Стол Судьбы"),label:localizationKey("Открыть Стол Судьбы"),hint:localizationKey("Подготовка колод, раздача и личные руки."),icon:"fas fa-cards",type:FateTable,restricted:false});
   game.settings.register(ID,"sessions",{scope:"world",config:false,type:Object,default:{}});
   game.settings.register(ID,'dramaticTime',{scope:'world',config:false,type:Boolean,default:false});
-  game.settings.register(ID,'gmFreeMovement',{name:'Свободная расстановка токенов мастером',hint:'Без оплаты Ходьбы: расстановка, толчки, телепорты и исправление позиции. Действует только для мастера на этом клиенте.',scope:'client',config:true,type:Boolean,default:false});
+  game.settings.register(ID,'gmFreeMovement',{name:localizationKey('Свободная расстановка токенов мастером'),hint:localizationKey('Без оплаты Ходьбы: расстановка, толчки, телепорты и исправление позиции. Действует только для мастера на этом клиенте.'),scope:'client',config:true,type:Boolean,default:false});
   game.settings.register(ID,'artworkVersion',{scope:'world',config:false,type:Number,default:0});
   game.settings.register(ID,'bestiaryVersion',{scope:'world',config:false,type:Number,default:0});
-  game.ttb={createCharacter,beginSession,endScene,endSession,importBestiary:()=>enqueue(()=>safely(importBestiary)),importStarterAdventure:()=>enqueue(()=>safely(importStarterAdventure)),prepareStarterEncounter:count=>enqueue(()=>safely(()=>prepareStarterEncounter(count))),openTable:()=>new FateTable().render({force:true}),request};
+  game.ttb={t:ttbT,createCharacter,beginSession,endScene,endSession,importBestiary:()=>enqueue(()=>safely(importBestiary)),importStarterAdventure:()=>enqueue(()=>safely(importStarterAdventure)),prepareStarterEncounter:count=>enqueue(()=>safely(()=>prepareStarterEncounter(count))),openTable:()=>new FateTable().render({force:true}),request};
 });
 Hooks.on("preCreateActor",(actor)=>{
-  actor.updateSource({prototypeToken:{actorLink:actor.type==="fated",bar1:{attribute:"wounds"},displayName:20},...(actor.type==="npc"&&!actor._source.system?.characteristics?{"system.characteristics":"Живой"}:{})});
+  actor.updateSource({prototypeToken:{actorLink:actor.type==="fated",bar1:{attribute:"wounds"},displayName:20},...(actor.type==="npc"&&!actor._source.system?.characteristics?{"system.characteristics":ttbT("Живой")}:{})});
 });
 Hooks.on("createChatMessage",message=>processRequest(message));
 Hooks.on('preCreateItem',item=>{if(needsArtwork(item))item.updateSource({img:defaultArtwork(item)});});
@@ -55,12 +59,14 @@ Hooks.once("ready",()=>{
     enqueue(()=>safely(starterMacros));
     if(game.settings.get(ID,'bestiaryVersion')<4||!game.macros.some(m=>m.getFlag(ID,'bestiaryImport')))enqueue(()=>safely(importBestiary));
   }
-  ui.notifications.info("Сквозь Пролом: откройте «Стол Судьбы» из листа персонажа или настроек системы.");
+  ui.notifications.info(ttbT("Сквозь Пролом: откройте «Стол Судьбы» из листа персонажа или настроек системы."));
 });
 Hooks.on("updateUser",()=>{if(authority()?.id===game.user.id)game.messages.forEach(processRequest);});
 Hooks.on("userConnected",()=>{if(authority()?.id===game.user.id)game.messages.forEach(processRequest);});
 Hooks.on("updateActor",actor=>{if(authority()?.id===game.user.id)enqueue(()=>syncHand(actor));});
 Hooks.on("renderChatMessageHTML",(message,html)=>{
+  const localDuel=message.getFlag(ID,'duel');
+  if(localDuel&&message.author?.isGM){const card=html.querySelector('[data-duel="true"]');if(card)card.outerHTML=duelHTML(localDuel);}
   if(message.getFlag(ID,"status")==="done"&&message.getFlag(ID,"request")){const row=html.closest('.message')??html;row.classList.add('ttb-request-done');row.hidden=true;return;}
   if(message.getFlag(ID,'status')==='error'&&message.getFlag(ID,'request')){const a=fromUuidSync(message.getFlag(ID,'blockedActorUuid'));html.querySelectorAll('[data-ttb="openHand"]').forEach(b=>{b.hidden=!a?.isOwner;b.addEventListener('click',event=>{event.preventDefault();safely(()=>handleChat(message,'openHand',b));});});return;}
   const d=message.getFlag(ID,"duel");if(!d||!message.author?.isGM)return;
@@ -78,3 +84,6 @@ function refreshApps(){clearTimeout(renderTimer);renderTimer=setTimeout(()=>{
   const table=foundry.applications.instances.get("ttb-fate-table");if(table?.rendered)table.render({force:false});
 },100);}
 for(const hook of ["updateSetting","updateChatMessage","updateActor","createChatMessage","createCards","updateCards","deleteCards","createCard","updateCard","deleteCard","createItem","updateItem","deleteItem"])Hooks.on(hook,refreshApps);
+for(const hook of ['renderCompendium','renderActorDirectory','renderItemDirectory','renderJournalDirectory','renderSceneDirectory','renderMacroDirectory','renderCardsDirectory'])Hooks.on(hook,renderLocalizedDirectory);
+Hooks.on('renderCompendiumDirectory',renderLocalizedPacks);
+for(const hook of ['renderJournalEntrySheet','renderJournalEntryPageTextSheet'])Hooks.on(hook,renderLocalizedJournal);

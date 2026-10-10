@@ -3,6 +3,10 @@ from pathlib import Path
 from zipfile import ZipFile, ZipInfo, ZIP_DEFLATED
 import hashlib
 import json
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument('--release-asset', action='store_true', help='Allow archives over 100 MiB for GitHub Releases (not Git commits).')
+args = parser.parse_args()
 
 root = Path(__file__).resolve().parents[1]
 system = root / 'through-the-breach'
@@ -15,6 +19,8 @@ with ZipFile(archive, 'w', ZIP_DEFLATED) as z:
         if not p.is_file():
             continue
         relative = p.relative_to(system).as_posix()
+        if relative in {'lang/source.json', 'lang/document-names.json', 'lang/document-baselines.json'}:
+            continue  # Development inputs; runtime imports localization-data.mjs.
         native_pack = any(relative.startswith(pack['path'] + '/') for pack in manifest.get('packs', []))
         if native_pack and p.name in {'LOCK', 'LOG', 'LOG.old'}:
             continue
@@ -29,7 +35,7 @@ with ZipFile(archive) as z:
     for name in manifest['esmodules'] + manifest['styles'] + [x['path'] for x in manifest['languages']]:
         assert f'through-the-breach/{name}' in z.namelist()
 checksum = hashlib.sha256(archive.read_bytes()).hexdigest()
-if archive.stat().st_size >= 100 * 1024 * 1024:
+if archive.stat().st_size >= 100 * 1024 * 1024 and not args.release_asset:
     raise ValueError('Installation ZIP exceeds the GitHub single-file limit; use release assets or reduce package size.')
 (out / f'{archive.name}.sha256').write_text(f'{checksum}  {archive.name}\n', encoding='utf-8')
 print(f'{archive.name}: {archive.stat().st_size} bytes, SHA256 {checksum}')

@@ -155,6 +155,7 @@ test('All system templates compile with the installed Foundry Handlebars engine'
 
 test('Shared task appears once for GM and player, recovery carries parent message ID and actor UUID',()=>{
   const require=createRequire(import.meta.url),Handlebars=require(`${process.env.FOUNDRY_APP??'C:/Program Files/Foundry Virtual Tabletop/resources/app'}/node_modules/handlebars`);
+  Handlebars.registerHelper('ttbText',value=>value);
   const template=Handlebars.compile(awaitableTemplates.table),task={id:'task-message-01',name:'UNIQUE_TASK',interval:1,duration:'5 минут',successes:0,goal:6,failures:0,limit:3,status:'open',open:true,canContribute:true,recovery:[{actorUuid:'Actor.test',name:'Участник'}]};
   const gmHTML=template({isGM:true,masterOnline:true,tasks:[{...task,isGM:true}]});
   assert.equal((gmHTML.match(/UNIQUE_TASK/g)??[]).length,1);

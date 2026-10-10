@@ -1,9 +1,11 @@
+import {t as ttbT,tr as ttbTr} from './localization.mjs';
+import {liveLabels} from './localization.mjs';
 // Pure rules: core rulebook, printed pp. 79–80, 170–171, 281–289, 292, 300–301.
 export const ID = "through-the-breach";
-export const SUITS = {rams: "Бараны", crows: "Вороны", tomes: "Томы", masks: "Маски"};
+export const SUITS = liveLabels({rams: "Бараны", crows: "Вороны", tomes: "Томы", masks: "Маски"});
 export const SYMBOLS = {rams: "♥", crows: "♠", tomes: "♣", masks: "♦"};
-export const ASPECTS = {might:"Мощь", grace:"Грация", speed:"Скорость", resilience:"Стойкость", intellect:"Интеллект", charm:"Обаяние", cunning:"Хитрость", tenacity:"Упорство"};
-export const GROUPS = {academic:"Академические", close:"Ближний бой", ranged:"Дальний бой", craft:"Ремесленные", expertise:"Экспертные", social:"Социальные", training:"Тренированные", magic:"Магические"};
+export const ASPECTS = liveLabels({might:"Мощь", grace:"Грация", speed:"Скорость", resilience:"Стойкость", intellect:"Интеллект", charm:"Обаяние", cunning:"Хитрость", tenacity:"Упорство"});
+export const GROUPS = liveLabels({academic:"Академические", close:"Ближний бой", ranged:"Дальний бой", craft:"Ремесленные", expertise:"Экспертные", social:"Социальные", training:"Тренированные", magic:"Магические"});
 const rows = [
   ["bureaucracy","Бюрократия","cunning","academic"],["engineering","Инженерия","intellect","academic"],["history","История","intellect","academic"],["literacy","Грамотность","intellect","academic"],["mathematics","Математика","intellect","academic"],["music","Музыка","charm","academic"],
   ["flexible","Гибкое оружие","grace","close"],["grappling","Борьба","speed","close"],["heavyMelee","Тяжёлое рукопашное","might","close"],["martialArts","Боевые искусства","speed","close"],["melee","Рукопашное","might","close"],["pneumatic","Пневматика","might","close"],["pugilism","Атака кулаками","might","close"],
@@ -14,25 +16,25 @@ const rows = [
   ["acrobatics","Акробатика","grace","training"],["athletics","Атлетика","might","training"],["carouse","Куролесенье","resilience","training"],["centering","Концентрация","tenacity","training"],["evade","Уклонение","speed","training"],["pickpocket","Карманник","speed","training"],["stealth","Скрытность","cunning","training"],["toughness","Жесткость","resilience","training"],
   ["counterspelling","Анти-чары","tenacity","magic"],["enchanting","Зачарование","charm","magic"],["necromancy","Некромантия","charm","magic"],["sorcery","Колдовство","intellect","magic"],["prestidigitation","Фокусы","cunning","magic"]
 ];
-export const SKILLS = Object.fromEntries(rows.map(([id,label,aspect,group]) => [id,{id,label,aspect,group}]));
+export const SKILLS = Object.fromEntries(rows.map(([id,label,aspect,group]) => [id,{id,get label(){return ttbT(label);},aspect,group}]));
 export const TWIST_VALUES = [[1,5,9,13],[4,8,12],[3,7,11],[2,6,10]];
-export const TWIST_ROLES = ["Определяющая", "Предков", "Центральная", "Наследия"];
+export const TWIST_ROLES = liveLabels(["Определяющая", "Предков", "Центральная", "Наследия"]);
 export const DEFAULT_TWIST = ["rams","crows","tomes","masks"];
 export function assert(ok, message) { if (!ok) throw new Error(message); }
 export function integer(value, min=-100, max=100) {
-  const n=Number(value); assert(Number.isInteger(n) && n>=min && n<=max, `Ожидается целое число от ${min} до ${max}.`); return n;
+  const n=Number(value); assert(Number.isInteger(n) && n>=min && n<=max, ttbTr`Ожидается целое число от ${min} до ${max}.`); return n;
 }
 export function modifier(positive=0, negative=0) { return Math.max(-3, Math.min(3, integer(positive,0,99)-integer(negative,0,99))); }
-export function cardName(c) { return c.value===0 ? "Чёрный джокер" : c.value===14 ? "Красный джокер" : `${c.value} · ${SUITS[c.suit]}`; }
+export function cardName(c) { return c.value===0 ? ttbT("Чёрный джокер") : c.value===14 ? ttbT("Красный джокер") : `${c.value} · ${SUITS[c.suit]}`; }
 export function makeFateDeck() {
   return [...Object.keys(SUITS).flatMap(suit=>Array.from({length:13},(_,i)=>({value:i+1,suit}))),{value:0,suit:""},{value:14,suit:""}];
 }
 export function makeTwistDeck(suits) {
-  assert(Array.isArray(suits) && suits.length===4 && new Set(suits).size===4 && suits.every(s=>s in SUITS), "Выберите четыре разные масти для Смешанной колоды.");
+  assert(Array.isArray(suits) && suits.length===4 && new Set(suits).size===4 && suits.every(s=>s in SUITS), ttbT("Выберите четыре разные масти для Смешанной колоды."));
   return suits.flatMap((suit,i)=>TWIST_VALUES[i].map(value=>({value,suit})));
 }
 export function selectable(cards, mod) {
-  assert(cards.length>0,"Нет карт для выбора.");
+  assert(cards.length>0,ttbT("Нет карт для выбора."));
   const black=cards.findIndex(c=>c.value===0);
   if (black>=0) return [black];
   if (mod>=0) return cards.map((_,i)=>i);
@@ -43,14 +45,14 @@ export function canCheat(d) { return d.kind!=="initiative" && !d.npc && d.mod>=0
 export function parseSuits(text="") {
   const map={R:"rams",C:"crows",T:"tomes",M:"masks","♥":"rams","♠":"crows","♣":"tomes","♦":"masks"};
   const clean=String(text).toUpperCase().replace(/[\s,;+]/g,"");
-  assert(clean.length<=12 && [...clean].every(x=>map[x]),"Масти: R — Бараны, C — Вороны, T — Томы, M — Маски. Например: TT или RM.");
+  assert(clean.length<=12 && [...clean].every(x=>map[x]),ttbT("Масти: R — Бараны, C — Вороны, T — Томы, M — Маски. Например: TT или RM."));
   return [...clean].map(x=>map[x]);
 }
 export function containsSuits(have, need) { const left=[...have]; return need.every(s=>{const i=left.indexOf(s); if(i<0)return false; left.splice(i,1); return true;}); }
 export function activeItems(s){return Array.from(s.parent?.items??[]).filter(i=>i.system.equipped&&i.system.quantity>0&&(i.system.category!=='pursuit'||i.id===s.currentPursuitId));}
 export function itemBonus(s,target){return activeItems(s).filter(i=>i.system.bonusTarget===target).reduce((n,i)=>n+i.system.bonus,0);}
 export function aspectValue(s,key){return s.aspects[key]+(s.temporaryAspects?.[key]??0)+itemBonus(s,`aspect.${key}`);}
-export function skillValue(s,key,aspect=s.skills[key].aspect){assert(aspect in ASPECTS,'Неизвестный аспект.');return s.skills[key].rank+aspectValue(s,aspect)+itemBonus(s,`skill.${key}`);}
+export function skillValue(s,key,aspect=s.skills[key].aspect){assert(aspect in ASPECTS,ttbT('Неизвестный аспект.'));return s.skills[key].rank+aspectValue(s,aspect)+itemBonus(s,`skill.${key}`);}
 export function armorValue(s){
   if(!s.autoArmor)return Math.min(3,Math.max(0,(s.armor??0)+itemBonus(s,'armor')));
   const slots=new Map();for(const i of activeItems(s)){const x=i.system;if(['arms','legs','head','chest'].includes(x.armorSlot)&&['light','heavy'].includes(x.armorType))slots.set(x.armorSlot,slots.get(x.armorSlot)==='heavy'?'heavy':x.armorType);}

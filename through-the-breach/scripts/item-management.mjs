@@ -1,8 +1,9 @@
+import {t as ttbT,tr as ttbTr} from './localization.mjs';
 import {assert} from './rules.mjs';
 
 export async function removeRecord(actor,itemId){
- assert(actor.isOwner,'Удалять записи может только владелец персонажа или мастер.');
- const item=actor.items.get(itemId);assert(item,'Запись уже удалена.');
+ assert(actor.isOwner,ttbT('Удалять записи может только владелец персонажа или мастер.'));
+ const item=actor.items.get(itemId);assert(item,ttbT('Запись уже удалена.'));
  await actor.deleteEmbeddedDocuments('Item',[itemId]);
  const patch={};
  if(actor.system.activeGrimoire===itemId)patch['system.activeGrimoire']='';

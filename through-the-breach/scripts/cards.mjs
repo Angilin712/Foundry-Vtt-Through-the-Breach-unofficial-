@@ -1,3 +1,6 @@
+import {cardImage} from './localization.mjs';
+import {liveLabels} from './localization.mjs';
+import {t as ttbT,tr as ttbTr} from './localization.mjs';
 import {AUTOMATION_OPS,executeAutomation,duelModifiers,availableTriggers} from './automation.mjs';
 import {CREATION_OPS,executeCreation} from './creation.mjs';
 import {TASK_OPS,executeOngoing,recordContribution} from './ongoing.mjs';
@@ -13,7 +16,7 @@ export const authority=()=>game.users.activeGM;
 const nativeCard=c=>({id:c.id,value:c.value,suit:c.suit,name:c.name,img:c.faces[0]?.img});
 const gms=()=>game.users.filter(u=>u.isGM).map(u=>u.id);
 export const requestRecipients=()=>[...new Set([...gms(),game.user.id])];
-const ACTION_LABELS={spendAP:"Расход ОД",recoverTurn:"Восстановление хода",addEffect:"Добавление состояния",clearEffect:"Снятие состояния",endSceneEffects:"Завершение состояний сцены",hyperventilation:"Снятие гипервентиляции",setup:"Подготовка колоды",setupActor:"Личная колода",shuffle:"Перетасовка",prologue:"Конец пролога",endDrama:"Конец сцены",give:"Выдача карты",discard:"Сброс карт",credit:"Добор за перетасовку",declineCredit:"Отказ от добора",refresh:"Обновление руки",duel:"Проверка",pick:"Выбор карты",red:"Масть джокера",cheat:"Обман судьбы",finish:"Завершение проверки",recover:"Отмена проверки",attack:"Атака оружием",attackDamage:"Урон атаки",applyDamage:"Применение урона",undoDamage:"Отмена урона",critical:"Критический эффект",consciousness:"Проверка сознания"};
+const ACTION_LABELS=liveLabels({spendAP:ttbT("Расход ОД"),recoverTurn:ttbT("Восстановление хода"),addEffect:ttbT("Добавление состояния"),clearEffect:ttbT("Снятие состояния"),endSceneEffects:ttbT("Завершение состояний сцены"),hyperventilation:ttbT("Снятие гипервентиляции"),setup:ttbT("Подготовка колоды"),setupActor:ttbT("Личная колода"),shuffle:ttbT("Перетасовка"),prologue:ttbT("Конец пролога"),endDrama:ttbT("Конец сцены"),give:ttbT("Выдача карты"),discard:ttbT("Сброс карт"),credit:ttbT("Добор за перетасовку"),declineCredit:ttbT("Отказ от добора"),refresh:ttbT("Обновление руки"),duel:ttbT("Проверка"),pick:ttbT("Выбор карты"),red:ttbT("Масть джокера"),cheat:ttbT("Обман судьбы"),finish:ttbT("Завершение проверки"),recover:ttbT("Отмена проверки"),attack:ttbT("Атака оружием"),attackDamage:ttbT("Урон атаки"),applyDamage:ttbT("Применение урона"),undoDamage:ttbT("Отмена урона"),critical:ttbT("Критический эффект"),consciousness:ttbT("Проверка сознания")});
 const publicNote=content=>ChatMessage.create({content:`<div class="ttb-chat">${content}</div>`});
 let queue=Promise.resolve();
 const seen=new Set();
@@ -29,11 +32,11 @@ export async function createStack(role,name,type,actorId="",cards=[]){
   return Cards.create({name,type,ownership:{default:0},cards:cards.map(cardData),flags:{[ID]:{role,actorId}},img:`systems/${ID}/assets/cards/back.svg`});
 }
 export async function setup(){
-  assert(game.user.isGM,"Настройка доступна мастеру.");
+  assert(game.user.isGM,ttbT("Настройка доступна мастеру."));
   const exists=stack("fate");
-  const deck=await createStack("fate","Колода Судьбы","deck","",makeFateDeck());
-  await createStack("discard","Сброс Судьбы","pile");
-  await createStack("active","Карты незавершённых проверок","pile");
+  const deck=await createStack("fate",ttbT("Колода Судьбы"),"deck","",makeFateDeck());
+  await createStack("discard",ttbT("Сброс Судьбы"),"pile");
+  await createStack("active",ttbT("Карты незавершённых проверок"),"pile");
   if(!exists)await deck.shuffle({chatNotification:false});
   return deck;
 }
@@ -44,30 +47,30 @@ export async function syncHand(actor){
   await hand.update({ownership},{diff:false,recursive:false});
 }
 export async function setupActor(actor){
-  assert(actor.type==="fated","Личная колода есть только у Сужденного.");
+  assert(actor.type==="fated",ttbT("Личная колода есть только у Сужденного."));
   await setup();
   const exists=stack("twist",actor.id);
   const cards=makeTwistDeck(Array.from(actor.system.twist));
-  const deck=await createStack("twist",`${actor.name} · Смешанная колода`,"deck",actor.id,cards);
-  await createStack("twistDiscard",`${actor.name} · Личный сброс`,"pile",actor.id);
-  await createStack("hand",`${actor.name} · Рука контроля`,"hand",actor.id);
+  const deck=await createStack("twist",ttbTr`${actor.name} · Смешанная колода`,"deck",actor.id,cards);
+  await createStack("twistDiscard",ttbTr`${actor.name} · Личный сброс`,"pile",actor.id);
+  await createStack("hand",ttbTr`${actor.name} · Рука контроля`,"hand",actor.id);
   await syncHand(actor);
   if(!exists)await deck.shuffle({chatNotification:false});
-  await publicNote(`Личная колода <b>${e(actor.name)}</b> готова: 13 карт. Раздача — кнопкой «Конец пролога» у мастера.`);
+  await publicNote(ttbTr`Личная колода <b>${e(actor.name)}</b> готова: 13 карт. Раздача — кнопкой «Конец пролога» у мастера.`);
 }
 async function reshuffle(deck,discard,benefit=false){
   if(discard.cards.size)await discard.pass(deck,discard.cards.map(c=>c.id),{chatNotification:false});
   await deck.shuffle({chatNotification:false});
   if(benefit){
     for(const hand of game.cards.filter(s=>s.getFlag(ID,"role")==="hand"))await hand.setFlag(ID,"credits",(hand.getFlag(ID,"credits")??0)+1);
-    await publicNote("Колода Судьбы перетасована. Каждый Сужденный с личной колодой может взять одну Смешанную карту. Карты текущих проверок остаются на столе.");
+    await publicNote(ttbT("Колода Судьбы перетасована. Каждый Сужденный с личной колодой может взять одну Смешанную карту. Карты текущих проверок остаются на столе."));
   }
 }
 export async function drawFrom(deck,discard,to,count,benefit=false){
   const drawn=[];
   for(let i=0;i<count;i++){
     if(!deck.availableCards.length){
-      assert(discard.cards.size>0,"Нет доступных карт. Завершите открытые проверки или сбросьте карты из руки.");
+      assert(discard.cards.size>0,ttbT("Нет доступных карт. Завершите открытые проверки или сбросьте карты из руки."));
       await reshuffle(deck,discard,benefit);
     }
     drawn.push(...await to.draw(deck,1,{chatNotification:false,updateData:{face:0}}));
@@ -76,67 +79,72 @@ export async function drawFrom(deck,discard,to,count,benefit=false){
 }
 export async function drawHand(actor,count){
   const hand=stack("hand",actor.id),deck=stack("twist",actor.id),discard=stack("twistDiscard",actor.id);
-  assert(hand&&deck&&discard,"Мастер должен создать личную колоду персонажа.");
-  assert(deck.availableCards.length+discard.cards.size>=count,"В личной колоде и сбросе недостаточно карт.");
+  assert(hand&&deck&&discard,ttbT("Мастер должен создать личную колоду персонажа."));
+  assert(deck.availableCards.length+discard.cards.size>=count,ttbT("В личной колоде и сбросе недостаточно карт."));
   await drawFrom(deck,discard,hand,count);
-  await publicNote(`${e(actor.name)} берёт ${count} Смешанн. карт. В руке: ${hand.cards.size}${hand.cards.size>5?". Нужно сбросить лишние до пяти перед продолжением":""}.`);
+  await publicNote(ttbTr`${e(actor.name)} берёт ${count} Смешанн. карт. В руке: ${hand.cards.size}${hand.cards.size>5?ttbT(". Нужно сбросить лишние до пяти перед продолжением"):""}.`);
 }
 async function discardHand(actor,ids){
-  const hand=stack("hand",actor.id);assert(hand,"Личная колода ещё не создана.");
-  assert(Array.isArray(ids)&&ids.length>0&&new Set(ids).size===ids.length&&ids.every(id=>hand.cards.has(id)),"Выберите карты из своей руки.");
+  const hand=stack("hand",actor.id);assert(hand,ttbT("Личная колода ещё не создана."));
+  assert(Array.isArray(ids)&&ids.length>0&&new Set(ids).size===ids.length&&ids.every(id=>hand.cards.has(id)),ttbT("Выберите карты из своей руки."));
   await hand.pass(stack("twistDiscard",actor.id),ids,{chatNotification:false});
 }
-export function actorFor(user,id,uuid){const actor=uuid?fromUuidSync(uuid):game.actors.get(id);assert(actor?.documentName==="Actor","Персонаж не найден.");assert(user.isGM||actor.testUserPermission(user,"OWNER"),"Можно управлять только своим персонажем.");return actor;}
-function requireGM(user){assert(user.isGM,"Это действие выполняет мастер.");}
-function requireHandLimit(actor){const hand=stack("hand",actor.id);assert(!hand||hand.cards.size<=5,"Сначала сбросьте лишние карты: в руке должно быть не больше пяти.");}
+export function actorFor(user,id,uuid){const actor=uuid?fromUuidSync(uuid):game.actors.get(id);assert(actor?.documentName==="Actor",ttbT("Персонаж не найден."));assert(user.isGM||actor.testUserPermission(user,"OWNER"),ttbT("Можно управлять только своим персонажем."));return actor;}
+function requireGM(user){assert(user.isGM,ttbT("Это действие выполняет мастер."));}
+function requireHandLimit(actor){const hand=stack("hand",actor.id);assert(!hand||hand.cards.size<=5,ttbT("Сначала сбросьте лишние карты: в руке должно быть не больше пяти."));}
 function getDuel(user,id){
   const message=game.messages.get(id),d=message?.getFlag(ID,"duel");
-  assert(d && message.author?.isGM,"Проверка не найдена.");
-  const actor=actorFor(user,d.actorId,d.actorUuid);assert(!d.closed,"Проверка уже завершена.");assert(d.stage!=="drawing","Проверка ещё подготавливается; при сбое обратитесь к мастеру.");
+  assert(d && message.author?.isGM,ttbT("Проверка не найдена."));
+  const actor=actorFor(user,d.actorId,d.actorUuid);assert(!d.closed,ttbT("Проверка уже завершена."));assert(d.stage!=="drawing",ttbT("Проверка ещё подготавливается; при сбое обратитесь к мастеру."));
   return {message,d:foundry.utils.deepClone(d),actor};
 }
 export function duelHTML(d){
+  // Rebuild from mechanical data on every client; the GM's language is not a world setting.
+  const baseLabel=d.kind==='damage'?ttbT('Флип урона'):d.kind==='initiative'?ttbT('Инициатива'):
+    SKILLS[d.skill]?.label??ASPECTS[d.skill]??(d.skill==='defense'?ttbT('Защита'):d.skill==='willpower'?ttbT('Сила воли'):d.label);
+  const localizedLabel=baseLabel+(d.checkReason?` · ${d.checkReason}`:'');
+  const displayCard=c=>c.rank?ttbTr`Ранг ${c.value}`:cardName(c);
   const r=outcome(d), selected=d.replacement??d.cards[d.selected];
-  const options=d.cards.map((c,i)=>`<span class="ttb-flip ${i===d.selected?"chosen":""}"><img src="${e(c.img??"")}" alt="${e(c.name)}"><span>${e(c.name)}</span>${!d.closed&&d.selected===null&&selectable(d.cards,d.mod).includes(i)?`<button type="button" data-ttb="pick" data-index="${i}">Выбрать</button>`:""}</span>`).join("");
-  let result="Выберите карту для проверки.";
+  const options=d.cards.map((c,i)=>`<span class="ttb-flip ${i===d.selected?"chosen":""}"><img src="${e(cardImage(c.img??""))}" alt="${e(displayCard(c))}"><span>${e(displayCard(c))}</span>${!d.closed&&d.selected===null&&selectable(d.cards,d.mod).includes(i)?ttbTr`<button type="button" data-ttb="pick" data-index="${i}">Выбрать</button>`:""}</span>`).join("");
+  let result=ttbT("Выберите карту для проверки.");
   if(r){
-    result=d.kind==="damage"?`Урон: <b>${r.damage}</b>${r.critical?" · тяжёлый критический эффект":""}`:
-      d.kind==="initiative"?`Инициатива: <b>${r.total}</b>`:
-      `Итог: <b>${r.total} ${r.suits.map(s=>SYMBOL(s)).join(" ")}</b> / СЛ ${d.tn}${d.required.length?` ${d.required.map(s=>SYMBOL(s)).join(" ")}`:""} · <b>${r.success?"Успех":"Неудача"}</b> · разница ${r.margin>=0?"+":""}${r.margin}`;
-    if(d.kind==="duel")result+=`<small>Основа ${d.base} + карта ${selected.value}. Степеней ${r.success?"успеха":"провала"}: ${r.degrees}. ${!r.suitSuccess?'Не хватает обязательной масти; числовая разница не является степенью провала. ':''}Триггеры разрешаются вручную.</small>`;
+    result=d.kind==="damage"?ttbTr`Урон: <b>${r.damage}</b>${r.critical?ttbT(" · тяжёлый критический эффект"):""}`:
+      d.kind==="initiative"?ttbTr`Инициатива: <b>${r.total}</b>`:
+      ttbTr`Итог: <b>${r.total} ${r.suits.map(s=>SYMBOL(s)).join(" ")}</b> / СЛ ${d.tn}${d.required.length?` ${d.required.map(s=>SYMBOL(s)).join(" ")}`:""} · <b>${r.success?ttbT("Успех"):ttbT("Неудача")}</b> · разница ${r.margin>=0?"+":""}${r.margin}`;
+    if(d.kind==="duel")result+=ttbTr`<small>Основа ${d.base} + карта ${selected.value}. Степеней ${r.success?ttbT("успеха"):ttbT("провала")}: ${r.degrees}. ${!r.suitSuccess?ttbT('Не хватает обязательной масти; числовая разница не является степенью провала. '):''}Триггеры разрешаются вручную.</small>`;
   }
   if(d.opposed){
     const od=game.messages.get(d.opposed.otherId)?.getFlag(ID,'duel');
-    result=`Итог: <b>${r?.total??'выберите карту'}</b> · ${d.opposed.role==='attack'?'Агрессор':'Защитник'}. Обе стороны сначала выбирают карты. Первым обманывает судьбу проигрывающий (при ничьей — защитник), затем вторая сторона. Каждый нажимает «Завершить» после своей возможности Обмана.`;
-    if(d.closed&&od?.closed&&d.stage!=='cancelled'&&od.stage!=='cancelled'){const margin=outcome(d).total-outcome(od).total;result+=`<p>${(d.opposed.role==='attack'?margin>=0&&(d.spellTN==null||outcome(d).success):margin>0||od.spellTN!=null&&!outcome(od).success)?'Победа':'Поражение'} · разница ${margin}. При ничьей побеждает агрессор.${d.spellTN!=null?` СЛ заклинания ${d.spellTN}: ${outcome(d).success?'выполнена':'не выполнена (число или масти)'}.`:od.spellTN!=null&&!outcome(od).success?' Заклинание не состоялось: не выполнены его СЛ или масти.':''}</p>`;}
+    result=ttbTr`Итог: <b>${r?.total??ttbT('выберите карту')}</b> · ${d.opposed.role==='attack'?ttbT('Агрессор'):ttbT('Защитник')}. Обе стороны сначала выбирают карты. Первым обманывает судьбу проигрывающий (при ничьей — защитник), затем вторая сторона. Каждый нажимает «Завершить» после своей возможности Обмана.`;
+    if(d.closed&&od?.closed&&d.stage!=='cancelled'&&od.stage!=='cancelled'){const margin=outcome(d).total-outcome(od).total;result+=ttbTr`<p>${(d.opposed.role==='attack'?margin>=0&&(d.spellTN==null||outcome(d).success):margin>0||od.spellTN!=null&&!outcome(od).success)?ttbT('Победа'):ttbT('Поражение')} · разница ${margin}. При ничьей побеждает агрессор.${d.spellTN!=null?ttbTr` СЛ заклинания ${d.spellTN}: ${outcome(d).success?ttbT('выполнена'):ttbT('не выполнена (число или масти)')}.`:od.spellTN!=null&&!outcome(od).success?ttbT(' Заклинание не состоялось: не выполнены его СЛ или масти.'):''}</p>`;}
   }
   if(d.attack)result+=`<p>${e(d.attack.weapon.name)} → ${e(d.attack.targetName)}</p>`;
-  if(d.application){const a=d.application;result+=`<p>Урон ${a.undone?'отменён':a.pending?'ожидает проверки мастером':'применён'}: ${a.amount}. ${a.resource==='rank'?'Ранг роя':'Ранения'}: ${a.undone?a.after:a.before} → ${a.undone?a.before:a.after}.</p>`;}
+  if(d.application){const a=d.application;result+=ttbTr`<p>Урон ${a.undone?ttbT('отменён'):a.pending?ttbT('ожидает проверки мастером'):ttbT('применён')}: ${a.amount}. ${a.resource==='rank'?ttbT('Ранг роя'):ttbT('Ранения')}: ${a.undone?a.after:a.before} → ${a.undone?a.before:a.after}.</p>`;}
   if(d.criticalResult)result+=`<p>${e(d.criticalResult)}</p>`;
-  if(d.application?.criticalPending)result+='<p>Критический эффект прерван или выполняется. Перед дальнейшими действиями мастер проверяет карты и лист цели.</p>';
-  if(d.triggerText)result+=`<p>Объявлен триггер: ${e(d.triggerText)}</p>`;
+  if(d.application?.criticalPending)result+=ttbT('<p>Критический эффект прерван или выполняется. Перед дальнейшими действиями мастер проверяет карты и лист цели.</p>');
+  if(d.triggerText)result+=ttbTr`<p>Объявлен триггер: ${e(d.triggerText)}</p>`;
   if(d.consciousnessResult)result+=`<p>${e(d.consciousnessResult)}</p>`;
-  if(d.stage==="cancelled")result="Проверка отменена мастером. Результат не применяется.";
-  return `<section class="ttb-chat" data-duel="true"><header>${e(d.actorName)} · ${e(d.label)}</header><p>Модификатор судьбы: ${d.mod>0?"+":""}${d.mod}${d.npc&&d.kind!=="damage"?" · фиксированное значение ранга":""}</p><div class="ttb-flips">${options}</div>${d.replacement?`<p>Обман судьбы: <b>${e(d.replacement.name)}</b></p>`:""}<div class="ttb-result">${result}</div>${!d.closed&&r?`<div class="ttb-chat-actions">${selected?.value===14&&!selected.rank?`<button type="button" data-ttb="red">${d.redSuit?'Масть джокера':'Выберите масть красного джокера'}${d.redSuit?`: ${e(SUITS[d.redSuit])}`:""}</button>`:""}${canCheat(d)?`<button type="button" data-ttb="cheat">Обмануть судьбу</button>`:""}<button type="button" data-ttb="finish" ${selected?.value===14&&!selected.rank&&d.kind==='duel'&&!d.redSuit?'disabled title="Сначала выберите масть красного джокера"':''}>Завершить</button></div>`:""}${battleButtons(d)}${bonusHTML(d)}${d.closed&&d.kind==='duel'&&!d.triggerId&&d.stage!=='cancelled'&&availableTriggers((fromUuidSync(d.actorUuid)??game.actors.get(d.actorId))?.system??{},d).length?'<button type="button" data-ttb="declareTrigger">Объявить один триггер</button>':''}${d.manualEffects?.length?`<p>Мастер разрешает: ${d.manualEffects.map(e).join('; ')}.</p>`:''}<footer>${d.closed?(d.stage==="cancelled"?"Проверка отменена · карты сброшены":"Проверка завершена · карты сброшены"):"Проверка открыта · карты удерживаются на столе"}</footer></section>`;
+  if(d.stage==="cancelled")result=ttbT("Проверка отменена мастером. Результат не применяется.");
+  return ttbTr`<section class="ttb-chat" data-duel="true"><header>${e(d.actorName)} · ${e(localizedLabel)}</header><p>Модификатор судьбы: ${d.mod>0?"+":""}${d.mod}${d.npc&&d.kind!=="damage"?ttbT(" · фиксированное значение ранга"):""}</p><div class="ttb-flips">${options}</div>${d.replacement?ttbTr`<p>Обман судьбы: <b>${e(displayCard(d.replacement))}</b></p>`:""}<div class="ttb-result">${result}</div>${!d.closed&&r?ttbTr`<div class="ttb-chat-actions">${selected?.value===14&&!selected.rank?`<button type="button" data-ttb="red">${d.redSuit?ttbT('Масть джокера'):ttbT('Выберите масть красного джокера')}${d.redSuit?`: ${e(SUITS[d.redSuit])}`:""}</button>`:""}${canCheat(d)?ttbTr`<button type="button" data-ttb="cheat">Обмануть судьбу</button>`:""}<button type="button" data-ttb="finish" ${selected?.value===14&&!selected.rank&&d.kind==='duel'&&!d.redSuit?ttbT('disabled title="Сначала выберите масть красного джокера"'):''}>Завершить</button></div>`:""}${battleButtons(d)}${bonusHTML(d)}${d.closed&&d.kind==='duel'&&!d.triggerId&&d.stage!=='cancelled'&&availableTriggers((fromUuidSync(d.actorUuid)??game.actors.get(d.actorId))?.system??{},d).length?ttbT('<button type="button" data-ttb="declareTrigger">Объявить один триггер</button>'):''}${d.manualEffects?.length?ttbTr`<p>Мастер разрешает: ${d.manualEffects.map(e).join('; ')}.</p>`:''}<footer>${d.closed?(d.stage==="cancelled"?ttbT("Проверка отменена · карты сброшены"):ttbT("Проверка завершена · карты сброшены")):ttbT("Проверка открыта · карты удерживаются на столе")}</footer></section>`;
 }
 const SYMBOL=s=>({rams:"♥",crows:"♠",tomes:"♣",masks:"♦"}[s]??"");
 export async function saveDuel(message,d){await message.update({[`flags.${ID}.duel`]:d,content:duelHTML(d)});}
 async function opposedTurn(message,d){
   if(!d.opposed)return;
   const other=game.messages.get(d.opposed.otherId),od=foundry.utils.deepClone(other?.getFlag(ID,'duel'));
-  assert(od&&od.stage!=='cancelled','Парная проверка прервана: мастер отменяет обе стороны и повторяет дуэль.');
+  assert(od&&od.stage!=='cancelled',ttbT('Парная проверка прервана: мастер отменяет обе стороны и повторяет дуэль.'));
   const ready=x=>x.selected!==null&&x.stage!=='drawing'&&((x.replacement??x.cards[x.selected]).value!==14||x.redSuit);
-  assert(ready(d)&&ready(od),'Сначала обе стороны выбирают карты и масти красных джокеров.');
+  assert(ready(d)&&ready(od),ttbT('Сначала обе стороны выбирают карты и масти красных джокеров.'));
   if(!d.opposed.firstId){
     const a=outcome(d).total,b=outcome(od).total;
     const firstId=a<b||a===b&&d.opposed.role==='defense'?message.id:other.id;
     d.opposed.firstId=firstId;od.opposed.firstId=firstId;
     await saveDuel(other,od);await saveDuel(message,d);
   }
-  assert(d.opposed.firstId===message.id||od.closed,'Первым обманывает судьбу или завершает проверку проигрывающий; при ничьей — защитник.');
+  assert(d.opposed.firstId===message.id||od.closed,ttbT('Первым обманывает судьбу или завершает проверку проигрывающий; при ничьей — защитник.'));
 }
 async function choose(message,d,index){
-  assert(d.selected===null,"Карта уже выбрана.");assert(selectable(d.cards,d.mod).includes(index),"Правила не разрешают выбрать эту карту.");
+  assert(d.selected===null,ttbT("Карта уже выбрана."));assert(selectable(d.cards,d.mod).includes(index),ttbT("Правила не разрешают выбрать эту карту."));
   d.selected=index;
   const discardIds=d.cards.filter((_,i)=>i!==index).map(c=>c.id).filter(id=>stack("active").cards.has(id));
   if(discardIds.length)await stack("active").pass(stack("discard"),discardIds,{chatNotification:false});
@@ -144,8 +152,8 @@ async function choose(message,d,index){
 }
 export function requireReady(actor){
   requireHandLimit(actor);
-  assert(!(stack("hand",actor.id)?.getFlag(ID,"credits")>0),"Сначала возьмите или отклоните карту за перетасовку во вкладке «Судьба и рука».");
-  assert(!game.messages.some(m=>{const d=m.getFlag(ID,"duel");return m.author?.isGM&&(d?.actorUuid??d?.actorId)===(d?.actorUuid?actor.uuid:actor.id)&&!d?.closed;}),"Сначала завершите предыдущую проверку этого персонажа в чате.");
+  assert(!(stack("hand",actor.id)?.getFlag(ID,"credits")>0),ttbT("Сначала возьмите или отклоните карту за перетасовку во вкладке «Судьба и рука»."));
+  assert(!game.messages.some(m=>{const d=m.getFlag(ID,"duel");return m.author?.isGM&&(d?.actorUuid??d?.actorId)===(d?.actorUuid?actor.uuid:actor.id)&&!d?.closed;}),ttbT("Сначала завершите предыдущую проверку этого персонажа в чате."));
 }
 export function duelFateModifiers(s,p){
   const extra=p.kind==='duel'?duelModifiers(s,p):{flips:0,suits:[]};
@@ -156,24 +164,24 @@ export function duelFateModifiers(s,p){
 }
 export function duelPlan(actor,p){
   requireReady(actor);
-  assert(["duel","initiative","damage"].includes(p.kind),"Неизвестный вид проверки.");
+  assert(["duel","initiative","damage"].includes(p.kind),ttbT("Неизвестный вид проверки."));
   const npc=actor.type==="npc",s=actor.system,computed=derived(s);
   if(p.kind==='duel'&&p.action)canAct(actor);
-  assert(p.skill!=='willpower'||!s.immuneWillpower,'Персонаж невосприимчив к дуэлям Силы воли.');
-  let base=0,baseSuits=[],label=p.kind==="damage"?"Флип урона":p.kind==="initiative"?"Инициатива":"Проверка";
+  assert(p.skill!=='willpower'||!s.immuneWillpower,ttbT('Персонаж невосприимчив к дуэлям Силы воли.'));
+  let base=0,baseSuits=[],label=p.kind==="damage"?ttbT("Флип урона"):p.kind==="initiative"?ttbT("Инициатива"):ttbT("Проверка");
   if(p.kind==="initiative")base=computed.initiative;
   else if(p.kind==="duel"){
-    if(p.skill in SKILLS){const k=s.skills[p.skill];assert(p.aspect in ASPECTS,"Выберите аспект.");base=skillValue(s,p.skill,p.aspect);baseSuits=parseSuits(k.suits);label=SKILLS[p.skill].label;}
-    else if(["defense","willpower"].includes(p.skill)){base=computed[p.skill];baseSuits=defenseSuits(s,p.skill);label=p.skill==="defense"?"Защита":"Сила воли";}
+    if(p.skill in SKILLS){const k=s.skills[p.skill];assert(p.aspect in ASPECTS,ttbT("Выберите аспект."));base=skillValue(s,p.skill,p.aspect);baseSuits=parseSuits(k.suits);label=SKILLS[p.skill].label;}
+    else if(["defense","willpower"].includes(p.skill)){base=computed[p.skill];baseSuits=defenseSuits(s,p.skill);label=p.skill==="defense"?ttbT("Защита"):ttbT("Сила воли");}
     else if(p.skill in ASPECTS){base=aspectValue(s,p.skill);label=ASPECTS[p.skill];}
-    else throw new Error("Неизвестный навык или аспект.");
+    else throw new Error(ttbT("Неизвестный навык или аспект."));
   }
   base+=integer(p.bonus??0);
   if(p.checkReason)label+=` · ${p.checkReason}`;
   const fate=duelFateModifiers(s,p),{extra,focused,focus}=fate;baseSuits.push(...extra.suits);
   const usedAspect=p.skill in ASPECTS?p.skill:p.aspect;
   if(p.kind==='duel'&&['intellect','charm','cunning','tenacity'].includes(usedAspect))base-=(s.effects??[]).filter(x=>x.kind==='insanity').reduce((n,x)=>n+(x.value??1),0);
-  if(focused.length&&game.combat?.started)assert(game.combat.combatant?.actor?.uuid===actor.uuid,'Сосредоточенность применяется при объявлении действия в свой ход.');
+  if(focused.length&&game.combat?.started)assert(game.combat.combatant?.actor?.uuid===actor.uuid,ttbT('Сосредоточенность применяется при объявлении действия в свой ход.'));
   const mod=p.kind==="initiative"?0:modifier(fate.positive,fate.negative);
   // Against a Fated opponent NPC flips are reversed into that opponent's draw.
   // The +2/-2 numeric conversion applies only when both opponents are NPCs.
@@ -182,15 +190,15 @@ export function duelPlan(actor,p){
   d.removeEffectId=p.removeEffectId??null;
   d.damageFocus=focus;
   Object.assign(d,{dramatic:game.combat?.started===true||game.settings.get(ID,'dramaticTime')===true,pursuitSnapshot:snapshotPursuit(actor),attack:p.attack??null,targetUuid:p.targetUuid??null,ignoreArmor:p.ignoreArmor===true,parentAttackId:p.parentAttackId??null,unconsciousCheck:p.unconsciousCheck===true,checkReason:p.checkReason??null,damageEffects:p.damageEffects??[],effectsOnZero:p.effectsOnZero===true,manualEffects:p.manualEffects??[]});
-  assert(d.track.length===3,"Укажите три значения урона.");
-  assert(stack("fate")&&stack("active")&&stack("discard"),"Мастер должен подготовить общую колоду.");
+  assert(d.track.length===3,ttbT("Укажите три значения урона."));
+  assert(stack("fate")&&stack("active")&&stack("discard"),ttbT("Мастер должен подготовить общую колоду."));
   return {d,focused};
 }
 export async function startDuel(actor,p){
   const {d,focused}=duelPlan(actor,p),s=actor.system,npc=d.npc,mod=d.mod,label=d.label;
-  const message=await ChatMessage.create({speaker:ChatMessage.getSpeaker({actor}),content:`<p>${e(actor.name)}: подготовка ${e(label)}…</p>`,flags:{[ID]:{duel:d}}});
+  const message=await ChatMessage.create({speaker:ChatMessage.getSpeaker({actor}),content:ttbTr`<p>${e(actor.name)}: подготовка ${e(label)}…</p>`,flags:{[ID]:{duel:d}}});
   if(focused.length)await actor.update({'system.effects':s.effects.filter(x=>x.kind!=='focus')});
-  if(npc&&p.kind!=="damage")d.cards=[{id:"rank",rank:true,value:statRank(s,p.skill),suit:"",name:`Ранг ${statRank(s,p.skill)}`,img:`systems/${ID}/assets/cards/back.svg`}];
+  if(npc&&p.kind!=="damage")d.cards=[{id:"rank",rank:true,value:statRank(s,p.skill),suit:"",name:ttbTr`Ранг ${statRank(s,p.skill)}`,img:`systems/${ID}/assets/cards/back.svg`}];
   else {
     // Draw one at a time so exhaustion in the middle preserves already drawn cards.
     for(let i=0;i<1+Math.abs(mod);i++){
@@ -205,9 +213,9 @@ export async function startDuel(actor,p){
   return message;
 }
 async function finish(message,d,actor){
-  assert(d.selected!==null,"Сначала выберите карту.");
+  assert(d.selected!==null,ttbT("Сначала выберите карту."));
   const card=d.replacement??d.cards[d.selected];
-  assert(card.rank||card.value!==14||d.kind!=="duel"||d.redSuit,"Выберите масть красного джокера.");
+  assert(card.rank||card.value!==14||d.kind!=="duel"||d.redSuit,ttbT("Выберите масть красного джокера."));
   const active=stack("active");
   const fateIds=d.cards.map(c=>c.id).filter(id=>active.cards.has(id));
   if(fateIds.length)await active.pass(stack("discard"),fateIds,{chatNotification:false});
@@ -225,14 +233,14 @@ async function finish(message,d,actor){
 }
 export async function execute(user,p){
   if(p.op==='tokenWalk')return executeTokenWalk(user,p);
-  if(p.op==='beginDrama'){assert(user?.active&&user.isGM,'Драматическое время объявляет мастер.');await game.settings.set(ID,'dramaticTime',true);return publicNote('Мастер объявил Драматическое время: способности Стремлений действуют и вне боя.');}
-  if(['pursuitDraw','pursuitDecline','pursuitRecover'].includes(p.op)){assert(user?.active,'Пользователь не подключён.');return executePursuitBonus(user,p);}
-  if(TASK_OPS.includes(p.op)){assert(user?.active,'Пользователь не подключён.');return executeOngoing(user,p);}
+  if(p.op==='beginDrama'){assert(user?.active&&user.isGM,ttbT('Драматическое время объявляет мастер.'));await game.settings.set(ID,'dramaticTime',true);return publicNote(ttbT('Мастер объявил Драматическое время: способности Стремлений действуют и вне боя.'));}
+  if(['pursuitDraw','pursuitDecline','pursuitRecover'].includes(p.op)){assert(user?.active,ttbT('Пользователь не подключён.'));return executePursuitBonus(user,p);}
+  if(TASK_OPS.includes(p.op)){assert(user?.active,ttbT('Пользователь не подключён.'));return executeOngoing(user,p);}
   if(CREATION_OPS.includes(p.op))return executeCreation(user,p);
-  if(AUTOMATION_OPS.includes(p.op)){assert(user?.active,'Пользователь не подключён.');return executeAutomation(user,p);}
-  if(['spendAP','focusAction','walkAction','clearEffect','endSceneEffects','hyperventilation','addEffect','recoverTurn'].includes(p.op)){assert(user?.active,'Пользователь не подключён.');return executeTurnAction(user,p);}
-    if(['attack','attackDamage','applyDamage','undoDamage','critical','consciousness','criticalConsciousness'].includes(p.op)){assert(user?.active,"Пользователь не подключён.");return executeBattle(user,p);}
-  assert(user?.active,"Пользователь не подключён.");
+  if(AUTOMATION_OPS.includes(p.op)){assert(user?.active,ttbT('Пользователь не подключён.'));return executeAutomation(user,p);}
+  if(['spendAP','focusAction','walkAction','clearEffect','endSceneEffects','hyperventilation','addEffect','recoverTurn'].includes(p.op)){assert(user?.active,ttbT('Пользователь не подключён.'));return executeTurnAction(user,p);}
+    if(['attack','attackDamage','applyDamage','undoDamage','critical','consciousness','criticalConsciousness'].includes(p.op)){assert(user?.active,ttbT("Пользователь не подключён."));return executeBattle(user,p);}
+  assert(user?.active,ttbT("Пользователь не подключён."));
   const gmOps=["setup","setupActor","shuffle","prologue","endDrama","give","recover"];
   if(gmOps.includes(p.op))requireGM(user);
   if(p.op==="setup")return setup();
@@ -245,10 +253,10 @@ export async function execute(user,p){
     for(const hand of game.cards.filter(s=>s.getFlag(ID,"role")==="hand"))await hand.setFlag(ID,"refresh",true);
     const actors=new Map([...game.actors,...(game.combat?.combatants?.map(c=>c.actor).filter(Boolean)??[])].map(a=>[a.uuid,a]));
     for(const a of actors.values())await executeTurnAction(user,{op:'endSceneEffects',actorUuid:a.uuid});
-    return publicNote("Драматическое время завершено. Выберите карты для сброса в листе и нажмите «Обновить руку после сцены»: добор до трёх.");
+    return publicNote(ttbT("Драматическое время завершено. Выберите карты для сброса в листе и нажмите «Обновить руку после сцены»: добор до трёх."));
   }
   if(p.op==="recover"){
-    const message=game.messages.get(p.messageId),d=message?.getFlag(ID,"duel");assert(d&&!d.closed,"Нет незавершённой проверки.");
+    const message=game.messages.get(p.messageId),d=message?.getFlag(ID,"duel");assert(d&&!d.closed,ttbT("Нет незавершённой проверки."));
     const copy=foundry.utils.deepClone(d),active=stack("active");
     for(const c of [...copy.cards,...(copy.replacement?[copy.replacement]:[])]){
       const card=active.cards.get(c.id);if(!card)continue;
@@ -261,10 +269,10 @@ export async function execute(user,p){
     const {message,d,actor}=getDuel(user,p.messageId);
     if(['cheat','finish'].includes(p.op))await opposedTurn(message,d);
     if(p.op==="pick")return choose(message,d,integer(p.index,0,d.cards.length-1));
-    if(p.op==="red"){const c=d.replacement??d.cards[d.selected];assert(c?.value===14&&!c.rank&&p.suit in SUITS,"Нужен красный джокер и допустимая масть.");d.redSuit=p.suit;return saveDuel(message,d);}
+    if(p.op==="red"){const c=d.replacement??d.cards[d.selected];assert(c?.value===14&&!c.rank&&p.suit in SUITS,ttbT("Нужен красный джокер и допустимая масть."));d.redSuit=p.suit;return saveDuel(message,d);}
     if(p.op==="finish")return finish(message,d,actor);
-    requireHandLimit(actor);assert(canCheat(d),"В этой проверке нельзя обмануть судьбу.");
-    const hand=stack("hand",actor.id),card=hand?.cards.get(p.cardId);assert(card,"Этой карты нет в вашей руке.");
+    requireHandLimit(actor);assert(canCheat(d),ttbT("В этой проверке нельзя обмануть судьбу."));
+    const hand=stack("hand",actor.id),card=hand?.cards.get(p.cardId);assert(card,ttbT("Этой карты нет в вашей руке."));
     const replacement=nativeCard(card),old=d.cards[d.selected];
     await hand.pass(stack("active"),[card.id],{chatNotification:false});
     // Persist the replacement before returning the old card, allowing recovery after a disconnect.
@@ -277,31 +285,31 @@ export async function execute(user,p){
   if(p.op==="give")return drawHand(actor,1);
   if(p.op==="discard")return discardHand(actor,p.ids);
   if(p.op==="declineCredit"){
-    const hand=stack("hand",actor.id),credits=hand?.getFlag(ID,"credits")??0;assert(credits>0,"Нет добора за перетасовку.");return hand.setFlag(ID,"credits",credits-1);
+    const hand=stack("hand",actor.id),credits=hand?.getFlag(ID,"credits")??0;assert(credits>0,ttbT("Нет добора за перетасовку."));return hand.setFlag(ID,"credits",credits-1);
   }
   if(p.op==="credit"){
-    requireHandLimit(actor);const hand=stack("hand",actor.id),credits=hand?.getFlag(ID,"credits")??0;assert(credits>0,"Нет добора за перетасовку.");
+    requireHandLimit(actor);const hand=stack("hand",actor.id),credits=hand?.getFlag(ID,"credits")??0;assert(credits>0,ttbT("Нет добора за перетасовку."));
     await drawHand(actor,1);return hand.setFlag(ID,"credits",credits-1);
   }
   if(p.op==="refresh"){
-    const hand=stack("hand",actor.id);assert(hand?.getFlag(ID,"refresh"),"Мастер ещё не объявил конец Драматического времени.");
+    const hand=stack("hand",actor.id);assert(hand?.getFlag(ID,"refresh"),ttbT("Мастер ещё не объявил конец Драматического времени."));
     if(p.ids?.length)await discardHand(actor,p.ids);
     if(hand.cards.size<3)await drawHand(actor,3-hand.cards.size);
     return hand.setFlag(ID,"refresh",false);
   }
   if(p.op==="duel")return startDuel(actor,p);
-  throw new Error("Неизвестное действие.");
+  throw new Error(ttbT("Неизвестное действие."));
 }
 
 // Authenticated ChatMessage requests: core v14 validates author on the server.
 // No user identity supplied through an unauthenticated custom socket is trusted.
 export async function request(payload){
-  assert(authority(),"Для работы с колодами мастер должен быть подключён к миру.");
-  const message=await ChatMessage.create({content:`<p>${e(ACTION_LABELS[payload.op]??"Действие персонажа")} · ожидает обработки мастером.</p>`,whisper:requestRecipients(),flags:{[ID]:{request:payload,status:"pending"}}});
+  assert(authority(),ttbT("Для работы с колодами мастер должен быть подключён к миру."));
+  const message=await ChatMessage.create({content:ttbTr`<p>${e(ACTION_LABELS[payload.op]??ttbT("Действие персонажа"))} · ожидает обработки мастером.</p>`,whisper:requestRecipients(),flags:{[ID]:{request:payload,status:"pending"}}});
   return new Promise((resolve,reject)=>{
-    const check=m=>{if(m.id!==message.id)return;const status=m.getFlag(ID,"status");if(!["done","error"].includes(status))return;cleanup();status==="done"?resolve():reject(new Error(m.getFlag(ID,"error")??"Ошибка обработки."));};
+    const check=m=>{if(m.id!==message.id)return;const status=m.getFlag(ID,"status");if(!["done","error"].includes(status))return;cleanup();status==="done"?resolve():reject(new Error(m.getFlag(ID,"error")??ttbT("Ошибка обработки.")));};
     const hook=Hooks.on("updateChatMessage",check);
-    const timer=setTimeout(()=>{cleanup();reject(new Error("Мастер не подтвердил запрос за 30 секунд. Проверьте сообщение в чате; не повторяйте действие, пока его состояние не выяснено."));},30000);
+    const timer=setTimeout(()=>{cleanup();reject(new Error(ttbT("Мастер не подтвердил запрос за 30 секунд. Проверьте сообщение в чате; не повторяйте действие, пока его состояние не выяснено.")));},30000);
     function cleanup(){clearTimeout(timer);Hooks.off("updateChatMessage",hook);}
     check(game.messages.get(message.id)??message);
   });
@@ -314,10 +322,10 @@ export function processRequest(message){
   enqueue(async()=>{
     if(authority()?.id!==game.user.id){seen.delete(message.id);return;}
     const ledger=game.settings.get(ID,"requests");
-    if(ledger[message.id]){await message.update({[`flags.${ID}.status`]:"error",[`flags.${ID}.error`]:"Запрос был прерван. Мастеру нужно проверить открытые проверки и колоды перед повторением.",content:"<p>Прерванный запрос: требуется проверка мастером. Повторно автоматически не выполняется.</p>"});return;}
+    if(ledger[message.id]){await message.update({[`flags.${ID}.status`]:"error",[`flags.${ID}.error`]:ttbT("Запрос был прерван. Мастеру нужно проверить открытые проверки и колоды перед повторением."),content:ttbT("<p>Прерванный запрос: требуется проверка мастером. Повторно автоматически не выполняется.</p>")});return;}
     // Fail closed after interruption: an already started request is never replayed automatically.
     ledger[message.id]="started";await game.settings.set(ID,"requests",ledger);
     try{await execute(user,payload);await message.update({[`flags.${ID}.status`]:"done",content:""});}
-    catch(err){console.error(`${ID} | request ${message.id}`,err);const d=game.messages.get(payload.messageId)?.getFlag(ID,'duel'),a=fromUuidSync(payload.actorUuid??d?.attack?.sourceUuid??d?.actorUuid)??game.actors.get(payload.actorId);await message.update({[`flags.${ID}.blockedActorUuid`]:a?.uuid??'',[`flags.${ID}.status`]:"error",[`flags.${ID}.error`]:err.message,content:`<p>Действие не завершено: ${e(err.message)}</p>${a?.type==='fated'?'<button type="button" data-ttb="openHand">Открыть руку: добор и сброс</button>':''}`});}
+    catch(err){console.error(`${ID} | request ${message.id}`,err);const d=game.messages.get(payload.messageId)?.getFlag(ID,'duel'),a=fromUuidSync(payload.actorUuid??d?.attack?.sourceUuid??d?.actorUuid)??game.actors.get(payload.actorId);await message.update({[`flags.${ID}.blockedActorUuid`]:a?.uuid??'',[`flags.${ID}.status`]:"error",[`flags.${ID}.error`]:err.message,content:ttbTr`<p>Действие не завершено: ${e(err.message)}</p>${a?.type==='fated'?ttbT('<button type="button" data-ttb="openHand">Открыть руку: добор и сброс</button>'):''}`});}
   });
 }
